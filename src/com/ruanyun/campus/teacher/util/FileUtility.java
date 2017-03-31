@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Random;
 
@@ -449,4 +450,17 @@ public class FileUtility {
 	public static boolean isGooglePhotosUri(Uri uri) {  
 	    return "com.google.android.apps.photos.content".equals(uri.getAuthority());  
 	}
+	public static boolean isImageType(String filename)
+	{
+		String extName=getFileExtName(filename).toLowerCase();
+		String imageType="jpg,jpeg,png,gif,bmp";
+    	String[] imageArray=imageType.split(",");
+    	if(Arrays.asList(imageArray).contains(extName))
+    	{
+    		return true;
+    	}
+    	else
+    		return false;
+	}
+	
 }

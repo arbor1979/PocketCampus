@@ -25,6 +25,7 @@ public class AchievementItem {
 	private List<Achievement> achievements;
 	private String rightButton;
 	private String rightButtonURL;
+	private String submitTarget;
 
 	public AchievementItem(JSONObject jo) {
 		templateName = jo.optString("适用模板");
@@ -40,6 +41,15 @@ public class AchievementItem {
 		}
 		rightButton=jo.optString("右上按钮");
 		rightButtonURL=jo.optString("右上按钮URL");
+		submitTarget=jo.optString("右上按钮Submit");
+	}
+
+	public String getSubmitTarget() {
+		return submitTarget;
+	}
+
+	public void setSubmitTarget(String submitTarget) {
+		this.submitTarget = submitTarget;
 	}
 
 	public String getRightButton() {

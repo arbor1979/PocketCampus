@@ -164,7 +164,7 @@ public class AchievementDetail {
 		private String htmlText;
 		private String url;
 		private ArrayList<String> imageList;
-
+		private JSONArray fujianList;
 		public String getKechengId() {
 			return kechengId;
 		}
@@ -231,6 +231,15 @@ public class AchievementDetail {
 					}
 				}
 			}
+			fujianList=jo.optJSONArray("附件数组");
+		}
+
+		public JSONArray getFujianList() {
+			return fujianList;
+		}
+
+		public void setFujianList(JSONArray fujianList) {
+			this.fujianList = fujianList;
 		}
 
 		public ArrayList<String> getImageList() {

@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
@@ -101,6 +102,10 @@ public class SubjectActivity extends FragmentActivity {
 		bn_menu = (Button) findViewById(R.id.btn_back);
 		bn_refresh = (Button) findViewById(R.id.btn_goto);
 		tv_title = (TextView) findViewById(R.id.tv_title);
+		ImageButton imageButton_left=(ImageButton)findViewById(R.id.imageButton_left);
+		ImageButton imageButton_right=(ImageButton)findViewById(R.id.imageButton_right);
+		imageButton_left.setOnClickListener(new MyListener());
+		imageButton_right.setOnClickListener(new MyListener());
 		bn_menu.setBackgroundResource(R.drawable.bg_title_homepage_back);
 		//bn_refresh.setBackgroundResource(R.drawable.bg_title_homepage_go);
 		tv_title.setOnClickListener(new MyListener());
@@ -128,9 +133,9 @@ public class SubjectActivity extends FragmentActivity {
 				}
 				
 				if (currentWeek == selectedWeek) {
-					tv_title.setText("第" + selectedWeek + "周(本周)▼");
+					tv_title.setText("第" + selectedWeek + "周(本周)");
 				} else {
-					tv_title.setText("第" + selectedWeek + "周(非本周)▼");
+					tv_title.setText("第" + selectedWeek + "周(非本周)");
 				}
 				
 			
@@ -177,12 +182,34 @@ public class SubjectActivity extends FragmentActivity {
 					initlayout.setVisibility(View.INVISIBLE);
 					tv_title.setVisibility(View.VISIBLE);
 					if (currentWeek == selectedWeek) {
-						tv_title.setText("第" + selectedWeek + "周(本周)▼");
+						tv_title.setText("第" + selectedWeek + "周(本周)");
 					} else {
-						tv_title.setText("第" + selectedWeek + "周(非本周)▼");
+						tv_title.setText("第" + selectedWeek + "周(非本周)");
 					}
 				} else {
 					AppUtility.showToastMsg(SubjectActivity.this, "正在初始化数据");
+				}
+				break;
+			case R.id.imageButton_left:
+				if(selectedWeek>1)
+				{
+					selectedWeek--;
+					PrefUtility.put(Constants.PREF_SELECTED_WEEK, selectedWeek);
+					String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE,"");
+					InitData initData = new InitData(SubjectActivity.this,
+							getHelper(), mLoadingDialog, ACTION_NAME, checkCode);
+					initData.initAllInfo();
+				}
+				break;
+			case R.id.imageButton_right:
+				if(selectedWeek<maxWeek)
+				{
+					selectedWeek++;
+					PrefUtility.put(Constants.PREF_SELECTED_WEEK, selectedWeek);
+					String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE,"");
+					InitData initData = new InitData(SubjectActivity.this,
+							getHelper(), mLoadingDialog, ACTION_NAME, checkCode);
+					initData.initAllInfo();
 				}
 				break;
 			}
@@ -288,9 +315,9 @@ public class SubjectActivity extends FragmentActivity {
 				initlayout.setVisibility(View.INVISIBLE);
 				tv_title.setVisibility(View.VISIBLE);
 				if (currentWeek == selectedWeek) {
-					tv_title.setText("第" + selectedWeek + "周(本周)▼");
+					tv_title.setText("第" + selectedWeek + "周(本周)");
 				} else {
-					tv_title.setText("第" + selectedWeek + "周(非本周)▼");
+					tv_title.setText("第" + selectedWeek + "周(非本周)");
 				}
 			}
 			if(action.equals("changeScheduleBg"))

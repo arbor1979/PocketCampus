@@ -47,17 +47,38 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tv_title"
+    <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_toLeftOf="@id/layout_goto"
         android:layout_toRightOf="@id/layout_back"
-        android:background="@drawable/title_layout_selector"
-        android:clickable="true"
-        android:gravity="center"
-        android:textColor="@color/black"
-        android:textSize="@dimen/head_title_font_size" />
+        android:gravity="center_horizontal" >
+
+        <ImageButton
+            android:id="@+id/imageButton_left"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/arrow_left" />
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:background="@drawable/title_layout_selector"
+            android:clickable="true"
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:textSize="@dimen/head_title_font_size" />
+
+        <ImageButton
+            android:id="@+id/imageButton_right"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/arrow_right" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/initlayout"

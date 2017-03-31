@@ -1,11 +1,13 @@
 package com.ruanyun.campus.teacher.fragment;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,11 +19,14 @@ import org.json.JSONObject;
 import android.R.color;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Browser;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
@@ -30,10 +35,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
@@ -60,8 +68,11 @@ import com.ruanyun.campus.teacher.entity.AchievementDetail.Achievement;
 import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.DialogUtility;
+import com.ruanyun.campus.teacher.util.FileUtility;
+import com.ruanyun.campus.teacher.util.IntentUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
 import com.ruanyun.campus.teacher.widget.NonScrollableGridView;
+import com.ruanyun.campus.teacher.widget.NonScrollableListView;
 
 /**
  * 成绩详情
@@ -524,6 +535,8 @@ public class SchoolAchievementDetailFragment extends Fragment {
 				holder.hiddenBtn=(ImageView)convertView.findViewById(R.id.hiddenBtn);
 				holder.ly_hidden=(LinearLayout)convertView.findViewById(R.id.ly_hidden);
 				holder.grid_picture=(NonScrollableGridView)convertView.findViewById(R.id.grid_picture);
+				holder.list_fujian=(NonScrollableListView)convertView.findViewById(R.id.list_fujian);
+				
 				holder.right_layout=(LinearLayout)convertView.findViewById(R.id.right_layout);
 				convertView.setTag(holder);
 			} else {
@@ -533,6 +546,7 @@ public class SchoolAchievementDetailFragment extends Fragment {
 			final Achievement achievement = (Achievement) getItem(position);
 			holder.left.setText(achievement.getSubject());
 			holder.right.setText(achievement.getFraction());
+			holder.right.setVisibility(View.VISIBLE);
 			if(achievement.getHiddenBtn()!=null && achievement.getHiddenBtn().length()>0)
 			{
 				
@@ -551,6 +565,8 @@ public class SchoolAchievementDetailFragment extends Fragment {
 			if(achievement.getImageList()!=null && achievement.getImageList().size()>0)
 			{
 				holder.grid_picture.setVisibility(View.VISIBLE);
+				if(holder.right.getText().length()==0)
+					holder.right.setVisibility(View.GONE);
 				if(holder.grid_picture.getAdapter()==null)
 				{
 					MyPictureAdapter myPictureAdapter = new MyPictureAdapter(getActivity(),
@@ -565,8 +581,56 @@ public class SchoolAchievementDetailFragment extends Fragment {
 			}
 			else
 				holder.grid_picture.setVisibility(View.GONE);
+			if(achievement.getFujianList()!=null && achievement.getFujianList().length()>0)
+			{
+				holder.list_fujian.setVisibility(View.VISIBLE);
+				if(holder.right.getText().length()==0)
+					holder.right.setVisibility(View.GONE);
+				ArrayList<HashMap<String, Object>> arrayList = new ArrayList<HashMap<String,Object>>();  
+		        for(int i=0;i<achievement.getFujianList().length();i++){  
+		        	JSONObject item = null;
+					try {
+						item = (JSONObject) achievement.getFujianList().get(i);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if(item!=null)
+					{
+			            HashMap<String, Object> tempHashMap = new HashMap<String, Object>();  
+			            tempHashMap.put("name", item.optString("name"));
+			            tempHashMap.put("url", item.optString("url"));
+			            arrayList.add(tempHashMap);  
+					}
+		              
+		        } 
+				SimpleAdapter adapter = new SimpleAdapter(getActivity(), arrayList, R.layout.list_item_simple,  
+		                new String[]{"name"}, new int[]{R.id.item_textView});  
+				holder.list_fujian.setAdapter(adapter);  
+				holder.list_fujian.setOnItemClickListener(new OnItemClickListener(){  
 			
-			
+					@Override
+					public void onItemClick(AdapterView<?> parent, View view,
+							int position, long id) {
+						
+						JSONObject item = null;
+						try {
+							item = (JSONObject) achievement.getFujianList().get(position);
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						if(item!=null)
+						{
+							AppUtility.downloadAndOpenFile(item.optString("url"),view);
+						}
+					}     
+				});
+			}
+			else
+			{
+				holder.list_fujian.setVisibility(View.GONE);
+			}
 			convertView.setOnClickListener(new OnClickListener(){
 				@Override
 				public void onClick(View v) {
@@ -682,6 +746,7 @@ public class SchoolAchievementDetailFragment extends Fragment {
 			ImageView hiddenBtn;
 			LinearLayout ly_hidden;
 			NonScrollableGridView grid_picture;
+			NonScrollableListView list_fujian;
 			LinearLayout right_layout;
 		}
 	}

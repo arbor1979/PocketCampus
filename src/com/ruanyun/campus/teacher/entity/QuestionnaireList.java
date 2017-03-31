@@ -119,6 +119,7 @@ public class QuestionnaireList implements Serializable {
 		private String options[];
 		private List<ImageItem> images; 
 		private String isRequired;
+		private JSONArray fujianArray;
 		public Question(JSONObject jo) {
 			title = jo.optString("题目");
 			status = jo.optString("类型");
@@ -140,9 +141,23 @@ public class QuestionnaireList implements Serializable {
 				}else{
 					setImages(new ArrayList<ImageItem>());
 				}
-			}else{
+			}
+			else if(status.equals("附件"))
+			{
+				fujianArray=jo.optJSONArray("用户答案");
+			}
+			else{
 				usersAnswer = jo.optString("用户答案");
 			}
+			
+		}
+
+		public JSONArray getFujianArray() {
+			return fujianArray;
+		}
+
+		public void setFujianArray(JSONArray fujianArray) {
+			this.fujianArray = fujianArray;
 		}
 
 		public String getTitle() {
@@ -194,6 +209,8 @@ public class QuestionnaireList implements Serializable {
 		}
 
 		public List<ImageItem> getImages() {
+			if(images==null)
+				images=new ArrayList<ImageItem>();
 			return images;
 		}
 

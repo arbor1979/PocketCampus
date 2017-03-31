@@ -18,9 +18,11 @@ import org.json.JSONObject;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -50,6 +52,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -61,6 +64,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.SimpleAdapter;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -106,27 +110,30 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	private boolean isEnable = true;
 	private Dialog dialog, getPictureDiaLog;
 	private MyPictureAdapter myPictureAdapter;
-	private List<String> picturePaths = new ArrayList<String>();// 选中的图片路径
+	//List<String> picturePaths = new ArrayList<String>();
 	private ArrayList<Question> questions = new ArrayList<Question>();
-	private List<ImageItem> images = new ArrayList<ImageItem>();
+	//private List<ImageItem> images = new ArrayList<ImageItem>();
 	private static final int REQUEST_CODE_TAKE_PICTURE = 2;// //设置图片操作的标志
 	private static final int REQUEST_CODE_TAKE_CAMERA = 1;// //设置拍照操作的标志
-	
-	private int size = 5;//已提交图片数量;size:图片最大数量
+	private static final int REQUEST_CODE_TAKE_DOCUMENT = 3;// //设置图片操作的标志
+	//private int size = 5;//已提交图片数量;size:图片最大数量
+	private int curIndex;
+	private ProgressDialog progressDlg;
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
+		@SuppressLint("NewApi")
 		public void handleMessage(Message msg) {
 			String result = "";
 			String resultStr = "";
 			switch (msg.what) {
 			case -1:
-				showFetchFailedView();
-				AppUtility.showErrorToast(getActivity(), msg.obj.toString());
-				if(myPictureAdapter!=null)
-				{
-					myPictureAdapter.setPicPaths(picturePaths);
-					//myPictureAdapter.notifyDataSetChanged();
+				if(dialog != null){
+					dialog.dismiss();
 				}
+				if(progressDlg!=null)
+					progressDlg.dismiss();
+				AppUtility.showErrorToast(getActivity(), msg.obj.toString());
+				
 				break;
 			case 0://获取数据
 				showProgress(false);
@@ -151,12 +158,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 							AppUtility.showToastMsg(getActivity(), res);
 						} else {
 							questionnaireList = new QuestionnaireList(jo);
-							Log.d(TAG,
-									"--------noticesItem.getNotices().size():"
-											+ questionnaireList.getQuestions()
-													.size());
-							Log.d(TAG,
-									"---------" + questionnaireList.getStatus());
+							
 							tvTitle.setText(questionnaireList.getTitle());
 							questions = questionnaireList.getQuestions();
 							status=questionnaireList.getStatus();
@@ -223,6 +225,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				break;
 			case 2://删除图片
 				result = msg.obj.toString();
+				int type=msg.getData().getInt("type");
 				resultStr = "";
 				if (AppUtility.isNotEmpty(result)) {
 					try {
@@ -235,16 +238,35 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					try {
 						JSONObject	jo = new JSONObject(resultStr);
 						if("成功".equals(jo.optString("STATUS"))){
-							for (int i = 0; i < images.size(); i++) {
-								if(images.get(i).getDownAddress().equals(delImagePath)){
-									images.remove(i);
+							if(type==1)
+							{
+								List<ImageItem> images=questions.get(curIndex).getImages();
+								for (int i = 0; i < images.size(); i++) {
+									if(images.get(i).getDownAddress().equals(delImagePath)){
+										images.remove(i);
+									}
 								}
+								questions.get(curIndex).setImages(images);
+								File cacheFile=FileUtility.getCacheFile(delImagePath);
+								if(cacheFile.exists())
+									cacheFile.delete();
+								myPictureAdapter.setPicPathsByImages(images);
 							}
-							File cacheFile=FileUtility.getCacheFile(delImagePath);
-							if(cacheFile.exists())
-								cacheFile.delete();
-							picturePaths.remove(delImagePath);
-							myPictureAdapter.setPicPaths(picturePaths);
+							else if(type==2)
+							{
+								JSONArray fujianArray=questions.get(curIndex).getFujianArray();
+								for (int i = 0; i < fujianArray.length(); i++) {
+									JSONObject item=(JSONObject) fujianArray.get(i);
+									if(item.optString("newname").equals(FileUtility.getFileRealName(jo.optString("path")))){
+										fujianArray.remove(i);
+									}
+								}
+								questions.get(curIndex).setFujianArray(fujianArray);
+								View view=(View) myListview.getChildAt(curIndex);
+								NonScrollableListView listview=(NonScrollableListView) view.findViewById(R.id.lv_choose);
+								SimpleAdapter fujianAdapter=setupFujianAdpter(questions.get(curIndex));
+								listview.setAdapter(fujianAdapter);
+							}
 							//myPictureAdapter.notifyDataSetChanged();
 						}else{
 							AppUtility.showToastMsg(getActivity(), jo.optString("STATUS"));
@@ -259,7 +281,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				resultStr = "";
 				Bundle data=msg.getData();
 				String oldFileName=data.getString("oldFileName");
-				
+				type=data.getInt("type");
 				if (AppUtility.isNotEmpty(result)) {
 					try {
 						resultStr = new String(Base64.decode(result
@@ -274,12 +296,37 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					if("OK".equals(jo.optString("STATUS"))){
 						
 						String newFileName=jo.getString("文件名");
-						FileUtility.fileRename(oldFileName, newFileName);
-						ImageItem ds = new ImageItem(jo);
-						images.add(ds);
-						
-						picturePaths.add(ds.getDownAddress());
-						myPictureAdapter.setPicPaths(picturePaths);
+						if(type==1)
+						{
+							List<ImageItem> images=questions.get(curIndex).getImages();
+							FileUtility.fileRename(oldFileName, newFileName);
+							ImageItem ds = new ImageItem(jo);
+							images.add(ds);
+							questions.get(curIndex).setImages(images);
+							myPictureAdapter.setPicPathsByImages(images);
+						}
+						else if(type==2)
+						{
+							if(progressDlg!=null) progressDlg.dismiss();
+							Question question=questions.get(curIndex);
+							if(question!=null)
+							{
+								JSONArray fujianArray=question.getFujianArray();
+								JSONObject newItem=new JSONObject();
+								newItem.put("name", oldFileName);
+								newItem.put("newname", newFileName);
+								newItem.put("url", jo.optString("文件地址"));
+								fujianArray.put(newItem);
+								question.setFujianArray(fujianArray);
+								questions.set(curIndex, question);
+								View view=(View) myListview.getChildAt(curIndex);
+								NonScrollableListView listview=(NonScrollableListView) view.findViewById(R.id.lv_choose);
+								SimpleAdapter fujianAdapter=setupFujianAdpter(questions.get(curIndex));
+								listview.setAdapter(fujianAdapter);
+							}
+							
+							
+						}
 						//myPictureAdapter.notifyDataSetChanged();
 					}
 				} catch (JSONException e) {
@@ -392,6 +439,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			String fromTag=intent.getStringExtra("TAG");
+			curIndex=intent.getIntExtra("position",0);
 			Log.d(TAG, "--------action:" + action);
 			Log.d(TAG, "--------fromTag:" + fromTag);
 			if (action.equals(Constants.GET_PICTURE)&&fromTag.equals(TAG)) {
@@ -505,9 +553,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 
 			@Override
 			public void onClick(View v) {
-				String string=imageName.substring(0, imageName.indexOf("?"));
-				String fileName=string.substring(string.lastIndexOf("/")+1, string.length());
-				SubmitDeleteinfo(fileName);
+				String fileName=FileUtility.getFileRealName(imageName);
+				SubmitDeleteinfo(fileName,1);
 				ad.dismiss();
 			}
 		});
@@ -516,7 +563,15 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 
 			@Override
 			public void onClick(View v) {
-				picturePaths.remove("");
+				
+				List<String> picturePaths = new ArrayList<String>();// 选中的图片路径
+				List<ImageItem> images=questions.get(curIndex).getImages();
+				if(images != null)
+				{
+					for (int i = 0; i < images.size(); i++) {
+						picturePaths.add(images.get(i).getDownAddress());
+					}
+				}
 				Intent intent = new Intent(getActivity(), ImagesActivity.class);
 				intent.putStringArrayListExtra("pics", (ArrayList<String>) picturePaths);
 				
@@ -753,7 +808,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	 * @param mCurrentFile
 	 *
 	 */
-	public void uploadFile(File file)  {
+	public void uploadFile(File file,int type)  {
 		if(!file.exists()) return;
 		if(AppUtility.formetFileSize(file.length()) > 5242880*2){
 			AppUtility.showToastMsg(getActivity(), "对不起，您上传的文件太大了，请选择小于10M的文件！");
@@ -761,15 +816,16 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			 
 	        try
 	        {
-	        	ImageUtility.rotatingImageIfNeed(file.getAbsolutePath());       	
-				DownloadSubject	downloadSubject = new DownloadSubject();
+	        	if(type==1)
+	        		ImageUtility.rotatingImageIfNeed(file.getAbsolutePath());
+	        	DownloadSubject	downloadSubject = new DownloadSubject();
 				String filebase64Str = FileUtility.fileupload(file);
 				downloadSubject.setFilecontent(filebase64Str);
 				String filename = file.getName();
 				downloadSubject.setFileName(filename);
 				downloadSubject.setLocalfile(file.getAbsolutePath());
 				downloadSubject.setFilesize(file.length());
-				SubmitUploadFile(downloadSubject);
+				SubmitUploadFile(downloadSubject,type);
 				
 	        }
 	        catch(Exception e)
@@ -786,7 +842,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	 * @param base64Str
 	 * @param action
 	 */
-	public void SubmitUploadFile(DownloadSubject downloadSubject){
+	public void SubmitUploadFile(final DownloadSubject downloadSubject,final int type){
 		
 		final CampusParameters params = new CampusParameters();
 		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");// 获取用户校验码
@@ -795,10 +851,19 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		params.add("老师上课记录编号", questionnaireList.getTitle());
 		params.add("图片类别", "问卷调查");
 		params.add("文件名称", downloadSubject.getFileName());
+		params.add("WenJianMing", downloadSubject.getFileName());
 		params.add("文件内容", downloadSubject.getFilecontent());
-		picturePaths.remove("");
-		picturePaths.add("loading");
-		myPictureAdapter.setPicPaths(picturePaths);
+		if(type==1)
+		{
+			List<String> picturePaths=myPictureAdapter.getPicPaths();
+			picturePaths.remove("");
+			picturePaths.add("loading");
+			myPictureAdapter.setPicPaths(picturePaths);
+		}
+		else if(type==2)
+		{
+			progressDlg=ProgressDialog.show(getActivity(), "", "上传中...",true,false);
+		}
 		//myPictureAdapter.notifyDataSetChanged();
 		
 		CampusAPI.uploadFiles(params, new RequestListener(){
@@ -806,12 +871,13 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			@Override
 			public void onComplete(String response) {
 				Log.d(TAG, "------------------response"+response);
-				picturePaths.remove("loading");
+				
 				Message msg = new Message();
 				msg.what = 3;
 				msg.obj = response;
 				Bundle data=new Bundle();
 				data.putString("oldFileName", params.getValue("文件名称"));
+				data.putInt("type",type);
 				msg.setData(data);
 				mHandler.sendMessage(msg);	
 				
@@ -826,10 +892,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			@Override
 			public void onError(CampusException e) {
 				Log.d(TAG, "图片上传失败");
-				if(dialog != null){
-					dialog.dismiss();
-				}
-				picturePaths.remove("loading");
+				
 				Message msg = new Message();
 				msg.what = -1;
 				msg.obj = e.getMessage();
@@ -848,7 +911,58 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		JSONArray joarr = new JSONArray();
 		for (int i = 0; i < questions.size(); i++) {
 			String mStatus = questions.get(i).getStatus();
-			if(!mStatus.equals("图片")){
+			if(mStatus.equals("图片"))
+			{
+				JSONArray joimages = new JSONArray();
+				List<ImageItem> images=questions.get(i).getImages();
+				for (ImageItem imageItem :images) {
+					JSONObject joimgs = new JSONObject();
+					try {
+						joimgs.put("文件名", imageItem.getFileName());
+						joimgs.put("文件地址", imageItem.getDownAddress());
+						joimgs.put("课程名称", imageItem.getCurriculumName());
+						joimgs.put("下载次数", imageItem.getLoadCount());
+						joimgs.put("上课记录编号", imageItem.getSubjectId());
+						joimgs.put("最后一次下载", imageItem.getLastDown());
+						joimgs.put("名称", imageItem.getName());
+						joimgs.put("STATUS", "OK");
+						joimages.put(joimgs);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				joarr.put(joimages);
+			}
+			else if(mStatus.equals("附件"))
+			{
+				
+				JSONArray fujianArray=questions.get(i).getFujianArray();
+				for (int j=0;i<fujianArray.length();j++) {
+					JSONObject joimgs = null;
+					try {
+						joimgs = fujianArray.getJSONObject(j);
+					} catch (JSONException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					try {
+						joimgs.put("文件名", joimgs.optString("newname"));
+						joimgs.put("文件地址",joimgs.optString("url"));
+						joimgs.put("课程名称", questionnaireList.getTitle());
+						joimgs.put("下载次数","0");
+						joimgs.put("上课记录编号", questionnaireList.getTitle());
+						joimgs.put("最后一次下载", "0");
+						joimgs.put("名称", joimgs.optString("name"));
+						joimgs.put("STATUS", "OK");
+						fujianArray.put(joimgs);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				joarr.put(fujianArray);
+			}
+			else
+			{
 				String usersAnswer = questions.get(i).getUsersAnswer();
 				String isRequired = questions.get(i).getIsRequired();//是否必填
 				if(AppUtility.isNotEmpty(isRequired)){
@@ -874,25 +988,6 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 						return null;
 					}
 				}
-			}else{
-				JSONArray joimages = new JSONArray();
-				for (ImageItem imageItem :images) {
-					JSONObject joimgs = new JSONObject();
-					try {
-						joimgs.put("文件名", imageItem.getFileName());
-						joimgs.put("文件地址", imageItem.getDownAddress());
-						joimgs.put("课程名称", imageItem.getCurriculumName());
-						joimgs.put("下载次数", imageItem.getLoadCount());
-						joimgs.put("上课记录编号", imageItem.getSubjectId());
-						joimgs.put("最后一次下载", imageItem.getLastDown());
-						joimgs.put("名称", imageItem.getName());
-						joimgs.put("STATUS", "OK");
-						joimages.put(joimgs);
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				}
-				joarr.put(joimages);
 			}
 		}
 		Log.d(TAG, joarr.toString());
@@ -905,7 +1000,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	 * 
 	 * @param fileName
 	 */
-	public void SubmitDeleteinfo(String fileName) {
+	public void SubmitDeleteinfo(String fileName,final int type) {
 		JSONObject jo = new JSONObject();
 		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
 		Log.d(TAG, "--------------filename----------" + fileName);
@@ -942,20 +1037,22 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				Message msg = new Message();
 				msg.what = 2;
 				msg.obj = response;
+				Bundle data=new Bundle();
+				data.putInt("type",type);
+				msg.setData(data);
 				mHandler.sendMessage(msg);
 			}
 		});
 	}
-	public List<String> getPicturePaths() {
-		return picturePaths;
-	}
+	
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		
 		switch (requestCode) {
 			case REQUEST_CODE_TAKE_CAMERA: // 拍照返回
 				//Bundle bundle = data.getExtras();
 				//Bitmap bitmap = (Bitmap) bundle.get("data");// 获取相机返回的数据，并转换为Bitmap图片格式
 				//ImageUtility.writeTofiles(bitmap, picturePath);
-				uploadFile(new File(picturePath));
+				uploadFile(new File(picturePath),1);
 				
 				break;
 			case REQUEST_CODE_TAKE_PICTURE:
@@ -970,11 +1067,20 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					
 					String tempPath =FileUtility.getRandomSDFileName("jpg");
 					if(FileUtility.copyFile(picturePath,tempPath))
-						uploadFile(new File(tempPath));
+						uploadFile(new File(tempPath),1);
 					else
 						AppUtility.showErrorToast(getActivity(), "向SD卡复制文件出错");
 				}
 				break;
+			case REQUEST_CODE_TAKE_DOCUMENT:
+				if (resultCode == Activity.RESULT_OK) 
+				{
+					Uri uri = data.getData();
+					String filepath=FileUtility.getFilePathInSD(getActivity(),uri);
+					if(filepath!=null)
+						uploadFile(new File(filepath),2);
+					
+				}
 		}
 	};
 
@@ -1166,19 +1272,14 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_date.setVisibility(View.GONE);
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
-				Log.d(TAG, "-----------------" + picturePaths.size());
-				List<ImageItem> images = question.getImages();
-				if(images != null){
-					for (int i = 0; i < images.size(); i++) {
-						String imagePath = images.get(i).getDownAddress();
-						if(!picturePaths.contains(imagePath)){
-							picturePaths.add(images.get(i).getDownAddress());
-						}
-					}
-				}
 				
-				myPictureAdapter = new MyPictureAdapter(getActivity(),isEnable,picturePaths,size,"调查问卷");
+				int size=5;
+				if(question.getLines()>0)
+					size=question.getLines();
+				myPictureAdapter = new MyPictureAdapter(getActivity(),isEnable,new ArrayList<String>(),size,"调查问卷");
 				myPictureAdapter.setFrom(TAG);
+				myPictureAdapter.setCurIndex(position);
+				myPictureAdapter.setPicPathsByImages(question.getImages());
 				holder.imageGridView.setAdapter(myPictureAdapter);
 			}
 			else if (mStatus.equals("日期")) {
@@ -1300,6 +1401,50 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				});
 				
 			}
+			else if (mStatus.equals("附件")) {
+				holder.imageGridView.setVisibility(View.GONE);
+				holder.radioGroup.setVisibility(View.GONE);
+				holder.multipleChoice.setVisibility(View.VISIBLE);
+				holder.etAnswer.setVisibility(View.GONE);
+				holder.tvAnswer.setVisibility(View.GONE);
+				holder.bt_date.setVisibility(View.GONE);
+				holder.bt_datetime.setVisibility(View.GONE);
+				holder.sp_select.setVisibility(View.GONE);
+				SimpleAdapter fujianAdapter=setupFujianAdpter(question);
+				holder.multipleChoice.setAdapter(fujianAdapter);
+				holder.multipleChoice.setTag(position);
+				holder.multipleChoice.setOnItemClickListener(new OnItemClickListener(){  
+					
+					@Override
+					public void onItemClick(AdapterView<?> parent, View view,
+							int position, long id) {
+						curIndex=(int)parent.getTag();
+						final HashMap<String, Object> item=(HashMap<String, Object>) parent.getAdapter().getItem(position);;
+						if(item.get("url").toString().length()>0)
+						{
+							new AlertDialog.Builder(view.getContext())
+						    .setMessage("是否删除此附件?")
+						    .setPositiveButton("是", new DialogInterface.OnClickListener()
+						    {
+						    @Override
+						    public void onClick(DialogInterface dialog, int which) {
+						      
+						    	SubmitDeleteinfo(item.get("newname").toString(),2);
+						    }})
+						    .setNegativeButton("否", null)
+						    .show();
+						}
+						else
+						{
+							Intent intent = new Intent(Intent.ACTION_GET_CONTENT);  
+			                intent.setType("*/*");
+			                intent.addCategory(Intent.CATEGORY_OPENABLE);
+			                startActivityForResult(Intent.createChooser(intent, "请选择一个要上传的文件"), REQUEST_CODE_TAKE_DOCUMENT); 
+						}
+					}     
+				});
+	
+			}
 			return convertView;
 		}
 
@@ -1318,7 +1463,38 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		}
 		
 	}
-	
+	private SimpleAdapter setupFujianAdpter(Question question)
+	{
+		final ArrayList<HashMap<String, Object>> arrayList = new ArrayList<HashMap<String,Object>>();  
+		for(int i=0;i<question.getFujianArray().length();i++){  
+        	JSONObject item = null;
+			try {
+				item = (JSONObject) question.getFujianArray().get(i);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(item!=null)
+			{
+	            HashMap<String, Object> tempHashMap = new HashMap<String, Object>();  
+	            tempHashMap.put("name", item.optString("name"));
+	            tempHashMap.put("url", item.optString("url"));
+	            tempHashMap.put("newname", item.optString("newname"));
+	            arrayList.add(tempHashMap);  
+			}
+              
+        } 
+		if(arrayList.size()<question.getLines())
+		{
+			HashMap<String, Object> tempHashMap = new HashMap<String, Object>();  
+            tempHashMap.put("name", "添加附件");
+            tempHashMap.put("url", "");
+            arrayList.add(tempHashMap);  
+		}
+		SimpleAdapter fujianAdapter = new SimpleAdapter(getActivity(), arrayList, R.layout.list_item_simple,  
+                new String[]{"name"}, new int[]{R.id.item_textView});
+		return fujianAdapter;
+	}
 	/**
 	 * 
 	 *  #(c) ruanyun PocketCampus <br/>

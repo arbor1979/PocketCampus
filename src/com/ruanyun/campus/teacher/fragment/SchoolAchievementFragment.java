@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -44,6 +45,7 @@ import com.ruanyun.campus.teacher.entity.AchievementItem;
 import com.ruanyun.campus.teacher.entity.AchievementItem.Achievement;
 import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.Base64;
+import com.ruanyun.campus.teacher.util.DialogUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
 
 
@@ -65,6 +67,7 @@ public class SchoolAchievementFragment extends Fragment {
 	private LayoutInflater inflater;
 	private AchieveAdapter adapter;
 	private List<Achievement> achievements = new ArrayList<Achievement>();
+	private Dialog dialog;
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
@@ -101,17 +104,24 @@ public class SchoolAchievementFragment extends Fragment {
 
 									@Override
 									public void onClick(View v) {
-										Intent intent =new Intent(getActivity(),SchoolDetailActivity.class);
-										intent.putExtra("templateName", "调查问卷");
-										int pos=interfaceName.indexOf("?");
-										String preUrl=interfaceName;
-										if(pos>-1)
-											preUrl=interfaceName.substring(0, pos);
-										intent.putExtra("interfaceName", preUrl+achievementItem.getRightButtonURL());
-										intent.putExtra("title", title);
-										intent.putExtra("status", "进行中");
-										intent.putExtra("autoClose", "是");
-										startActivityForResult(intent,101);
+										if(achievementItem.getSubmitTarget().equals("是"))
+										{
+											submitButtonClick(achievementItem.getRightButtonURL());
+										}
+										else
+										{
+											Intent intent =new Intent(getActivity(),SchoolDetailActivity.class);
+											intent.putExtra("templateName", "调查问卷");
+											int pos=interfaceName.indexOf("?");
+											String preUrl=interfaceName;
+											if(pos>-1)
+												preUrl=interfaceName.substring(0, pos);
+											intent.putExtra("interfaceName", preUrl+achievementItem.getRightButtonURL());
+											intent.putExtra("title", title);
+											intent.putExtra("status", "进行中");
+											intent.putExtra("autoClose", "是");
+											startActivityForResult(intent,101);
+										}
 									}
 								});
 							}
@@ -139,6 +149,51 @@ public class SchoolAchievementFragment extends Fragment {
 				}
 
 				
+				break;
+			case 3:
+				result = msg.obj.toString();
+				resultStr = "";
+				if (AppUtility.isNotEmpty(result)) {
+					try {
+						resultStr = new String(Base64.decode(result
+								.getBytes("GBK")));
+						Log.d(TAG, resultStr);
+					} catch (UnsupportedEncodingException e) {
+						showFetchFailedView();
+						e.printStackTrace();
+					}
+				}else{
+					showFetchFailedView();
+				}
+
+				if (AppUtility.isNotEmpty(resultStr)) {
+					try {
+						JSONObject jo = new JSONObject(resultStr);
+						String res = jo.optString("结果");
+						
+						if(res.equals("成功"))
+						{
+							AppUtility.showToastMsg(getActivity(), "操作成功!");
+							String autoClose=jo.optString("自动关闭");
+							if(autoClose!=null && autoClose.equals("是"))
+							{
+								Intent aintent = new Intent();
+								getActivity().setResult(1,aintent); 
+								getActivity().finish();
+							}
+							else
+								getAchievesItem();
+						}
+						else
+							AppUtility.showErrorToast(getActivity(), "操作失败:"+res);
+						
+					} catch (JSONException e) {
+						showFetchFailedView();
+						e.printStackTrace();
+					}
+				}else{
+					showFetchFailedView();
+				}
 				break;
 			}
 		}
@@ -276,7 +331,67 @@ public class SchoolAchievementFragment extends Fragment {
 			}
 		});
 	}
+	//submit按钮
+		private void submitButtonClick(String url) {
 
+			long datatime = System.currentTimeMillis();
+			String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+
+			JSONObject jo = new JSONObject();
+			try {
+				jo.put("用户较验码", checkCode);
+				jo.put("DATETIME", datatime);
+			
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			dialog = DialogUtility.createLoadingDialog(getActivity(),
+					"数据处理中...");
+			dialog.show();
+
+			String base64Str = Base64.encode(jo.toString().getBytes());
+		
+			CampusParameters params = new CampusParameters();
+			params.add(Constants.PARAMS_DATA, base64Str);
+			int pos=interfaceName.indexOf("?");
+			String preUrl=interfaceName;
+			if(pos>-1)
+				preUrl=interfaceName.substring(0, pos);
+			CampusAPI.getSchoolItem(params,
+					preUrl + url,
+					new RequestListener() {
+
+						@Override
+						public void onIOException(IOException e) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void onError(CampusException e) {
+							Log.d(TAG, "----response" + e.getMessage());
+							if(dialog != null){
+								dialog.dismiss();
+							}
+							Message msg = new Message();
+							msg.what = -1;
+							msg.obj = e.getMessage();
+							mHandler.sendMessage(msg);
+						}
+
+						@Override
+						public void onComplete(String response) {
+							Log.d(TAG, "----response" + response);
+							if(dialog != null){
+								dialog.dismiss();
+							}
+							Message msg = new Message();
+							msg.what = 3;
+							msg.obj = response;
+							mHandler.sendMessage(msg);
+						}
+					});
+		}
 	
 	@SuppressLint({ "DefaultLocale", "NewApi" })
 	class AchieveAdapter extends BaseAdapter {

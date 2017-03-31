@@ -21,6 +21,7 @@ import com.androidquery.AQuery;
 import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.activity.ImagesActivity;
 import com.ruanyun.campus.teacher.base.Constants;
+import com.ruanyun.campus.teacher.entity.ImageItem;
 import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.FileUtility;
 
@@ -34,21 +35,33 @@ public class MyPictureAdapter extends BaseAdapter implements Serializable{
 	private List<String> picPaths;
 	private LayoutInflater inflater;
 	private boolean isCanAdd = true;
-	private int size = 9;//最大图片数量
+	private int size;//最大图片数量
 	private String from;
 	private String imagetype;
+	private int curIndex;
 	
 	public MyPictureAdapter(Context context,boolean flag, List<String> picPaths,int size,String imagetype) {
 		this.mContext = context;
 		this.picPaths = picPaths;
 		this.isCanAdd= flag;
 		this.size = size;
+		if(this.size<1)
+			this.size=5;
 		this.imagetype=imagetype;
+		
 		inflater = LayoutInflater.from(context);
 		Log.d(TAG, "isCanAdd"+isCanAdd);
 		if(isCanAdd){
 			initData();
 		}
+	}
+
+	public int getCurIndex() {
+		return curIndex;
+	}
+
+	public void setCurIndex(int curIndex) {
+		this.curIndex = curIndex;
 	}
 
 	private void initData() {
@@ -67,7 +80,22 @@ public class MyPictureAdapter extends BaseAdapter implements Serializable{
 		}
 		notifyDataSetChanged();
 	}
-
+	
+	public void setPicPathsByImages(List<ImageItem> images) {
+		List<String> picturePaths = new ArrayList<String>();// 选中的图片路径
+		if(images != null)
+		{
+			for (int i = 0; i < images.size(); i++) {
+				picturePaths.add(images.get(i).getDownAddress());
+			}
+		}
+		this.picPaths = picturePaths;
+		if(isCanAdd){
+			initData();
+		}
+		notifyDataSetChanged();
+	}
+	
 	public String getFrom() {
 		return from;
 	}
@@ -150,6 +178,7 @@ public class MyPictureAdapter extends BaseAdapter implements Serializable{
 					Intent intent=new Intent(Constants.GET_PICTURE);
 					intent.putExtra("TAG", from);
 					intent.putExtra("imagetype", imagetype);
+					intent.putExtra("position",curIndex);
 					mContext.sendBroadcast(intent);
 				} else {
 					Log.d(TAG, "---------------------------------");
@@ -159,6 +188,7 @@ public class MyPictureAdapter extends BaseAdapter implements Serializable{
 						intent.putExtra("imagePath", imgPath);
 						intent.putExtra("TAG", from);
 						intent.putExtra("imagetype", imagetype);
+						intent.putExtra("position",curIndex);
 						mContext.sendBroadcast(intent);
 					}
 					else

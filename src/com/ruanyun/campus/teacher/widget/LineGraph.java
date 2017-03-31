@@ -25,29 +25,23 @@ package com.ruanyun.campus.teacher.widget;
 
 import java.util.ArrayList;
 
-import com.ruanyun.campus.teacher.entity.Line;
-import com.ruanyun.campus.teacher.entity.LinePoint;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.AvoidXfermode;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
 import android.graphics.Path.Direction;
-import android.graphics.PixelFormat;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
+import android.graphics.Point;
 import android.graphics.Region;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
+
+import com.ruanyun.campus.teacher.entity.Line;
+import com.ruanyun.campus.teacher.entity.LinePoint;
 
 @SuppressLint({ "DrawAllocation", "DrawAllocation" })
 public class LineGraph extends View {

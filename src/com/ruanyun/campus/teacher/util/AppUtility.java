@@ -44,6 +44,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.provider.Browser;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -980,5 +981,34 @@ public class AppUtility {
         am.cancel(alarmSender);
         am.setInexactRepeating(AlarmManager.RTC_WAKEUP, firsttime, 24*3600*1000, alarmSender);
     }
-
+	public static void downloadAndOpenFile(String mUrl,View widget)
+	{
+		String path=FileUtility.creatSDDir("download");
+		String fileName=FileUtility.getUrlRealName(mUrl);
+		String filePath=path+fileName;
+		//FileUtility.deleteFile(filePath);
+		File file = new File(filePath);  
+		Intent intent;
+        if(file.exists() && file.isFile())
+        {
+        	intent=IntentUtility.openUrl(filePath);
+        	IntentUtility.openIntent(widget.getContext(), intent,true);
+        }
+        else
+        {
+        	intent=IntentUtility.openUrl(mUrl);
+        	if(intent==null)
+        	{
+	    		Uri uri = Uri.parse(mUrl);
+		        Context context = widget.getContext();
+		        intent = new Intent(Intent.ACTION_VIEW, uri);
+		        intent.putExtra(Browser.EXTRA_APPLICATION_ID, context.getPackageName());
+		        context.startActivity(intent);
+	    	}
+	    	else
+	    	{
+	    		downloadUrl(mUrl, file, widget.getContext());
+	    	}
+        }
+	}
 }

@@ -350,8 +350,10 @@ public class AlbumFlowActivity extends FragmentActivity  implements RadioGroup.O
 			startActivityForResult(intent, REQUEST_CODE_TAKE_PICTURE);
 			*/
 			Intent intent; 
-			intent = new Intent(Intent.ACTION_PICK, 
-			                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI); 
+			intent = new Intent(Intent.ACTION_PICK, null);
+			intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+			        "image/*");
+			                    
 			startActivityForResult(intent, REQUEST_CODE_TAKE_PICTURE);
 		} else {
 			AppUtility.showToastMsg(this, "SD卡不可用");
