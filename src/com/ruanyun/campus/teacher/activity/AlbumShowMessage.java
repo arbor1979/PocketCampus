@@ -54,6 +54,9 @@ public class AlbumShowMessage extends FragmentActivity {
 			AppUtility.showToastMsg(this,"还没有消息记录");
 		initTitle();
 		
+		if(ifRead==0)
+			UpdateUnreadList(msgList);
+		
 	}
 	
 	private void initTitle() {
@@ -64,8 +67,7 @@ public class AlbumShowMessage extends FragmentActivity {
 
 			@Override
 			public void onClick(View v) {
-				if(ifRead==0)
-					UpdateUnreadList(msgList);
+				
 				finish();
 			}
 		});

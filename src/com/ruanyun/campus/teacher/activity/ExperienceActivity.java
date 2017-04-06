@@ -45,6 +45,7 @@ public class ExperienceActivity extends Activity {
 		ExitApplication.getInstance().addActivity(this);
 		setContentView(R.layout.activity_experience);
 		mViewPager = (ViewPager) findViewById(R.id.pager);
+		
 		initPageView();
 		adapter = new MyAdapter(viewList);
 		mViewPager.setAdapter(adapter);
@@ -144,7 +145,7 @@ public class ExperienceActivity extends Activity {
 			ImageView image = (ImageView) localView.findViewById(R.id.image);
 			image.setImageResource(id[position]);
 			container.addView(this.list.get(position));
-			if (position == 4) {
+			
 				View view = this.list.get(position);
 				Button toLogin = (Button) view.findViewById(R.id.to_login);
 				toLogin.setOnClickListener(new OnClickListener() {
@@ -157,11 +158,11 @@ public class ExperienceActivity extends Activity {
 						finish();
 					}
 				});
-			}
+			
 			return this.list.get(position);
 		}
 	}
-
+	
 	public class PointListener implements OnPageChangeListener {
 
 		@Override

@@ -21,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -35,6 +36,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -109,6 +111,7 @@ import com.ruanyun.campus.teacher.util.ExpressionUtil;
 import com.ruanyun.campus.teacher.util.FileUtility;
 import com.ruanyun.campus.teacher.util.ImageUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
+import com.ruanyun.campus.teacher.util.AppUtility.CallBackInterface;
 import com.ruanyun.campus.teacher.widget.InnerScrollView;
 import com.ruanyun.campus.teacher.widget.PredicateLayout;
 import com.ruanyun.campus.teacher.widget.XListView;
@@ -118,6 +121,8 @@ import com.ruanyun.campus.teacher.widget.XListView.IXListViewListener;
 public class ChatMsgActivity extends FragmentActivity implements IXListViewListener{
 	private static final int PIC_REQUEST_CODE_SELECT_CAMERA = 1;// 拍照
 	private static final int PIC_Select_CODE_ImageFromLoacal = 2;// 从本地获取图片
+	private static final int MY_PERMISSIONS_REQUEST_Camera= 6;
+	private static final int MY_PERMISSIONS_REQUEST_Album = 7;
 	private static final String TAG = "ChatMsgActivity";
 	private TextView mBtnSend;
 	private EditText mEditTextContent;
@@ -327,12 +332,25 @@ public class ChatMsgActivity extends FragmentActivity implements IXListViewListe
 				switch(position){
 				case 0:
 					Log.d(TAG, "get_pic_from_camera");
-					getPicByCamera();
+					if (Build.VERSION.SDK_INT >= 23) 
+					{
+						if(AppUtility.checkPermission(ChatMsgActivity.this, MY_PERMISSIONS_REQUEST_Camera,Manifest.permission.CAMERA))
+							getPicByCamera();
+					}
+					else
+						getPicByCamera();
+					
 					dialog.dismiss();
 					break;
 				case 1:
 					Log.d(TAG, "get_pic_from_location");
-					getPicFromLocation();
+					if (Build.VERSION.SDK_INT >= 23) 
+					{
+						if(AppUtility.checkPermission(ChatMsgActivity.this,MY_PERMISSIONS_REQUEST_Album,Manifest.permission.READ_EXTERNAL_STORAGE))
+							getPicFromLocation();
+					}
+					else
+						getPicFromLocation();
 					dialog.dismiss();
 					break;
 					default:
@@ -1660,4 +1678,43 @@ public class ChatMsgActivity extends FragmentActivity implements IXListViewListe
         
         myPicPath=savedInstanceState.getString("myPicPath");
     }
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+	{
+		AppUtility.permissionResult(requestCode,grantResults,this,callBack);
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+	}
+	public CallBackInterface callBack=new CallBackInterface()
+	{
+
+		@Override
+		public void getLocation1() {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void getPictureByCamera1() {
+			// TODO Auto-generated method stub
+			getPicByCamera();
+		}
+
+		@Override
+		public void getPictureFromLocation1() {
+			// TODO Auto-generated method stub
+			getPicFromLocation();
+		}
+
+		@Override
+		public void sendCall1() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void sendMsg1() {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	};
 }
