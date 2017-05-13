@@ -49,8 +49,8 @@ public class CurriculumActivity extends Activity {
 	private LinearLayout loadingLayout;
 	private ScrollView contentLayout;
 	private LinearLayout failedLayout;
-	private NonScrollableGridView grid_picture,grid_picture1; 
-	private MyPictureAdapter myPictureAdapter,myPictureAdapter1;
+	private NonScrollableGridView grid_picture,grid_picture1,grid_picture2; 
+	private MyPictureAdapter myPictureAdapter,myPictureAdapter1,myPictureAdapter2;
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
 
@@ -110,6 +110,7 @@ public class CurriculumActivity extends Activity {
 		failedLayout = (LinearLayout) findViewById(R.id.empty_error);
 		grid_picture=(NonScrollableGridView)findViewById(R.id.grid_picture);
 		grid_picture1=(NonScrollableGridView)findViewById(R.id.grid_picture1);
+		grid_picture2=(NonScrollableGridView)findViewById(R.id.grid_picture2);
 		aq = new AQuery(this);
 		btnLeft = (Button) findViewById(R.id.btn_left);
 		btnLeft.setVisibility(View.VISIBLE);
@@ -165,6 +166,7 @@ public class CurriculumActivity extends Activity {
 		aq.id(R.id.right_detail).text(curriculum.getTeacherClasses());
 		aq.id(R.id.tv_summary_content).text(curriculum.getSummaryContent());
 		aq.id(R.id.tv_homework).text(curriculum.getHomeWork());
+		aq.id(R.id.tv_classroot_sitiation).text(curriculum.getClassroomSitiation());
 		aq.id(R.id.course_date).text(curriculum.getShangkeriqi()+" "+curriculum.getJieci()+"节");
 		aq.id(R.id.class_room).text(curriculum.getClassRoom());
 		String attendanceName =((CampusApplication)getApplicationContext()).getLoginUserObj().getName().replace("[家长]","")+ "的出勤";
@@ -209,6 +211,19 @@ public class CurriculumActivity extends Activity {
 					false, picturePaths, 10,"课堂作业");
 			myPictureAdapter1.setFrom(TAG);
 			grid_picture1.setAdapter(myPictureAdapter1);
+		}
+		if(curriculum.getImagePaths2()!=null && curriculum.getImagePaths2().size()>0)
+		{
+			grid_picture2.setVisibility(View.VISIBLE);
+			ArrayList<String> picturePaths=new ArrayList<String>();
+			for(DownloadSubject down:curriculum.getImagePaths2())
+			{
+				picturePaths.add(down.getDownAddress());
+			}
+			myPictureAdapter2 = new MyPictureAdapter(this,
+					false, picturePaths, 10,"课堂情况");
+			myPictureAdapter2.setFrom(TAG);
+			grid_picture2.setAdapter(myPictureAdapter2);
 		}
 	}
 

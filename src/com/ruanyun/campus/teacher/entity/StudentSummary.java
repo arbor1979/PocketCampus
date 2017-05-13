@@ -34,8 +34,10 @@ public class StudentSummary {
 	private String curriculumEvaluate;
 	private String mySuggestion;
 	private String classNotes;
+	
 	private List<ImageItem> classNoteImages;
 	private List<ImageItem> classAssignImages;
+	private List<ImageItem> classSiduationImages;
 	public StudentSummary(JSONObject jo) {
 		id = jo.optString("唯一码SEND");
 		teacherEvaluate = jo.optString("老师评价");
@@ -54,8 +56,22 @@ public class StudentSummary {
 			ImageItem imageInfo=new ImageItem(joii.optJSONObject(i));
 			classAssignImages.add(imageInfo);
 		}
+		classSiduationImages=new ArrayList<ImageItem>();
+		joii = jo.optJSONArray("课堂情况图片");
+		for (int i = 0; i < joii.length(); i++) {
+			ImageItem imageInfo=new ImageItem(joii.optJSONObject(i));
+			classSiduationImages.add(imageInfo);
+		}
 	}
 	
+	public List<ImageItem> getClassSiduationImages() {
+		return classSiduationImages;
+	}
+
+	public void setClassSiduationImages(List<ImageItem> classSiduationImages) {
+		this.classSiduationImages = classSiduationImages;
+	}
+
 	public List<ImageItem> getClassAssignImages() {
 		return classAssignImages;
 	}

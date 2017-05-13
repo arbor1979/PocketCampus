@@ -64,6 +64,7 @@ import com.ruanyun.campus.teacher.entity.StudentSummary;
 import com.ruanyun.campus.teacher.entity.TeacherInfo;
 import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.Base64;
+import com.ruanyun.campus.teacher.util.DateHelper;
 import com.ruanyun.campus.teacher.util.DialogUtility;
 import com.ruanyun.campus.teacher.util.FileUtility;
 import com.ruanyun.campus.teacher.util.ImageUtility;
@@ -84,14 +85,12 @@ public class SummaryClassActivity extends Activity {
 	private String subjectid, userType, picturePath, delImagePath;
 	private RatingBar ratingBar1, ratingBar2;
 	private StudentSummary studentSummary;
-	private EditText et1, et2;
-	private NonScrollableGridView myGridView;
-	private NonScrollableGridView myGridView1;
-	private MyPictureAdapter myPictureAdapter;
-	private MyPictureAdapter myPictureAdapter1;
-	
+	private EditText et1, et2,et3;
+	private NonScrollableGridView myGridView,myGridView1,myGridView2;
+	private MyPictureAdapter myPictureAdapter,myPictureAdapter1,myPictureAdapter2;
 	private ArrayList<String> picturePaths = new ArrayList<String>();// 选中的图片路径
 	private ArrayList<String> picturePaths1 = new ArrayList<String>();// 选中的图片路径
+	private ArrayList<String> picturePaths2 = new ArrayList<String>();// 选中的图片路径
 	private int submitImageCount = 0, size = 10;
 	private LinearLayout loadingLayout;
 	private ScrollView contentLayout;
@@ -153,23 +152,31 @@ public class SummaryClassActivity extends Activity {
 				try {
 					JSONObject jo = new JSONObject(resultStr);
 					studentSummary = new StudentSummary(jo);
-					if (userType.equals("老师")) {
-						initTeacherDate();
-					} else {
-						initStudentDate();
-					}
 					Boolean bCanAdd=true;
 					if (userType.equals("家长"))
 						bCanAdd=false;
+					if (userType.equals("老师")) {
+						initTeacherDate();
+						
+					} else {
+						initStudentDate();
+						
+					}
 					myPictureAdapter = new MyPictureAdapter(SummaryClassActivity.this,
 							bCanAdd, picturePaths, size,"课堂笔记");
 					
 					myPictureAdapter1 = new MyPictureAdapter(SummaryClassActivity.this,
 							bCanAdd, picturePaths1, size,"课堂作业");
+					
+					myPictureAdapter2 = new MyPictureAdapter(SummaryClassActivity.this,
+							bCanAdd, picturePaths2, size,"课堂情况");
+					
 					myPictureAdapter.setFrom(TAG);
 					myPictureAdapter1.setFrom(TAG);
+					myPictureAdapter2.setFrom(TAG);
 					myGridView.setAdapter(myPictureAdapter);
 					myGridView1.setAdapter(myPictureAdapter1);
+					myGridView2.setAdapter(myPictureAdapter2);
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
@@ -188,16 +195,9 @@ public class SummaryClassActivity extends Activity {
 					try {
 						JSONObject jo = new JSONObject(resultStr);
 						if ("成功".equals(jo.optString("STATUS"))) {
-							if(imagetype.equals("课堂作业"))
-							{
-								picturePaths1.remove(delImagePath);
-								myPictureAdapter1.setPicPaths(picturePaths1);
-							}
-							else
-							{
-								picturePaths.remove(delImagePath);
-								myPictureAdapter.setPicPaths(picturePaths);
-							}
+							
+							updateImagesAdpter(delImagePath,null);
+							
 							File cacheFile=FileUtility.getCacheFile(delImagePath);
 							if(cacheFile.exists())
 								cacheFile.delete();
@@ -230,18 +230,7 @@ public class SummaryClassActivity extends Activity {
 						String newFileName=jo.getString("文件名");
 						FileUtility.fileRename(oldFileName, newFileName);
 						ImageItem ds = new ImageItem(jo);
-						if(imagetype.equals("课堂作业"))
-						{
-							picturePaths1.remove("");
-							picturePaths1.add(ds.getDownAddress());
-							myPictureAdapter1.setPicPaths(picturePaths1);
-						}
-						else
-						{
-							picturePaths.remove("");
-							picturePaths.add(ds.getDownAddress());
-							myPictureAdapter.setPicPaths(picturePaths);
-						}
+						updateImagesAdpter("loading",ds.getDownAddress());
 					}
 
 					
@@ -254,7 +243,33 @@ public class SummaryClassActivity extends Activity {
 			}
 		};
 	};
-
+	private void updateImagesAdpter(String removeUrl,String addUrl)
+	{
+		if(imagetype.equals("课堂笔记"))
+		{
+			if(removeUrl!=null)
+				picturePaths.remove(removeUrl);
+			if(addUrl!=null)
+				picturePaths.add(addUrl);
+			myPictureAdapter.setPicPaths(picturePaths);
+		}
+		else if(imagetype.equals("课堂作业"))
+		{
+			if(removeUrl!=null)
+				picturePaths1.remove(removeUrl);
+			if(addUrl!=null)
+				picturePaths1.add(addUrl);
+			myPictureAdapter1.setPicPaths(picturePaths1);
+		}
+		else if(imagetype.equals("课堂情况"))
+		{
+			if(removeUrl!=null)
+				picturePaths2.remove(removeUrl);
+			if(addUrl!=null)
+				picturePaths2.add(addUrl);
+			myPictureAdapter2.setPicPaths(picturePaths2);
+		}
+	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -281,17 +296,12 @@ public class SummaryClassActivity extends Activity {
 			teacherInfo=ClassDetailActivity.teacherInfo;
 		}
 		//myPictureAdapter = new MyPictureAdapter(SummaryClassActivity.this,false, picturePaths, size);
+		
+		
 		initView();
 		getPingjia();
 		initListener();
 		registerBroastcastReceiver();
-		if(userType.equals("老师"))
-		{
-			LinearLayout parentLayout=(LinearLayout)findViewById(R.id.parentLayout);
-			parentLayout.removeView(myGridView);
-			parentLayout.addView(myGridView, 8);
-		}
-		
 			
 	}
 
@@ -315,6 +325,7 @@ public class SummaryClassActivity extends Activity {
 	private void initView() {
 		myGridView = (NonScrollableGridView) findViewById(R.id.grid_picture);
 		myGridView1 = (NonScrollableGridView) findViewById(R.id.grid_picture1);
+		myGridView2 = (NonScrollableGridView) findViewById(R.id.grid_picture2);
 		btnLeft = (Button) findViewById(R.id.btn_left);
 		btnLeft.setVisibility(View.VISIBLE);
 		btnLeft.setCompoundDrawablesWithIntrinsicBounds(
@@ -323,6 +334,7 @@ public class SummaryClassActivity extends Activity {
 		aq.id(R.id.tv_right).visibility(View.VISIBLE);
 		et1 = (EditText) findViewById(R.id.et_1);
 		et2 = (EditText) findViewById(R.id.et_2);
+		et3 = (EditText) findViewById(R.id.et_3);
 		if (userType.equals("老师")) {
 			aq.id(R.id.tv_title).text(ClassDetailActivity.classname);
 		} else {
@@ -340,7 +352,7 @@ public class SummaryClassActivity extends Activity {
 
 					et1.setText(teacherInfo.getCourseContent());
 					et2.setText(teacherInfo.getHomework());
-
+					et3.setText(teacherInfo.getClassroomSituation());
 					if (teacherInfo.getClassroomDiscipline().equals("优")) {
 						group_discipline.check(R.id.group1_bn1);
 					} else if (teacherInfo.getClassroomDiscipline().equals("良")) {
@@ -363,16 +375,41 @@ public class SummaryClassActivity extends Activity {
 					} else {
 						group_health.check(R.id.group2_bn1);
 					}
+					if(AppUtility.isNotEmpty(teacherInfo.getShouldTime()) && AppUtility.isNotEmpty(teacherInfo.getLatestTime()))
+					{
+						Date dt_begin=DateHelper.getStringDate(teacherInfo.getShouldTime(),"yyyy-MM-dd");
+						Date dt_end=DateHelper.getStringDate(teacherInfo.getLatestTime(),"yyyy-MM-dd");
+						Date dt_now=new Date();
+						if(dt_now.getTime()>=dt_begin.getTime() && dt_now.getTime()<=dt_end.getTime())
+						{
+							
+						}
+						else
+						{
+							AppUtility.showToastMsg(this, "请在"+teacherInfo.getShouldTime()+"至"+teacherInfo.getLatestTime()+"内填写",1);
+							aq.id(R.id.layout_btn_right).visibility(View.GONE);
+							et1.setEnabled(false);
+							et2.setEnabled(false);
+							et3.setEnabled(false);
+						}
+						
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		} else {
 			myGridView1.setVisibility(View.GONE);
+			myGridView2.setVisibility(View.GONE);
+			et3.setVisibility(View.GONE);
+			aq.id(R.id.tv_5).visibility(View.GONE);
+			
 			aq.id(R.id.group_discipline).visibility(View.GONE);
 			aq.id(R.id.group_health).visibility(View.GONE);
 			ratingBar1 = (RatingBar) findViewById(R.id.rb_1);
 			ratingBar2 = (RatingBar) findViewById(R.id.rb_2);
+			et1.setHint("请输入课堂笔记内容");
+			et2.setHint("请输入对老师的建议");
 		}
 		
 		if (userType.equals("家长")) 
@@ -555,6 +592,8 @@ public class SummaryClassActivity extends Activity {
 		jo.put("教室卫生", teacherInfo.getClassroomHealth());
 		jo.put("授课内容", et1.getText().toString());
 		jo.put("作业布置", et2.getText().toString());
+		jo.put("课堂情况简要", et3.getText().toString());
+		
 		Log.d(TAG, "----------------------json:" + jo.toString());
 		joarr.put(jo);
 		return joarr.toString();
@@ -603,29 +642,13 @@ public class SummaryClassActivity extends Activity {
 		params.add("图片类别", imagetype);
 		params.add("文件名称", downloadSubject.getFileName());
 		params.add("文件内容", downloadSubject.getFilecontent());
-		if(imagetype.equals("课堂作业"))
-		{
-			picturePaths1.remove("");
-			picturePaths1.add("loading");
-			myPictureAdapter1.setPicPaths(picturePaths1);
-			
-		}
-		else
-		{
-			picturePaths.remove("");
-			picturePaths.add("loading");
-			myPictureAdapter.setPicPaths(picturePaths);
-			
-		}
+		updateImagesAdpter("","loading");
 		CampusAPI.uploadFiles(params, new RequestListener() {
 
 			@Override
 			public void onComplete(String response) {
 				Log.d(TAG, "------------------response" + response);
-				if(imagetype.equals("课堂作业"))
-					picturePaths1.remove("loading");
-				else
-					picturePaths.remove("loading");
+				
 				Message msg = new Message();
 				msg.what = 3;
 				msg.obj = response;
@@ -710,8 +733,8 @@ public class SummaryClassActivity extends Activity {
 			jo.put("ACTION", "SetStatus");
 			jo.put("老师评价", (int)ratingBar1.getRating());
 			jo.put("课程评价", (int)ratingBar2.getRating());
-			jo.put("我的建议", et1.getText().toString());
-			jo.put("课堂笔记", et2.getText().toString());
+			jo.put("课堂笔记", et1.getText().toString());
+			jo.put("我的建议", et2.getText().toString());
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 			closeDialog();
@@ -778,10 +801,10 @@ public class SummaryClassActivity extends Activity {
 	private void initStudentDate() {
 		aq.id(R.id.tv_1).text("老师评价");
 		aq.id(R.id.tv_2).text("课程评价");
-		aq.id(R.id.tv_3).text("我的建议");
-		aq.id(R.id.tv_4).text("课堂笔记");
-		et1.setText(studentSummary.getMySuggestion());
-		et2.setText(studentSummary.getClassNotes());
+		aq.id(R.id.tv_3).text("课堂笔记");
+		aq.id(R.id.tv_4).text("我的建议");
+		et1.setText(studentSummary.getClassNotes());
+		et2.setText(studentSummary.getMySuggestion());
 		ratingBar1.setRating(Float.parseFloat(studentSummary
 				.getTeacherEvaluate()));
 		ratingBar2.setRating(Float.parseFloat(studentSummary
@@ -792,8 +815,7 @@ public class SummaryClassActivity extends Activity {
 				String imagePath = images.get(i).getDownAddress();
 				if (!picturePaths.contains(imagePath)) {
 					picturePaths.add(images.get(i).getDownAddress());
-					Log.d(TAG, "images.get(i).getDownAddress()"
-							+ images.get(i).getDownAddress());
+					
 				}
 			}
 		}
@@ -814,8 +836,6 @@ public class SummaryClassActivity extends Activity {
 				String imagePath = images.get(i).getDownAddress();
 				if (!picturePaths.contains(imagePath)) {
 					picturePaths.add(images.get(i).getDownAddress());
-					Log.d(TAG, "images.get(i).getDownAddress()"
-							+ images.get(i).getDownAddress());
 				}
 			}
 		}
@@ -825,12 +845,20 @@ public class SummaryClassActivity extends Activity {
 				String imagePath = images.get(i).getDownAddress();
 				if (!picturePaths1.contains(imagePath)) {
 					picturePaths1.add(images.get(i).getDownAddress());
-					Log.d(TAG, "images.get(i).getDownAddress()"
-							+ images.get(i).getDownAddress());
+					
 				}
 			}
 		}
-
+		images = studentSummary.getClassSiduationImages();
+		if (images != null) {
+			for (int i = 0; i < images.size(); i++) {
+				String imagePath = images.get(i).getDownAddress();
+				if (!picturePaths2.contains(imagePath)) {
+					picturePaths2.add(images.get(i).getDownAddress());
+					
+				}
+			}
+		}
 	}
 	/**
 	 * 功能描述:清除缓存
@@ -935,10 +963,12 @@ public class SummaryClassActivity extends Activity {
 				Intent intent = new Intent(SummaryClassActivity.this,
 						ImagesActivity.class);
 				ArrayList<String> thePaths;
-				if(imagetype.equals("课堂作业"))
+				if(imagetype.equals("课堂笔记"))
+					thePaths=picturePaths;
+				else if(imagetype.equals("课堂作业"))
 					thePaths=picturePaths1;
 				else
-					thePaths=picturePaths;
+					thePaths=picturePaths2;
 				
 				thePaths.remove("");
 				intent.putStringArrayListExtra("pics",
@@ -1109,6 +1139,8 @@ public class SummaryClassActivity extends Activity {
     public void onSaveInstanceState(Bundle savedInstanceState){
 		super.onSaveInstanceState(savedInstanceState);
 		savedInstanceState.putSerializable("picturePaths",picturePaths);
+		savedInstanceState.putSerializable("picturePaths1",picturePaths1);
+		savedInstanceState.putSerializable("picturePaths2",picturePaths2);
 		savedInstanceState.putString("picturePath", picturePath);
 		savedInstanceState.putString("subjectid", subjectid);
 		savedInstanceState.putString("userType",  userType);
@@ -1118,7 +1150,10 @@ public class SummaryClassActivity extends Activity {
     public void onRestoreInstanceState(Bundle savedInstanceState){
         super.onRestoreInstanceState(savedInstanceState);
         picturePaths = (ArrayList<String>) savedInstanceState.getSerializable("picturePaths");
+        picturePaths1 = (ArrayList<String>) savedInstanceState.getSerializable("picturePaths1");
+        picturePaths2 = (ArrayList<String>) savedInstanceState.getSerializable("picturePaths2");
         picturePath=savedInstanceState.getString("picturePath");
+        
         subjectid=savedInstanceState.getString("subjectid");
         userType=savedInstanceState.getString("userType");
     }

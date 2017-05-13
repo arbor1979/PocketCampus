@@ -952,6 +952,7 @@ public class CallClassActivity extends Activity {
 							teacherInfo.setClassroomHealth(jsZongjie.optString("教室卫生"));
 							teacherInfo.setCourseContent(jsZongjie.optString("授课内容"));
 							teacherInfo.setHomework(jsZongjie.optString("作业布置"));
+							teacherInfo.setClassroomSituation(jsZongjie.optString("课堂情况简要"));
 							teacherInfoDao.update(teacherInfo);
 						}
 						JSONArray joa = jo.getJSONArray("结果");

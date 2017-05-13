@@ -117,7 +117,9 @@
     <string name="content_hint">请输入授课内容总结</string>
     <string name="album_hint">天气不错，心情也不错...</string>
     <string name="summary_homework">作业布置</string>
+    <string name="summary_classroom_situation">课堂情况简要</string>
     <string name="homework_hint">请输入布置作业内容</string>
+    <string name="classroom_situation_hint">请输入课堂情况简要</string>
     <string name="summary_perfect">优</string>
     <string name="summary_good">良</string>
     <string name="summary_well">中</string>
@@ -146,6 +148,7 @@
     <string name="course_date">上课日期</string>
     <string name="class_room">教室</string>
     <string name="homework">课后作业</string>
+    
     <string name="ketangjilv">课堂纪律</string>
     <string name="jiaoshiweisheng">教室卫生</string>
     <string name="teacher_profile">教师简介</string>

@@ -40,7 +40,8 @@ public class Curriculum {
 	private String kechengpingjiashu;
 	private String ketangjilv;
 	private String jiaoshiweisheng;
-	private ArrayList<DownloadSubject> imagePaths,imagePaths1;
+	private String classroomSitiation;
+	private ArrayList<DownloadSubject> imagePaths,imagePaths1,imagePaths2;
 
 	public Curriculum() {
 	}
@@ -120,6 +121,7 @@ public class Curriculum {
 		courseRating = jo.optString("课程评分");
 		summaryContent = jo.optString("授课内容");
 		homeWork = jo.optString("课后作业");
+		classroomSitiation = jo.optString("课堂情况简要");
 		attendanceValues = jo.optString("个人出勤");
 
 		curriculums = jo.optString("所带课程");
@@ -130,6 +132,7 @@ public class Curriculum {
 		shangkeriqi=jo.getString("上课日期");
 		JSONArray joimg = jo.optJSONArray("课堂笔记图片");
 		JSONArray joimg1 = jo.optJSONArray("课堂作业图片");
+		JSONArray joimg2 = jo.optJSONArray("课堂情况图片");
 		teacherpingjiashu=jo.optString("老师评分数");
 		kechengpingjiashu=jo.optString("课程评分数");
 		ketangjilv=jo.optString("课堂纪律");
@@ -146,6 +149,28 @@ public class Curriculum {
 			imagePaths1.add(downsub);
 			
 		}
+		imagePaths2 = new ArrayList<DownloadSubject>();
+		for (int i = 0; i < joimg2.length(); i++) {
+			DownloadSubject downsub=new DownloadSubject(joimg2.getJSONObject(i));
+			imagePaths2.add(downsub);
+			
+		}
+	}
+
+	public String getClassroomSitiation() {
+		return classroomSitiation;
+	}
+
+	public void setClassroomSitiation(String classrootSitiation) {
+		this.classroomSitiation = classrootSitiation;
+	}
+
+	public ArrayList<DownloadSubject> getImagePaths2() {
+		return imagePaths2;
+	}
+
+	public void setImagePaths2(ArrayList<DownloadSubject> imagePaths2) {
+		this.imagePaths2 = imagePaths2;
 	}
 
 	public ArrayList<DownloadSubject> getImagePaths1() {

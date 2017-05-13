@@ -2,6 +2,7 @@ package com.ruanyun.campus.teacher.activity;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -315,6 +316,7 @@ public class TestClassActivity extends Activity {
 	 * 
 	 */
 	private void saveTestResult() {
+		showDialog();
 		Log.d(TAG, "--------" + String.valueOf(new Date().getTime()));
 		long datatime = System.currentTimeMillis();
 		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
@@ -715,6 +717,7 @@ public class TestClassActivity extends Activity {
 			switch (msg.what) {
 			case -1:
 				showProgress(false);
+				
 				if (mLoadingDialog != null)
 					mLoadingDialog.dismiss();
 				if (dialog != null)
@@ -789,6 +792,7 @@ public class TestClassActivity extends Activity {
 					testList = TestEntityItem.toList(joarr);
 					myRecord=jo.optInt("得分");
 					avgScores=jo.optInt("平均分");
+					
 					mTestAdapter.setList(testList);
 					
 					if (testList.size() > 0) {
@@ -811,6 +815,9 @@ public class TestClassActivity extends Activity {
 				}
 				break;
 			case 3:// 学生提交答案
+				if (mLoadingDialog != null) {
+					mLoadingDialog.dismiss();
+				}
 				result = msg.obj.toString();
 				try {
 					resultStr = new String(
@@ -873,7 +880,22 @@ public class TestClassActivity extends Activity {
 			if(str.equals("已结束"))
 			{
 				if(ClassDetailActivity.userType.equals("老师"))
+				{
 					filedTitle.setText("测试状态:" + str+" 平均分:"+avgScores);
+					filedTitle.setOnClickListener(new OnClickListener(){
+
+						@Override
+						public void onClick(View v) {
+							Intent intent = new Intent(TestClassActivity.this, SchoolActivity.class);
+							intent.putExtra("title", "成绩列表");
+							intent.putExtra("interfaceName","XUESHENG-CHENGJI-Student-ceyanchengji.php?id="+ClassDetailActivity.teacherInfo.getId()+"&classname="+URLEncoder.encode(classname));
+							intent.putExtra("templateName","成绩");
+							startActivity(intent);
+							
+						}
+						
+					});
+				}
 				else
 					filedTitle.setText("测试状态:" + str+" 得分:"+myRecord);
 					

@@ -702,7 +702,7 @@ public class AlbumFlowActivity extends FragmentActivity  implements RadioGroup.O
 						//getDownloadSubject();
 						
 					}else{
-						DialogUtility.showMsg(AlbumFlowActivity.this, "上传失败！");
+						DialogUtility.showMsg(AlbumFlowActivity.this, jo.optString("STATUS"));
 					}
 				}catch (Exception e) {
 					AppUtility.showToastMsg(AlbumFlowActivity.this, e.getMessage());

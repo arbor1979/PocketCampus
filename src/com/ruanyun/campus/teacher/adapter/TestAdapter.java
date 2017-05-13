@@ -55,7 +55,10 @@ public class TestAdapter extends BaseAdapter {
 	}
 	private void initData(){
 		for (int i = 0; i < data.size(); i++) {
-			isConsummation.put(i, false);
+			if(AppUtility.isNotEmpty(data.get(i).getStudentAnswerResult()))
+				isConsummation.put(i, true);
+			else
+				isConsummation.put(i, false);
 		}
 	}
 	@Override
@@ -172,6 +175,7 @@ public class TestAdapter extends BaseAdapter {
 			RadioButton button = getRadioButton(testEntity.getfAnswer(), 5);
 			group.addView(button);
 		}
+		
 		//设置默认选中
 		String answer = testEntity.getAnswer();//正确答案
 		//String answer = testEntity.getStudentAnswerResult();//用户答案
@@ -212,8 +216,8 @@ public class TestAdapter extends BaseAdapter {
 	@SuppressWarnings("deprecation")
 	private RadioButton getRadioButton(String str, int id) {
 		RadioButton rb = new RadioButton(context);
-		rb.setButtonDrawable(null);
-		rb.setBackgroundDrawable(null);
+		//rb.setButtonDrawable(null);
+		//rb.setBackgroundDrawable(null);
 		rb.setId(id);
 		rb.setText(str);
 		rb.setEnabled(isEnable);
