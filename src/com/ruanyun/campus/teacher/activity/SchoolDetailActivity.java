@@ -36,7 +36,7 @@ public class SchoolDetailActivity extends FragmentActivity {
 	private int templateType;
 	FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
 	private String interfaceName, templateName, title, status,autoClose;
-	Fragment fragment;
+	public Fragment fragment;
 	static {
 		TemplateNameS.add("通知");
 		TemplateNameS.add("考勤");

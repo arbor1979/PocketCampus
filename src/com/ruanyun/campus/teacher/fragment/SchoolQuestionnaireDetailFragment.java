@@ -44,11 +44,9 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -64,15 +62,14 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.SimpleAdapter;
 import android.widget.RadioGroup.OnCheckedChangeListener;
+import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.ruanyun.campus.teacher.R;
-import com.ruanyun.campus.teacher.activity.AlbumPersonalActivity;
 import com.ruanyun.campus.teacher.activity.ImagesActivity;
-import com.ruanyun.campus.teacher.activity.ShowPersonInfo;
+import com.ruanyun.campus.teacher.adapter.ListOfBillAdapter;
 import com.ruanyun.campus.teacher.adapter.MyPictureAdapter;
 import com.ruanyun.campus.teacher.api.CampusAPI;
 import com.ruanyun.campus.teacher.api.CampusException;
@@ -85,13 +82,13 @@ import com.ruanyun.campus.teacher.entity.QuestionnaireList;
 import com.ruanyun.campus.teacher.entity.QuestionnaireList.Question;
 import com.ruanyun.campus.teacher.lib.DateTimePickDialogUtil;
 import com.ruanyun.campus.teacher.util.AppUtility;
+import com.ruanyun.campus.teacher.util.AppUtility.CallBackInterface;
 import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.DateHelper;
 import com.ruanyun.campus.teacher.util.DialogUtility;
 import com.ruanyun.campus.teacher.util.FileUtility;
 import com.ruanyun.campus.teacher.util.ImageUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
-import com.ruanyun.campus.teacher.util.AppUtility.CallBackInterface;
 import com.ruanyun.campus.teacher.widget.NonScrollableGridView;
 import com.ruanyun.campus.teacher.widget.NonScrollableListView;
 
@@ -319,7 +316,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 								fujianArray.put(newItem);
 								question.setFujianArray(fujianArray);
 								questions.set(curIndex, question);
-								View view=(View) myListview.getChildAt(curIndex);
+								View view=(View) myListview.getChildAt(curIndex-myListview.getFirstVisiblePosition());
 								NonScrollableListView listview=(NonScrollableListView) view.findViewById(R.id.lv_choose);
 								SimpleAdapter fujianAdapter=setupFujianAdpter(questions.get(curIndex));
 								listview.setAdapter(fujianAdapter);
@@ -961,6 +958,11 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				}
 				joarr.put(fujianArray);
 			}
+			else if(mStatus.equals("弹出列表"))
+			{
+				JSONArray fujianArray=questions.get(i).getFujianArray();
+				joarr.put(fujianArray);
+			}
 			else
 			{
 				String usersAnswer = questions.get(i).getUsersAnswer();
@@ -1123,7 +1125,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 						
 			final Question question = (Question) getItem(position);
 			convertView = inflater.inflate(R.layout.school_questionnaire_item, parent, false);
-			ViewHolder holder = new ViewHolder();
+			final ViewHolder holder = new ViewHolder();
 			holder.title = (TextView) convertView.findViewById(R.id.tv_questionnaire_name);
 			holder.radioGroup = (RadioGroup) convertView.findViewById(R.id.rg_choose);
 			holder.multipleChoice = (NonScrollableListView) convertView.findViewById(R.id.lv_choose);
@@ -1134,6 +1136,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			holder.bt_date=(Button)convertView.findViewById(R.id.bt_date);
 			holder.bt_datetime=(Button)convertView.findViewById(R.id.bt_datetime);
 			holder.sp_select=(Spinner)convertView.findViewById(R.id.sp_select);
+			holder.sp_select1=(Spinner)convertView.findViewById(R.id.sp_select1);
 			holder.etAnswer.setOnFocusChangeListener(mListener);
 			holder.etAnswer.setTag(position);
 			
@@ -1167,6 +1170,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_date.setVisibility(View.GONE);
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
+				holder.sp_select1.setVisibility(View.GONE);
 				final String[] answers = question.getOptions();
 				holder.radioGroup.removeAllViews();
 				int checkIndex = -1;
@@ -1199,6 +1203,25 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 								question.setUsersAnswer(answers[checkedId]);
 								questions.set(position, question);
 								questionnaireList.setQuestions(questions);
+								int linkIndex=question.getLinkUpdate();
+								if(linkIndex>0)
+								{
+									Question linkItem=questions.get(linkIndex);
+									JSONObject obj=linkItem.getFilterObj();
+									if(obj!=null && obj.length()>0)
+									{
+										JSONArray ja=obj.optJSONArray(question.getUsersAnswer());
+										if(ja!=null){
+											String[] options = new String[ja.length()];
+											for (int i = 0; i < ja.length(); i++) {
+												options[i] = ja.optString(i);
+											}
+											linkItem.setOptions(options);
+											questions.set(linkIndex, linkItem);
+											adapter.notifyDataSetChanged();
+										}
+									}
+								}
 							}
 						});
 			} else if (mStatus.equals("多选")) {
@@ -1210,6 +1233,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_date.setVisibility(View.GONE);
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
+				holder.sp_select1.setVisibility(View.GONE);
 				CheckBoxAdapter checkBoxAdapter = new CheckBoxAdapter(
 						getActivity(), position, question);
 				holder.multipleChoice.setAdapter(checkBoxAdapter);
@@ -1221,7 +1245,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_date.setVisibility(View.GONE);
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
-				
+				holder.sp_select1.setVisibility(View.GONE);
 				if (status.equals("已结束") || status.equals("未开始")) {
 					holder.etAnswer.setVisibility(View.GONE);
 					holder.tvAnswer.setVisibility(View.VISIBLE);
@@ -1272,7 +1296,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_date.setVisibility(View.GONE);
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
-				
+				holder.sp_select1.setVisibility(View.GONE);
 				int size=5;
 				if(question.getLines()>0)
 					size=question.getLines();
@@ -1291,6 +1315,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_date.setVisibility(View.VISIBLE);
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
+				holder.sp_select1.setVisibility(View.GONE);
 				if(!AppUtility.isNotEmpty(question.getUsersAnswer()))
 				{
 					question.setUsersAnswer(DateHelper.getToday());
@@ -1346,6 +1371,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_date.setVisibility(View.GONE);
 				holder.bt_datetime.setVisibility(View.VISIBLE);
 				holder.sp_select.setVisibility(View.GONE);
+				holder.sp_select1.setVisibility(View.GONE);
 				if(!AppUtility.isNotEmpty(question.getUsersAnswer()))
 				{
 					question.setUsersAnswer(DateHelper.getToday());
@@ -1376,6 +1402,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_date.setVisibility(View.GONE);
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.VISIBLE);
+				holder.sp_select1.setVisibility(View.GONE);
 				ArrayAdapter<String> aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,question.getOptions());
 				holder.sp_select.setAdapter(aa);
 				int pos=0;
@@ -1410,6 +1437,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_date.setVisibility(View.GONE);
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
+				holder.sp_select1.setVisibility(View.GONE);
 				SimpleAdapter fujianAdapter=setupFujianAdpter(question);
 				holder.multipleChoice.setAdapter(fujianAdapter);
 				holder.multipleChoice.setTag(position);
@@ -1436,14 +1464,83 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 						}
 						else
 						{
-							Intent intent = new Intent(Intent.ACTION_GET_CONTENT);  
-			                intent.setType("*/*");
-			                intent.addCategory(Intent.CATEGORY_OPENABLE);
-			                startActivityForResult(Intent.createChooser(intent, "请选择一个要上传的文件"), REQUEST_CODE_TAKE_DOCUMENT); 
+							if (Build.VERSION.SDK_INT >= 23) 
+							{
+								if(AppUtility.checkPermission(getActivity(), 10,Manifest.permission.READ_EXTERNAL_STORAGE))
+									getFujian();
+							}
+							else
+								getFujian();
+							
 						}
 					}     
 				});
-	
+				
+			}
+			else if (mStatus.equals("弹出列表")) {
+				holder.imageGridView.setVisibility(View.GONE);
+				holder.radioGroup.setVisibility(View.GONE);
+				holder.multipleChoice.setVisibility(View.VISIBLE);
+				holder.etAnswer.setVisibility(View.GONE);
+				holder.tvAnswer.setVisibility(View.GONE);
+				holder.bt_date.setVisibility(View.GONE);
+				holder.bt_datetime.setVisibility(View.GONE);
+				holder.sp_select.setVisibility(View.GONE);
+				holder.sp_select1.setVisibility(View.GONE);
+				ListOfBillAdapter billAdapter=setupPeiJianAdpter(question,position);
+				holder.multipleChoice.setAdapter(billAdapter);
+				holder.multipleChoice.setTag(position);
+				
+			}
+			else if (mStatus.equals("二级下拉")) {
+				holder.imageGridView.setVisibility(View.GONE);
+				holder.radioGroup.setVisibility(View.GONE);
+				holder.multipleChoice.setVisibility(View.GONE);
+				holder.etAnswer.setVisibility(View.GONE);
+				holder.tvAnswer.setVisibility(View.GONE);
+				holder.bt_date.setVisibility(View.GONE);
+				holder.bt_datetime.setVisibility(View.GONE);
+				holder.sp_select.setVisibility(View.VISIBLE);
+				holder.sp_select1.setVisibility(View.VISIBLE);
+				ArrayAdapter<String> aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,question.getOptions());
+				holder.sp_select.setAdapter(aa);
+				int pos=0;
+				for(int i=0;i<question.getOptions().length;i++)
+				{
+					if(question.getOptions()[i].equalsIgnoreCase(question.getUsersAnswer()))
+						pos=i;
+				}
+				holder.sp_select.setSelection(pos);
+				holder.sp_select.setOnItemSelectedListener(new OnItemSelectedListener() {
+					
+					@Override
+					public void onItemSelected(AdapterView<?> parent,
+							View view, int position, long id) {
+						question.setUsersAnswerOne(question.getOptions()[position]);
+						reloadSpinner2(holder.sp_select1,question);
+					}
+					@Override
+					public void onNothingSelected(AdapterView<?> parent) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
+				reloadSpinner2(holder.sp_select1,question);
+				holder.sp_select1.setOnItemSelectedListener(new OnItemSelectedListener() {
+					
+					@Override
+					public void onItemSelected(AdapterView<?> parent,
+							View view, int position, long id) {
+						// TODO Auto-generated method stub
+						question.setUsersAnswer(holder.sp_select1.getSelectedItem().toString());
+					}
+					@Override
+					public void onNothingSelected(AdapterView<?> parent) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
+				
 			}
 			return convertView;
 		}
@@ -1458,10 +1555,42 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			NonScrollableListView multipleChoice;
 			NonScrollableGridView imageGridView;
 			Spinner sp_select;
+			Spinner sp_select1;
 			Button bt_date;
 			Button bt_datetime;
 		}
 		
+	}
+	private void reloadSpinner2(Spinner sp,Question question)
+	{
+		JSONArray subOptionsJson=question.getSubOptions().optJSONArray(question.getUsersAnswerOne());
+		if(subOptionsJson!=null && subOptionsJson.length()>0)
+		{
+			String [] subOptions=new String[subOptionsJson.length()];
+			int pos=0;
+			for(int i=0;i<subOptionsJson.length();i++)
+			{
+				try {
+					subOptions[i]=subOptionsJson.getString(i);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if(question.getUsersAnswer().equals(subOptions[i]))
+					pos=i;
+					
+			}
+			ArrayAdapter<String> bb = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,subOptions);
+			sp.setAdapter(bb);
+			sp.setSelection(pos);
+		}
+	}
+	private void getFujian()
+	{
+		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);  
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(Intent.createChooser(intent, "请选择一个要上传的文件"), REQUEST_CODE_TAKE_DOCUMENT); 
 	}
 	private SimpleAdapter setupFujianAdpter(Question question)
 	{
@@ -1495,19 +1624,43 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
                 new String[]{"name"}, new int[]{R.id.item_textView});
 		return fujianAdapter;
 	}
-	/**
-	 * 
-	 *  #(c) ruanyun PocketCampus <br/>
-	 *
-	 *  版本说明: $id:$ <br/>
-	 *
-	 *  功能说明: 加载多选列表
-	 * 
-	 *  <br/>创建说明: 2014-5-17 上午9:44:52 shengguo  创建文件<br/>
-	 * 
-	 *  修改历史:<br/>
-	 *
-	 */
+	private ListOfBillAdapter setupPeiJianAdpter(Question question,int position)
+	{
+		final ArrayList<HashMap<String, Object>> arrayList = new ArrayList<HashMap<String,Object>>(); 
+		double jine=0;
+		for(int i=0;i<question.getFujianArray().length();i++){  
+        	JSONObject item = null;
+			try {
+				item = (JSONObject) question.getFujianArray().get(i);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(item!=null)
+			{
+	            HashMap<String, Object> tempHashMap = new HashMap<String, Object>();  
+	            tempHashMap.put("id", item.optInt("id"));
+	            tempHashMap.put("name", item.optString("name"));
+	            tempHashMap.put("price", item.optDouble("price"));
+	            tempHashMap.put("num", item.optInt("num"));
+	            tempHashMap.put("jine", item.optDouble("jine"));
+	            arrayList.add(tempHashMap);  
+	            jine+=item.optDouble("jine");
+			}
+              
+        } 
+		if(arrayList.size()<question.getLines())
+		{
+			HashMap<String, Object> tempHashMap = new HashMap<String, Object>();  
+            tempHashMap.put("name", "添加一行");
+            tempHashMap.put("id", 0);
+            tempHashMap.put("jine", jine);
+            arrayList.add(tempHashMap);  
+		}
+		ListOfBillAdapter billAdapter = new ListOfBillAdapter(getActivity(), arrayList,question,position);
+		return billAdapter;
+	}
+	
 	@SuppressWarnings("unused")
 	private class CheckBoxAdapter extends BaseAdapter {
 
@@ -1641,5 +1794,10 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		}
 		
 	};
+	
+	public void updateQuestions(Question question, int index) {
+		questions.set(index, question);
+		adapter.notifyDataSetChanged();
+	}
 
 }

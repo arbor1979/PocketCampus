@@ -2,9 +2,11 @@ package com.ruanyun.campus.teacher.entity;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.util.Log;
@@ -106,6 +108,7 @@ public class QuestionnaireList implements Serializable {
 		private String title;
 		private String status;
 		private String usersAnswer;
+		private String usersAnswerOne;
 		private String remark;
 		private int lines;
 		public int getLines() {
@@ -117,9 +120,13 @@ public class QuestionnaireList implements Serializable {
 		}
 
 		private String options[];
+		private JSONObject subOptions;
 		private List<ImageItem> images; 
 		private String isRequired;
 		private JSONArray fujianArray;
+		private JSONObject filterObj;
+		private int linkUpdate;
+		
 		public Question(JSONObject jo) {
 			title = jo.optString("题目");
 			status = jo.optString("类型");
@@ -132,6 +139,7 @@ public class QuestionnaireList implements Serializable {
 					options[i] = ja.optString(i);
 				}
 			}
+			subOptions= jo.optJSONObject("子选项");
 			isRequired = jo.optString("是否必填");
 			lines=jo.optInt("行数");
 			if(status.equals("图片")){
@@ -142,14 +150,79 @@ public class QuestionnaireList implements Serializable {
 					setImages(new ArrayList<ImageItem>());
 				}
 			}
-			else if(status.equals("附件"))
+			else if(status.equals("附件") || status.equals("弹出列表"))
 			{
 				fujianArray=jo.optJSONArray("用户答案");
 			}
 			else{
 				usersAnswer = jo.optString("用户答案");
+				usersAnswerOne=jo.optString("用户答案一级");
 			}
-			
+			filterObj=jo.optJSONObject("Json过滤");
+			if(options!=null && options.length>0 && filterObj!=null)
+			{
+				 Iterator<String> iterator = filterObj.keys();
+				 try {
+					 boolean flag=false;
+					 while(iterator.hasNext()){
+					    String key = (String) iterator.next();
+						JSONArray ja1 = filterObj.getJSONArray(key);
+						for(int i=0;i<ja1.length();i++)
+						{
+							String item=ja1.getString(i);
+							if(item.equals(options[0]))
+							{
+								options = new String[ja1.length()];
+								for (int j = 0; j < ja1.length(); j++) {
+									options[j] = ja1.optString(j);
+								}
+								flag=true;
+								break;
+							}
+						}
+						if(flag)
+							break;
+					      
+					 }
+				 } catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+			}
+			linkUpdate=jo.optInt("关联更新");
+		}
+
+
+		public JSONObject getSubOptions() {
+			return subOptions;
+		}
+
+		public void setSubOptions(JSONObject subOptions) {
+			this.subOptions = subOptions;
+		}
+
+		public String getUsersAnswerOne() {
+			return usersAnswerOne;
+		}
+
+		public void setUsersAnswerOne(String usersAnswerOne) {
+			this.usersAnswerOne = usersAnswerOne;
+		}
+
+		public JSONObject getFilterObj() {
+			return filterObj;
+		}
+
+		public void setFilterObj(JSONObject filterObj) {
+			this.filterObj = filterObj;
+		}
+
+		public int getLinkUpdate() {
+			return linkUpdate;
+		}
+
+		public void setLinkUpdate(int linkUpdate) {
+			this.linkUpdate = linkUpdate;
 		}
 
 		public JSONArray getFujianArray() {

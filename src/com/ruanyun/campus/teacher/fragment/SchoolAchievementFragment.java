@@ -456,6 +456,10 @@ public class SchoolAchievementFragment extends Fragment {
 					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_brown));
 				else if(achievement.getThecolor().toLowerCase().equals("pink"))
 					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_pink));
+				else if(achievement.getThecolor().toLowerCase().equals("goldenrod"))
+					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_goldenrod));
+				else if(achievement.getThecolor().toLowerCase().equals("blueviolet"))
+					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_blueviolet));
 				else
 					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_bg));
 			}

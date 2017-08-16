@@ -481,6 +481,7 @@ public class CallClassActivity extends Activity {
 						.findViewById(R.id.tv_phone);
 				holder.radio_group = (LinearLayout) convertView
 						.findViewById(R.id.radio_group);
+				holder.tv_reason=(TextView)convertView.findViewById(R.id.tv_reason);
 				holder.horizontalScrollView1=(HorizontalScrollView)convertView.findViewById(R.id.horizontalScrollView1);
 				convertView.setTag(holder);
 			} else {
@@ -595,6 +596,7 @@ public class CallClassActivity extends Activity {
 				rdbtn.setCompoundDrawablesWithIntrinsicBounds(null,drawable,null,null);
 				rdbtn.setOnCheckedChangeListener(checkboxListener);
 			}
+			holder.tv_reason.setVisibility(View.GONE);
 			if(kaoqinStr.equals("请假") || kaoqinStr.equals("事假") || kaoqinStr.equals("公假") || kaoqinStr.equals("病假"))
 			{
 				for(int m=0;m<holder.radio_group.getChildCount();m++)
@@ -615,6 +617,27 @@ public class CallClassActivity extends Activity {
 						rdbtn.setText(kaoqinStr);
 						rdbtn.setChecked(true);
 						rdbtn.setEnabled(false);
+						JSONArray ja=null;
+						try {
+							ja = new JSONArray(teacherInfo.getAbsenceJson());
+							if(ja!=null)
+							{
+								for(int i=0;i<ja.length();i++)
+								{
+									JSONObject item=ja.getJSONObject(i);
+									if(item.optString("学号").equals(mContent.getStudentID()) && item.optString("节次").equals(jieci) && !item.optString("原因").equals("null"))
+									{
+										holder.tv_reason.setText(item.optString("原因"));
+										holder.tv_reason.setVisibility(View.VISIBLE);
+										break;
+									}
+								}
+							}
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
 					}
 					else
 						rdbtn.setVisibility(View.GONE);
@@ -672,7 +695,7 @@ public class CallClassActivity extends Activity {
 		}
 
 		public class ViewHolder {
-			TextView tvLetter, tvName, tvCount, tvPhone;
+			TextView tvLetter, tvName, tvCount, tvPhone,tv_reason;
 			ImageView img_photo;
 			LinearLayout radio_group;
 			HorizontalScrollView horizontalScrollView1;

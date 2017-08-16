@@ -295,6 +295,8 @@ public class SummaryClassActivity extends Activity {
 		{
 			teacherInfo=ClassDetailActivity.teacherInfo;
 		}
+		if(!AppUtility.isNotEmpty(teacherInfo.getClassroomSituation()))
+			teacherInfo.setClassroomSituation("");
 		//myPictureAdapter = new MyPictureAdapter(SummaryClassActivity.this,false, picturePaths, size);
 		
 		

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,6 +30,7 @@ import android.os.Message;
 import android.provider.Browser;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -539,6 +541,8 @@ public class SchoolAchievementDetailFragment extends Fragment {
 				
 				holder.right_layout=(LinearLayout)convertView.findViewById(R.id.right_layout);
 				convertView.setTag(holder);
+				
+				
 			} else {
 				holder = (ViewHolder) convertView.getTag();
 			}
@@ -547,6 +551,24 @@ public class SchoolAchievementDetailFragment extends Fragment {
 			holder.left.setText(achievement.getSubject());
 			holder.right.setText(achievement.getFraction());
 			holder.right.setVisibility(View.VISIBLE);
+			
+			Pattern pattern = Pattern.compile("^((13[0-9])|(15[^4])|(18[0,2,3,5-9])|(17[0-8])|(147))\\d{8}$");
+			Linkify.addLinks(holder.right, pattern, "tel:", new Linkify.MatchFilter() {
+			     public final boolean acceptMatch(CharSequence s, int start, int end) {
+			       int digitCount = 0;
+
+			       for (int i = start; i < end; i++) {
+			         if (Character.isDigit(s.charAt(i))) {
+			           digitCount++;
+			           if (digitCount == 11 ) {
+			             return true;
+			         }
+			       }
+			     }
+			      return false;
+			    }
+			  }, Linkify.sPhoneNumberTransformFilter);
+			
 			if(achievement.getHiddenBtn()!=null && achievement.getHiddenBtn().length()>0)
 			{
 				
