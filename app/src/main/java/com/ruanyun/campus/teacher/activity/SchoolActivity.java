@@ -4,15 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ruanyun.campus.teacher.fragment.SchoolAchievementFragment;
+import com.ruanyun.campus.teacher.fragment.SchoolBlogFragment;
 import com.ruanyun.campus.teacher.fragment.SchoolNoticeFragment;
 import com.ruanyun.campus.teacher.fragment.SchoolQuestionnaireFragment;
 import com.ruanyun.campus.teacher.fragment.SchoolWorkAttendanceFragment;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 
 /**
  * 
@@ -38,13 +42,17 @@ public class SchoolActivity extends FragmentActivity {
 		TemplateNameS.add("考勤");
 		TemplateNameS.add("成绩");
 		TemplateNameS.add("调查问卷");
+		TemplateNameS.add("博客");
 		
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			Window window = getWindow();
+			window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+		}
 		// Check what fragment is shown, replace if needed.
 		fragment = getSupportFragmentManager().findFragmentById(
 				android.R.id.content);
@@ -72,6 +80,9 @@ public class SchoolActivity extends FragmentActivity {
 		case 3:
 			fragment = SchoolQuestionnaireFragment.newInstance(title,interfaceName);
 			break;
+			case 4:
+				fragment = SchoolBlogFragment.newInstance(title,interfaceName);
+				break;
 		}
 		if(getSupportFragmentManager().findFragmentById(
 				android.R.id.content)!=null)

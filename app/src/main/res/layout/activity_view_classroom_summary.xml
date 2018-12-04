@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/class_detail_bg"
@@ -315,6 +317,48 @@
                 android:stretchMode="columnWidth"
                 android:verticalSpacing="2.0dip" />
 
+            <TextView
+                android:id="@+id/tv_6"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginTop="5dip"
+                android:background="@color/head_gray"
+                android:gravity="center_vertical"
+                android:paddingLeft="5dip"
+                android:text="@string/summary_classroom_shouduan"
+                android:textSize="@dimen/text_size_small" />
+
+            <com.ruanyun.campus.teacher.widget.wraplayout.WrapLayout
+                android:id="@+id/rizhi_shouduan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                app:wlyHorizontalSpacing="10dp"
+                app:wlyVerticalSpacing="10dp">
+
+            </com.ruanyun.campus.teacher.widget.wraplayout.WrapLayout>
+
+            <TextView
+                android:id="@+id/tv_7"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_marginTop="5dip"
+                android:background="@color/head_gray"
+                android:gravity="center_vertical"
+                android:paddingLeft="5dip"
+                android:text="@string/summary_classroom_ziyuanku"
+                android:textSize="@dimen/text_size_small" />
+
+            <com.ruanyun.campus.teacher.widget.wraplayout.WrapLayout
+                android:id="@+id/rizhi_pingtai"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                app:wlyHorizontalSpacing="10dp"
+                app:wlyVerticalSpacing="10dp">
+
+
+            </com.ruanyun.campus.teacher.widget.wraplayout.WrapLayout>
         </LinearLayout>
        
      
@@ -328,4 +372,6 @@
             <!-- 数据加载失败提示 -->
 
             <include layout="@layout/empty_error" />
+
+
 </LinearLayout>

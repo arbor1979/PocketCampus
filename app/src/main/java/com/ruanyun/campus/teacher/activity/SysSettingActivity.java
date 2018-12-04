@@ -332,7 +332,8 @@ public class SysSettingActivity extends FragmentActivity implements
 		
 		case R.id.aboutus:
 			Intent aboutusIntent = new Intent(SysSettingActivity.this,WebSiteActivity.class);
-			aboutusIntent.putExtra("url", CampusAPI.aboutusUrl);
+			String check=PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+			aboutusIntent.putExtra("url", CampusAPI.aboutusUrl+"?school="+check);
 			aboutusIntent.putExtra("title", getResources().getString(R.string.settings_aboutus));
 			startActivity(aboutusIntent);
 			break;
@@ -588,7 +589,10 @@ public class SysSettingActivity extends FragmentActivity implements
 			// TODO Auto-generated method stub
 		
 		}
-
+		@Override
+		public void getLocation2() {
+			// TODO Auto-generated method stub
+		}
 		@Override
 		public void getPictureByCamera1() {
 			// TODO Auto-generated method stub

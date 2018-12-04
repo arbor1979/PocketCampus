@@ -76,10 +76,10 @@ public class AllInfo {
 		companyName = jo.optString("单位名称");
 		workAttendances = jo.optString("考勤名称");
 		workAttendanceValues = jo.optString("考勤分值");
-		allowSchoolrecordkeysStr = jo.optString("允许教师修改教师上课记录信息字段");
-		allowSchoolrecordSummaryKeysStr = jo.optString("允许教师修改教师上课记录信息字段_总结");
+		allowSchoolrecordkeysStr = jo.optString("教学日志_是否开启扩展内容");
+		allowSchoolrecordSummaryKeysStr = jo.optString("教学日志_信息化手段");
 		allowSchoolrecordWorkAttendanceKeysStr = jo
-				.optString("允许教师修改教师上课记录信息字段_考勤");
+				.optString("教学日志_教学平台");
 		currentWeek = jo.optInt("当前周次");
 		selectedWeek = jo.optInt("选择周次");
 		maxWeek = jo.optInt("最大周次");
@@ -359,13 +359,16 @@ public class AllInfo {
 
 	public AllInfo(net.minidev.json.JSONObject jo) {
 		curriculums = (jo.get("所带课程")==null?"":jo.get("所带课程").toString());
+		classesStr = (jo.get("所带班级")==null?"":jo.get("所带班级").toString());
 		companyName = jo.get("单位名称").toString();
 		workAttendances = jo.get("考勤名称").toString();
 		workAttendanceValues = jo.get("考勤分值").toString();
-		allowSchoolrecordkeysStr = jo.get("允许教师修改教师上课记录信息字段").toString();
-		allowSchoolrecordSummaryKeysStr = jo.get("允许教师修改教师上课记录信息字段_总结").toString();
-		allowSchoolrecordWorkAttendanceKeysStr = jo
-				.get("允许教师修改教师上课记录信息字段_考勤").toString();
+		if(jo.get("教学日志_是否开启扩展内容")!=null)
+			allowSchoolrecordkeysStr = jo.get("教学日志_是否开启扩展内容").toString();
+		if(jo.get("教学日志_信息化手段")!=null)
+			allowSchoolrecordSummaryKeysStr = jo.get("教学日志_信息化手段").toString();
+		if(jo.get("教学日志_教学平台")!=null)
+			allowSchoolrecordWorkAttendanceKeysStr = jo.get("教学日志_教学平台").toString();
 		currentWeek = Integer.parseInt(jo.get("当前周次").toString());
 		selectedWeek = Integer.parseInt(jo.get("选择周次").toString());
 		maxWeek = Integer.parseInt(jo.get("最大周次").toString());
@@ -389,7 +392,7 @@ public class AllInfo {
 		 PrefUtility.put(Constants.PREF_MAX_WEEK, maxWeek);
 		 PrefUtility.put(Constants.PREF_CUR_XUEQI, curXueQi);
 		 PrefUtility.put(Constants.PREF_XUEQI_BEGIN_DATE, xueqiBeginDate);
-		classesStr = (jo.get("所带班级")==null?"":jo.get("所带班级").toString());
+
 		Log.d(TAG, "------------------>所带班级：" + classesStr);
 		if (classesStr != null) {
 			String[] classes = classesStr.split(",");

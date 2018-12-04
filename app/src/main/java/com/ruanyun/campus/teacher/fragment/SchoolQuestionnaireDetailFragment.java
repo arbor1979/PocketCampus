@@ -405,6 +405,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		this.inflater = inflater;
 		View view = inflater.inflate(R.layout.school_listview_fragment,
 				container, false);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+			AppUtility.setRootViewPadding(view);
 		myListview = (ListView) view.findViewById(R.id.my_listview);
 		btnLeft = (Button) view.findViewById(R.id.btn_left);
 		tvTitle = (TextView) view.findViewById(R.id.tv_title);
@@ -790,7 +792,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			jo.put("选项记录集", joarr);
 			if(questionnaireList.getNeedLocation().equals("是")) {
 				User user = ((CampusApplication) getActivity().getApplicationContext()).getLoginUserObj();
-				jo.put("GPS定位", user.getLatestAddress());
+				jo.put("GPS定位", user.getLatestGps()+"\n"+user.getLatestAddress());
 			}
 			jo.put("DATETIME", datatime);
 			jo.put("language", language);
@@ -979,6 +981,12 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 						e.printStackTrace();
 					}
 				}
+				String isRequired = questions.get(i).getIsRequired();//是否必填
+				if(isRequired.equals("是") && joimages.length()==0){
+					AppUtility.showToastMsg(getActivity(),"请填写所有必填项");
+					myListview.setSelection(i);
+					return null;
+				}
 				joarr.put(joimages);
 			}
 			else if(mStatus.equals("附件"))
@@ -1007,36 +1015,63 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 						e.printStackTrace();
 					}
 				}
+				String isRequired = questions.get(i).getIsRequired();//是否必填
+				if(isRequired.equals("是") && fujianArray.length()==0){
+					AppUtility.showToastMsg(getActivity(),"请填写所有必填项");
+					myListview.setSelection(i);
+					return null;
+				}
 				joarr.put(fujianArray);
 			}
 			else if(mStatus.equals("弹出列表"))
 			{
 				JSONArray fujianArray=questions.get(i).getFujianArray();
+				String isRequired = questions.get(i).getIsRequired();//是否必填
+				if(isRequired.equals("是") && fujianArray.length()==0){
+					AppUtility.showToastMsg(getActivity(),"请填写所有必填项");
+					myListview.setSelection(i);
+					return null;
+				}
 				joarr.put(fujianArray);
 			}
 			else
 			{
 				String usersAnswer = questions.get(i).getUsersAnswer();
 				String isRequired = questions.get(i).getIsRequired();//是否必填
-				if(AppUtility.isNotEmpty(isRequired)){
-					if(isRequired.equals("是")){
+				String validate=questions.get(i).getValidate();
+				if(AppUtility.isNotEmpty(isRequired) && isRequired.equals("是")){
 						if(AppUtility.isNotEmpty(usersAnswer)){
 							joarr.put(usersAnswer);
 						}else{
-							AppUtility.showToastMsg(getActivity(),"请完成问卷再提交");
+							AppUtility.showToastMsg(getActivity(),"请填写所有必填项");
 							myListview.setSelection(i);
-							
 							return null;
 						}
-					}else{
-						joarr.put(usersAnswer);
-					}
 				}else{
-					if(AppUtility.isNotEmpty(usersAnswer)){
-						joarr.put(usersAnswer);
-					}else{
-						Log.d(TAG, "222"+questions.get(i).getTitle());
-						AppUtility.showToastMsg(getActivity(),"请完成问卷再提交");
+					joarr.put(usersAnswer);
+				}
+				if(AppUtility.isNotEmpty(validate) && AppUtility.isNotEmpty(usersAnswer)){
+					if(validate.equals("手机号") && !AppUtility.checkPhone(usersAnswer))
+					{
+						AppUtility.showToastMsg(getActivity(),title+",格式不正确");
+						myListview.setSelection(i);
+						return null;
+					}
+					else if(validate.equals("浮点型") && !AppUtility.isDecimal(usersAnswer))
+					{
+						AppUtility.showToastMsg(getActivity(),title+",必须是浮点型数字,如:99.9");
+						myListview.setSelection(i);
+						return null;
+					}
+					else if(validate.equals("整型") && !AppUtility.isInteger(usersAnswer))
+					{
+						AppUtility.showToastMsg(getActivity(),title+",必须整形数字,如:99");
+						myListview.setSelection(i);
+						return null;
+					}
+					else if(validate.equals("邮箱") && !AppUtility.checkEmail(usersAnswer))
+					{
+						AppUtility.showToastMsg(getActivity(),title+",邮箱格式不正确");
 						myListview.setSelection(i);
 						return null;
 					}
@@ -1827,7 +1862,10 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		public void getLocation1() {
 			getLocation();
 		}
-
+		@Override
+		public void getLocation2() {
+			// TODO Auto-generated method stub
+		}
 		@Override
 		public void getPictureByCamera1() {
 			// TODO Auto-generated method stub

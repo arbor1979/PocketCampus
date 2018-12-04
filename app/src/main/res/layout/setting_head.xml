@@ -3,7 +3,7 @@
     android:id="@+id/headerlayout"
     android:layout_width="fill_parent"
     android:layout_height="@dimen/head_layout_height"
-    android:background="#27ae62" >
+    android:background="@color/background" >
 
     <Button
         android:id="@+id/back"
@@ -11,16 +11,20 @@
         android:layout_height="match_parent"
         android:background="@drawable/title_layout_selector"
         android:drawableLeft="@drawable/title_back_bg_selector"
+        android:layout_alignParentLeft="true"
         android:gravity="center"
         android:paddingLeft="10dip"
         android:text="@string/back"
         android:textColor="@color/title_text_selector"
-        android:textSize="@dimen/text_size_small" />
+        android:textSize="@dimen/text_size_small"
+        style="?android:attr/borderlessButtonStyle"
+        />
 
     <Button
         android:id="@+id/menu"
         android:layout_width="23dip"
         android:layout_height="23dip"
+        android:layout_alignParentLeft="true"
         android:background="@drawable/bg_title_homepage_back"
         android:gravity="center"
         android:visibility="gone" />

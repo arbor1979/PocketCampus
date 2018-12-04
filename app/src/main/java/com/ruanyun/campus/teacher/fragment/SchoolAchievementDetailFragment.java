@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -295,6 +296,8 @@ public class SchoolAchievementDetailFragment extends Fragment {
 		View view = inflater.inflate(R.layout.school_listview_fragment,
 				container, false);
 		myListview = (ListView) view.findViewById(R.id.my_listview);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+			AppUtility.setRootViewPadding(view);
 		btnLeft = (Button) view.findViewById(R.id.btn_left);
 		tvRight = (TextView) view.findViewById(R.id.tv_right);
 		tvTitle = (TextView) view.findViewById(R.id.tv_title);

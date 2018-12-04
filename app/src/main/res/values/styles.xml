@@ -17,14 +17,17 @@
     </style>
 
     <!-- Application theme. -->
-    <style name="AppTheme" parent="android:Theme.Light.NoTitleBar">
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
     </style>
 
+    <style name="Tab" parent="AppTheme">
+
+                <item name="android:windowContentOverlay">@null</item><!-- 这行是关键 -->
+                <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/topbar_background</item>
+         </style>
     <style name="bottom_tab_tv">
         <item name="android:textSize">@dimen/small</item>
         <item name="android:textColor">@color/tab_text_selector</item>

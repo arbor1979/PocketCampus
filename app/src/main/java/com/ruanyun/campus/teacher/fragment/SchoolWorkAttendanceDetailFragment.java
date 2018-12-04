@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -125,6 +126,8 @@ public class SchoolWorkAttendanceDetailFragment extends Fragment {
 		this.inflater = inflater;
 		View view = inflater.inflate(R.layout.school_listview_fragment, container,
 				false);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+			AppUtility.setRootViewPadding(view);
 		aq = new AQuery(view);
 		btnLeft = (Button) view.findViewById(R.id.btn_left);
 		myListview = (ListView) view.findViewById(R.id.my_listview);

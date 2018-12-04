@@ -1,12 +1,15 @@
 package com.ruanyun.campus.teacher.activity;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import org.apache.http.util.EncodingUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -14,6 +17,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.app.DownloadManager.Request;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -26,6 +30,9 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -35,6 +42,8 @@ import android.view.View.OnClickListener;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieSyncManager;
 import android.webkit.DownloadListener;
+import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebSettings.PluginState;
@@ -48,6 +57,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import com.ruanyun.campus.teacher.CampusApplication;
+import com.ruanyun.campus.teacher.entity.ImageItem;
+import com.ruanyun.campus.teacher.entity.User;
+import com.ruanyun.campus.teacher.service.Alarmreceiver;
+import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.DateHelper;
 import com.ruanyun.campus.teacher.activity.TabHostActivity;
 import com.ruanyun.campus.teacher.activity.WebSiteActivity;
@@ -71,12 +85,11 @@ import com.ruanyun.campus.teacher.util.AppUtility.CallBackInterface;
  * @version V1.0
  * 
  */
-
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-public class WebSiteActivity extends Activity {
+public class WebSiteActivity extends Activity implements Alarmreceiver.BRInteraction{
 	private static final String TAG = "WebSiteActivity";
 	public static Date loginDate;
-	private WebView mWebView; 
+	private WebView mWebView;
 	private WebChromeClient chromeClient = null;
 	private View myView = null;
 	private WebChromeClient.CustomViewCallback myCallBack = null;
@@ -89,13 +102,40 @@ public class WebSiteActivity extends Activity {
 	private String downloadUrl;
 	private File downloadFile;
 	private static boolean bOfficeInstall=false,bZipInstall=false;
+	private ValueCallback<Uri> uploadMessage;
+	private ValueCallback<Uri[]> uploadMessageAboveL;
+	private final static int FILE_CHOOSER_RESULT_CODE = 10000;
+	private final static int REQUEST_CODE_TAKE_CAMERA = 1;// //设置拍照操作的标志
+	private String cameraPicPath,cameraPicType;
 	@SuppressLint({ "SetJavaScriptEnabled", "CutPasteId" })
+
+	@Override
+	public void callbackGPSXY(double lat,double lon) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			mWebView.evaluateJavascript("javascript:callbackGPSXY("+lat+","+lon+")",null);
+			Log.d(TAG,"lat="+lat+",lon="+lon);
+		}
+	}
+	public void callbackRealAddress(String realAddress)
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+			realAddress=realAddress.replace("\n","\\n");
+			mWebView.evaluateJavascript("javascript:callbackRealAddress('"+realAddress+"')",null);
+		}
+		else
+			AppUtility.showToastMsg(this,"请使用安卓4.4以上版本");
+		Alarmreceiver.brInteraction=null;
+		Log.d(TAG,realAddress);
+	}
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		setContentView(R.layout.web_site);
+
 		ExitApplication.getInstance().addActivity(this);
 		frameLayout = (LinearLayout)findViewById(R.id.mainLayout);
+
 		loading=(FrameLayout)findViewById(R.id.loading);
 		mWebView = (WebView) findViewById(R.id.website);
 		layoutHead = (RelativeLayout) findViewById(R.id.headerlayout);
@@ -106,29 +146,29 @@ public class WebSiteActivity extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				
+
 				mWebView.goBack();
 			}
-			
+
 		});
 		forward.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
-				
+
 				mWebView.goForward();
 			}
-			
+
 		});
 		mWebView.getSettings().setAllowFileAccess(true);
-		mWebView.getSettings().setJavaScriptEnabled(true);   
+		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.getSettings().setDomStorageEnabled(true);
 		mWebView.getSettings().setBuiltInZoomControls(false);
-		mWebView.getSettings().setSupportZoom(false);  
-		mWebView.getSettings().setDisplayZoomControls(false);  
+		mWebView.getSettings().setSupportZoom(false);
+		mWebView.getSettings().setDisplayZoomControls(false);
 		//mWebView.getSettings().setMediaPlaybackRequiresUserGesture(false);
 		mWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-		mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);   
+		mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
 		//mWebView.getSettings().setPluginState(PluginState.ON);
 		mWebView.getSettings().setDefaultTextEncodingName("GBK");
 		Button back=(Button) findViewById(R.id.back);
@@ -148,7 +188,7 @@ public class WebSiteActivity extends Activity {
 		{
 			tv_title.setTextSize(18);
 			if(title.length()>12)
-			title=title.substring(0, 12)+"..";
+				title=title.substring(0, 12)+"..";
 		}
 		tv_title.setText(title);
 		mWebView.setWebViewClient(new MyWebClient());
@@ -158,24 +198,22 @@ public class WebSiteActivity extends Activity {
 		chromeClient = new MyChromeClient();
 		mWebView.addJavascriptInterface(chromeClient, "VideoComplete");
 		mWebView.setWebChromeClient(chromeClient);
-		
-		CookieSyncManager.createInstance(this); 
-		
+
+		CookieSyncManager.createInstance(this);
+
 		if(url!=null && url.length()>0)
 			mWebView.loadUrl(url);
 		else if(moodleText!=null && moodleText.length()>0)
 		{
 			Date now=new Date();
-			if(loginDate==null || DateHelper.getMinutesDiff(now,loginDate)>20)
+			String loginUrl =  getIntent().getStringExtra("loginUrl");
+			if(loginUrl!=null && (loginDate==null || DateHelper.getMinutesDiff(now,loginDate)>20))
 			{
-
-				String loginUrl =  getIntent().getStringExtra("loginUrl");
 				String username=PrefUtility.get(Constants.PREF_LOGIN_NAME, "");
 				username=username.split("@")[0];
 				String password=PrefUtility.get(Constants.PREF_LOGIN_PASS, "");
 				String postDate = "username="+username+"&password="+password;
 				mWebView.postUrl(loginUrl, EncodingUtils.getBytes(postDate, "BASE64"));
-				
 				needLoadHtml=moodleText;
 			}
 			else
@@ -185,7 +223,7 @@ public class WebSiteActivity extends Activity {
 			}
 			webNavBar.setVisibility(View.VISIBLE);
 		}
-		
+
 		Button btn_back = (Button) findViewById(R.id.back);
 
 		btn_back.setOnClickListener(new OnClickListener() {
@@ -195,24 +233,24 @@ public class WebSiteActivity extends Activity {
 			}
 		});
 	}
-	
+
 	final class DemoJavaScriptInterface {
 
-        DemoJavaScriptInterface() {
-        }
+		DemoJavaScriptInterface() {
+		}
 
-        /**
-         * This is not called on the UI thread. Post a runnable to invoke
-         * loadUrl on the UI thread.
-         */
-        public void clickOnAndroid() {
-           
+		/**
+		 * This is not called on the UI thread. Post a runnable to invoke
+		 * loadUrl on the UI thread.
+		 */
+		public void clickOnAndroid() {
 
-        }
-    }
-	
+
+		}
+	}
+
 	public class MyChromeClient extends WebChromeClient implements OnCompletionListener {
-		
+
 		@Override
 		public void onShowCustomView(View view, CustomViewCallback callback) {
 			if(myView != null){
@@ -230,54 +268,54 @@ public class WebSiteActivity extends Activity {
 			myView = view;
 			myCallBack = callback;
 			chromeClient=this;
-			
-			FrameLayout frameLayout = (FrameLayout) view; 
-            View focusedChild = frameLayout.getFocusedChild();
-            
-            if (focusedChild instanceof VideoView) 
-            { 
-                // VideoView (typically API level <11) 
-                VideoView videoView = (VideoView) focusedChild; 
-                // Handle all the required events 
-                videoView.setOnCompletionListener(this); 
-                
-            }
-            else // Usually android.webkit.HTML5VideoFullScreen$VideoSurfaceView, sometimes android.webkit.HTML5VideoFullScreen$VideoTextureView 
-            { 
-                // HTML5VideoFullScreen (typically API level 11+) 
-                // Handle HTML5 video ended event 
-                    String js = "javascript:"; 
-                    js += "_ytrp_html5_video = document.getElementsByTagName('video')[0];"; 
-                    js += "if (_ytrp_html5_video !== undefined) {"; 
-                    { 
-                        js += "function _ytrp_html5_video_ended() {"; 
-                        { 
-                            js += "_ytrp_html5_video.removeEventListener('ended', _ytrp_html5_video_ended);"; 
-                            js += "VideoComplete.playVideoEnd();"; // Must match Javascript interface name and method of VideoEnableWebView 
-                        } 
-                        js += "}"; 
-                        js += "_ytrp_html5_video.addEventListener('ended', _ytrp_html5_video_ended);"; 
-                    } 
-                    js += "if(_ytrp_html5_video.paused) _ytrp_html5_video.play();}"; 
-                    mWebView.loadUrl(js); 
-            	
-            } 
+
+			FrameLayout frameLayout = (FrameLayout) view;
+			View focusedChild = frameLayout.getFocusedChild();
+
+			if (focusedChild instanceof VideoView)
+			{
+				// VideoView (typically API level <11)
+				VideoView videoView = (VideoView) focusedChild;
+				// Handle all the required events
+				videoView.setOnCompletionListener(this);
+
+			}
+			else // Usually android.webkit.HTML5VideoFullScreen$VideoSurfaceView, sometimes android.webkit.HTML5VideoFullScreen$VideoTextureView
+			{
+				// HTML5VideoFullScreen (typically API level 11+)
+				// Handle HTML5 video ended event
+				String js = "javascript:";
+				js += "_ytrp_html5_video = document.getElementsByTagName('video')[0];";
+				js += "if (_ytrp_html5_video !== undefined) {";
+				{
+					js += "function _ytrp_html5_video_ended() {";
+					{
+						js += "_ytrp_html5_video.removeEventListener('ended', _ytrp_html5_video_ended);";
+						js += "VideoComplete.playVideoEnd();"; // Must match Javascript interface name and method of VideoEnableWebView
+					}
+					js += "}";
+					js += "_ytrp_html5_video.addEventListener('ended', _ytrp_html5_video_ended);";
+				}
+				js += "if(_ytrp_html5_video.paused) _ytrp_html5_video.play();}";
+				mWebView.loadUrl(js);
+
+			}
 		}
-		public void playVideoEnd() 
+		public void playVideoEnd()
 		{
 			WebSiteActivity.this.frameLayout.post(new Runnable() {
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						onHideCustomView();
-					}
-				});
-			}
-		@Override 
-		public void onCompletion(MediaPlayer mp) // Video finished playing, only called in the case of VideoView (typically API level <11) 
-		{ 
-		        onHideCustomView(); 
-		} 
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					onHideCustomView();
+				}
+			});
+		}
+		@Override
+		public void onCompletion(MediaPlayer mp) // Video finished playing, only called in the case of VideoView (typically API level <11)
+		{
+			onHideCustomView();
+		}
 		@Override
 		public void onHideCustomView() {
 			if(myView == null){
@@ -294,31 +332,148 @@ public class WebSiteActivity extends Activity {
 				webNavBar.setVisibility(View.VISIBLE);
 			myCallBack.onCustomViewHidden();
 		}
-		
+
 		@Override
 		public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
 			// TODO Auto-generated method stub
 			Log.d("ZR", consoleMessage.message()+" at "+consoleMessage.sourceId()+":"+consoleMessage.lineNumber());
 			return super.onConsoleMessage(consoleMessage);
 		}
+		// For Android < 3.0
+		public void openFileChooser(ValueCallback<Uri> valueCallback) {
+			uploadMessage = valueCallback;
+			openImageChooserActivity();
+		}
+
+		// For Android  >= 3.0
+		public void openFileChooser(ValueCallback valueCallback, String acceptType) {
+			uploadMessage = valueCallback;
+			openImageChooserActivity();
+		}
+
+		//For Android  >= 4.1
+		public void openFileChooser(ValueCallback<Uri> valueCallback, String acceptType, String capture) {
+			uploadMessage = valueCallback;
+			openImageChooserActivity();
+		}
+
+		// For Android >= 5.0
+		@Override
+		public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+			uploadMessageAboveL = filePathCallback;
+			openImageChooserActivity();
+			return true;
+		}
+		@JavascriptInterface
+		public void GetCamera(String type) {
+			cameraPicType=type;
+			if (Build.VERSION.SDK_INT >= 23) {
+				if (AppUtility.checkPermission(WebSiteActivity.this, 6, Manifest.permission.CAMERA))
+					cameraPicPath=AppUtility.getPictureByCamera(WebSiteActivity.this,REQUEST_CODE_TAKE_CAMERA);
+			} else
+				cameraPicPath=AppUtility.getPictureByCamera(WebSiteActivity.this,REQUEST_CODE_TAKE_CAMERA);
+		}
+		@JavascriptInterface
+		public void GetGPSNew(int mode) {
+			int code=5;
+			if(mode==1)
+				code=11;
+			if (Build.VERSION.SDK_INT >= 23) {
+				if (AppUtility.checkPermission(WebSiteActivity.this, code, Manifest.permission.ACCESS_FINE_LOCATION))
+					getLocation(mode);
+			} else
+				getLocation(mode);
+		}
+		@JavascriptInterface
+		public String GetGPS() {
+
+			if (Build.VERSION.SDK_INT >= 23) {
+				if (AppUtility.checkPermission(WebSiteActivity.this, 5, Manifest.permission.ACCESS_FINE_LOCATION))
+					getLocation(0);
+			} else
+				getLocation(0);
+			User user = ((CampusApplication) getApplicationContext()).getLoginUserObj();
+			if(user.getLatestAddress()==null || user.getLatestAddress().length()==0)
+				return "";
+			else
+				return user.getLatestGps()+"\n"+user.getLatestAddress();
+		}
 	}
-	 
-	
+	private void getLocation(int mode)
+	{
+		Intent intent = new Intent(WebSiteActivity.this, Alarmreceiver.class);
+		if(mode==1)
+			intent.setAction("reportGPSLocation");
+		else
+			intent.setAction("reportLocation");
+		Alarmreceiver.brInteraction=this;
+		sendBroadcast(intent);
+	}
+	private void openImageChooserActivity() {
+		Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+		i.addCategory(Intent.CATEGORY_OPENABLE);
+		i.setType("*/*");
+		startActivityForResult(Intent.createChooser(i, "文件选择"), FILE_CHOOSER_RESULT_CODE);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == FILE_CHOOSER_RESULT_CODE) {
+			if (null == uploadMessage && null == uploadMessageAboveL) return;
+			Uri result = data == null || resultCode != RESULT_OK ? null : data.getData();
+			if (uploadMessageAboveL != null) {
+				onActivityResultAboveL(requestCode, resultCode, data);
+			} else if (uploadMessage != null) {
+				uploadMessage.onReceiveValue(result);
+				uploadMessage = null;
+			}
+		}
+		else if (requestCode ==  REQUEST_CODE_TAKE_CAMERA) {// 拍照返回
+			if (resultCode == RESULT_OK && cameraPicPath!=null && cameraPicPath.length()>0) {
+				AppUtility.fileUploadWay(new File(cameraPicPath),cameraPicType,this.mHandler);
+			}
+		}
+	}
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	private void onActivityResultAboveL(int requestCode, int resultCode, Intent intent) {
+		if (requestCode != FILE_CHOOSER_RESULT_CODE || uploadMessageAboveL == null)
+			return;
+		Uri[] results = null;
+		if (resultCode == Activity.RESULT_OK) {
+			if (intent != null) {
+				String dataString = intent.getDataString();
+				ClipData clipData = intent.getClipData();
+				if (clipData != null) {
+					results = new Uri[clipData.getItemCount()];
+					for (int i = 0; i < clipData.getItemCount(); i++) {
+						ClipData.Item item = clipData.getItemAt(i);
+						results[i] = item.getUri();
+					}
+				}
+				if (dataString != null)
+					results = new Uri[]{Uri.parse(dataString)};
+			}
+		}
+		uploadMessageAboveL.onReceiveValue(results);
+		uploadMessageAboveL = null;
+	}
+
 	private class MyWebClient extends WebViewClient
 	{
-		 @Override  
-	    public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {  
-	            back.setEnabled(mWebView.canGoBack());  
-	            forward.setEnabled(mWebView.canGoForward());  
-	            if(back.isEnabled())
-	            	back.setBackgroundResource(R.drawable.bg_title_bar_btn_back_enable);
-	            else
-	            	back.setBackgroundResource(R.drawable.bg_title_bar_btn_back);
-	            if(forward.isEnabled())
-	            	forward.setBackgroundResource(R.drawable.bg_title_bar_btn_forword_enable);
-	            else
-	            	forward.setBackgroundResource(R.drawable.bg_title_bar_btn_forword);
-	    } 
+		@Override
+		public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
+			back.setEnabled(mWebView.canGoBack());
+			forward.setEnabled(mWebView.canGoForward());
+			if(back.isEnabled())
+				back.setBackgroundResource(R.drawable.bg_title_bar_btn_back_enable);
+			else
+				back.setBackgroundResource(R.drawable.bg_title_bar_btn_back);
+			if(forward.isEnabled())
+				forward.setBackgroundResource(R.drawable.bg_title_bar_btn_forword_enable);
+			else
+				forward.setBackgroundResource(R.drawable.bg_title_bar_btn_forword);
+		}
 		public void onPageFinished(WebView view, String url) {
 			super.onPageFinished(view, url);
 			if(moodleText!=null && moodleText.length()>0)
@@ -332,7 +487,7 @@ public class WebSiteActivity extends Activity {
 			}
 			mWebView.setVisibility(View.VISIBLE);
 			loading.setVisibility(View.GONE);
-			
+
 			if(needLoadHtml.length()>0)
 			{
 				needLoadHtml=needLoadHtml.replaceAll("pluginfile.php","pluginfile_dandian.php?");
@@ -349,109 +504,115 @@ public class WebSiteActivity extends Activity {
 				needLoadHtml="";
 				loginDate=new Date();
 			}
-			
-	    }
+			/*
+			int navBarHeight=AppUtility.getDaoHangHeight(mWebView.getContext());
+			if(navBarHeight>0) {
+				mWebView.loadUrl("javascript:document.body.style.paddingBottom='"+navBarHeight+"px'; void 0");
+			}
+			*/
+
+		}
 		public void onPageStarted(WebView view, String url, Bitmap favicon) {
-	        super.onPageStarted(view, url, favicon);
-	        mWebView.setVisibility(View.GONE);
+			super.onPageStarted(view, url, favicon);
+			mWebView.setVisibility(View.GONE);
 			loading.setVisibility(View.VISIBLE);
-	    }  
+		}
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
-			
-		    if (url.startsWith("tel:")) {
-		        startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse(url)));
-		        return true;
-		    } else if (url.startsWith("mailto:")) {
-		        url = url.replaceFirst("mailto:", "");
-		        url = url.trim();
-		        Intent i = new Intent(Intent.ACTION_SEND);
-		        i.setType("plain/text").putExtra(Intent.EXTRA_EMAIL, new String[]{url});
-		        startActivity(i);
-		        return true;
-		    } else if (url.startsWith("geo:")) {
-		        Intent searchAddress = new Intent(Intent.ACTION_VIEW, Uri.parse(url)); 
-		        startActivity(searchAddress); 
-		        return true;
-		    }
+
+			if (url.startsWith("tel:")) {
+				startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse(url)));
+				return true;
+			} else if (url.startsWith("mailto:")) {
+				url = url.replaceFirst("mailto:", "");
+				url = url.trim();
+				Intent i = new Intent(Intent.ACTION_SEND);
+				i.setType("plain/text").putExtra(Intent.EXTRA_EMAIL, new String[]{url});
+				startActivity(i);
+				return true;
+			} else if (url.startsWith("geo:")) {
+				Intent searchAddress = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+				startActivity(searchAddress);
+				return true;
+			}
 		    /*
 		    else if(url.toLowerCase(Locale.getDefault()).endsWith(".swf"))
 		    {
-		    	
+
 		    	if(!checkFlashplayer())
 		    	{
 		    		AppUtility.showToastMsg(WebSiteActivity.this, "请先安装flash插件");
-		    		Intent installIntent = new Intent(  
-                            "android.intent.action.VIEW");  
-                    installIntent.setData(Uri  
-                            .parse("market://details?id=com.adobe.flashplayer"));  
-                    startActivity(installIntent);  
+		    		Intent installIntent = new Intent(
+                            "android.intent.action.VIEW");
+                    installIntent.setData(Uri
+                            .parse("market://details?id=com.adobe.flashplayer"));
+                    startActivity(installIntent);
                     return true;
 		    	}
-		    	
+
 		    	AppUtility.showToastMsg(WebSiteActivity.this,"由于安卓对swf格式文件支持不佳，建议在电脑上打开swf文件",1);
 		    	//view.loadUrl(url);
 		    	return true;
 
 		    }
 		    */
-		    else
-		    {
-		    	//if(moodleText!=null && moodleText.length()>0)
-		    	//	url=url.replace("pluginfile.php", "pluginfile_dandian.php?");
-		    	url=url.replace("pluginfile.php", "pluginfile_dandian.php?");
-		    	String[] tempArray=url.split("\\?");
-		    	if(tempArray.length>2)
-		    		url=tempArray[0]+"?"+tempArray[1];
+			else
+			{
+				//if(moodleText!=null && moodleText.length()>0)
+				//	url=url.replace("pluginfile.php", "pluginfile_dandian.php?");
+				url=url.replace("pluginfile.php", "pluginfile_dandian.php?");
+				String[] tempArray=url.split("\\?");
+				if(tempArray.length>2)
+					url=tempArray[0]+"?"+tempArray[1];
 				String path=FileUtility.creatSDDir("download");
 				String fileName=FileUtility.getUrlRealName(url);
 				String filePath=path+fileName;
 				//FileUtility.deleteFile(filePath);
-				File file = new File(filePath);  
+				File file = new File(filePath);
 				Intent intent;
-		        if(file.exists() && file.isFile())
-		        {
-		        	intent=IntentUtility.openUrl(WebSiteActivity.this,filePath);
-		        	IntentUtility.openIntent(WebSiteActivity.this, intent,true);
-		        }
-		        else
-		        {
-		        	
-		        	intent=IntentUtility.openUrl(WebSiteActivity.this,url);
-		        	if(intent==null)
-		        	{
-		        		view.loadUrl(url);
-			    	}
-			    	else
-			    	{
-			    		ArrayList<String> tempList =new ArrayList<String>();
-			    		tempList.add("audio/*");
-			    		tempList.add("video/*");
-			    		tempList.add("image/*");
-			    		if(tempList.contains(intent.getType()))
-			    		{
-			    			if(!IntentUtility.openIntent(WebSiteActivity.this, intent,false))
-			    			{
-			    				downloadFile(url,file);
-			    			}
-			    		}
-			    		else
-			    			downloadFile(url,file);
-			    		
-			    	}
-			    	
-		        	 
-		        }
-		        return true;
-		    }
-		   
-		    
+				if(file.exists() && file.isFile())
+				{
+					intent=IntentUtility.openUrl(WebSiteActivity.this,filePath);
+					IntentUtility.openIntent(WebSiteActivity.this, intent,true);
+				}
+				else
+				{
+
+					intent=IntentUtility.openUrl(WebSiteActivity.this,url);
+					if(intent==null)
+					{
+						view.loadUrl(url);
+					}
+					else
+					{
+						ArrayList<String> tempList =new ArrayList<String>();
+						tempList.add("audio/*");
+						tempList.add("video/*");
+						tempList.add("image/*");
+						if(tempList.contains(intent.getType()))
+						{
+							if(!IntentUtility.openIntent(WebSiteActivity.this, intent,false))
+							{
+								downloadFile(url,file);
+							}
+						}
+						else
+							downloadFile(url,file);
+
+					}
+
+
+				}
+				return true;
+			}
+
+
 		}
-		
+
 	}
 	private void downloadFile(String url,File file)
 	{
-		if (Build.VERSION.SDK_INT >= 23) 
+		if (Build.VERSION.SDK_INT >= 23)
 		{
 			if(AppUtility.checkPermission(WebSiteActivity.this, 7,Manifest.permission.WRITE_EXTERNAL_STORAGE))
 				beginDownload(url,file);
@@ -463,8 +624,8 @@ public class WebSiteActivity extends Activity {
 		}
 		else
 			beginDownload(url,file);
-		
-		 
+
+
 	}
 	private void beginDownload(String url,File file)
 	{
@@ -473,21 +634,21 @@ public class WebSiteActivity extends Activity {
 	}
 	private class MyWebViewDownLoadListener implements DownloadListener {
 
-        @Override
-        public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype,
-                                    long contentLength) {
-        	Intent intent=IntentUtility.openUrl(WebSiteActivity.this,url);
-        	if(intent==null)
-	    	{
-        		Uri uri = Uri.parse(url);
-        		intent = new Intent(Intent.ACTION_VIEW, uri);
-        		startActivity(intent);
-	    	}
-        	else
-        		IntentUtility.openIntent(WebSiteActivity.this,intent,true);
-        }
+		@Override
+		public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype,
+									long contentLength) {
+			Intent intent=IntentUtility.openUrl(WebSiteActivity.this,url);
+			if(intent==null)
+			{
+				Uri uri = Uri.parse(url);
+				intent = new Intent(Intent.ACTION_VIEW, uri);
+				startActivity(intent);
+			}
+			else
+				IntentUtility.openIntent(WebSiteActivity.this,intent,true);
+		}
 
-    }
+	}
 	@Override
 	public void onPause()
 	{
@@ -503,89 +664,133 @@ public class WebSiteActivity extends Activity {
 		mWebView.onResume();
 		CookieSyncManager.getInstance().startSync();
 	}
-	 @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        // TODO Auto-generated method stub
-        super.onConfigurationChanged(newConfig);
-        if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE )
-        {
-            Toast.makeText(getApplicationContext(), "开启全屏", Toast.LENGTH_SHORT).show();
-        }else if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
-        {
-            Toast.makeText(getApplicationContext(), "退出全屏", Toast.LENGTH_SHORT).show();
-        }
-    }
-	 @Override 
-	public boolean onKeyDown(int keyCode, KeyEvent event) {  
-		 if(keyCode == KeyEvent.KEYCODE_BACK)
-		 {
-			 if(myView!=null)
-			 {
-				 chromeClient.onHideCustomView();
-				 return true;
-			 }
-			 else
-				 return super.onKeyDown(keyCode, event); 
-		 }
-		 else
-			 return super.onKeyDown(keyCode, event); 
-	 }
-	 /*
-	 private boolean checkFlashplayer() {
-			PackageManager pm = getPackageManager();
-			List<PackageInfo> infoList = pm
-					.getInstalledPackages(PackageManager.GET_SERVICES);
-			for (PackageInfo info : infoList) {
-				if ("com.adobe.flashplayer".equals(info.packageName)) {
-					return true;
-				}
-			}
-			return false;
-	}*/
-	 @TargetApi(23)
-		@Override
-		public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		// TODO Auto-generated method stub
+		super.onConfigurationChanged(newConfig);
+		if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE )
 		{
-			AppUtility.permissionResult(requestCode,grantResults,this,callBack);
-			super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+			Toast.makeText(getApplicationContext(), "开启全屏", Toast.LENGTH_SHORT).show();
+		}else if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+		{
+			Toast.makeText(getApplicationContext(), "退出全屏", Toast.LENGTH_SHORT).show();
 		}
-		public CallBackInterface callBack=new CallBackInterface()
+	}
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if(keyCode == KeyEvent.KEYCODE_BACK)
 		{
+			if(myView!=null)
+			{
+				chromeClient.onHideCustomView();
+				return true;
+			}
+			else
+				return super.onKeyDown(keyCode, event);
+		}
+		else
+			return super.onKeyDown(keyCode, event);
+	}
+	/*
+    private boolean checkFlashplayer() {
+           PackageManager pm = getPackageManager();
+           List<PackageInfo> infoList = pm
+                   .getInstalledPackages(PackageManager.GET_SERVICES);
+           for (PackageInfo info : infoList) {
+               if ("com.adobe.flashplayer".equals(info.packageName)) {
+                   return true;
+               }
+           }
+           return false;
+   }*/
+	@TargetApi(23)
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+	{
+		AppUtility.permissionResult(requestCode,grantResults,this,callBack);
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+	}
+	public CallBackInterface callBack=new CallBackInterface()
+	{
 
-			@Override
-			public void getLocation1() {
-				// TODO Auto-generated method stub
-			
-			}
+		@Override
+		public void getLocation1() {
+			getLocation(0);
+		}
 
-			@Override
-			public void getPictureByCamera1() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void getLocation2() {
+			getLocation(1);
+		}
+		@Override
+		public void getPictureByCamera1() {
+			// TODO Auto-generated method stub
+			cameraPicPath=AppUtility.getPictureByCamera(WebSiteActivity.this,REQUEST_CODE_TAKE_CAMERA);
+		}
 
-			@Override
-			public void getPictureFromLocation1() {
-				// TODO Auto-generated method stub
-				beginDownload(downloadUrl,downloadFile);
-			}
+		@Override
+		public void getPictureFromLocation1() {
+			// TODO Auto-generated method stub
+			beginDownload(downloadUrl,downloadFile);
+		}
 
-			@Override
-			public void sendCall1() {
-				// TODO Auto-generated method stub
-				
-			}
+		@Override
+		public void sendCall1() {
+			// TODO Auto-generated method stub
 
-			@Override
-			public void sendMsg1() {
-				// TODO Auto-generated method stub
-				
+		}
+
+		@Override
+		public void sendMsg1() {
+			// TODO Auto-generated method stub
+
+		}
+		@Override
+		public void getFujian1() {
+			// TODO Auto-generated method stub
+		}
+
+	};
+	private Handler mHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			String result = "";
+			String resultStr = "";
+			switch (msg.what) {
+				case -1:
+					AppUtility.showErrorToast(WebSiteActivity.this,
+							msg.obj.toString());
+					break;
+				case 3:// 图片上传
+					result = msg.obj.toString();
+					resultStr = "";
+					Bundle data = msg.getData();
+					String oldFileName = data.getString("oldFileName");
+					if (AppUtility.isNotEmpty(result)) {
+						try {
+							resultStr = new String(Base64.decode(result
+									.getBytes("GBK")));
+							Log.d(TAG, resultStr);
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
+					}
+					try {
+						JSONObject jo = new JSONObject(resultStr);
+						if ("OK".equals(jo.optString("STATUS"))) {
+							String newFileName = jo.getString("文件名");
+							FileUtility.fileRename(oldFileName, newFileName);
+							ImageItem ds = new ImageItem(jo);
+							if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+								mWebView.evaluateJavascript("javascript:callbackCamera('" + ds.getDownAddress() + "')", null);
+								Log.d(TAG, ds.getDownAddress());
+							}
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					break;
 			}
-			@Override
-			public void getFujian1() {
-				// TODO Auto-generated method stub
-			}
-			
-		};
+		}
+	};
 }
 

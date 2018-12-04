@@ -120,6 +120,16 @@ public class User implements Serializable {
 	}
 
 	private String latestAddress;
+	private String latestGps;
+
+	public String getLatestGps() {
+		return latestGps;
+	}
+
+	public void setLatestGps(String latestGps) {
+		this.latestGps = latestGps;
+	}
+
 	public String getLatestAddress() {
 		return latestAddress;
 	}

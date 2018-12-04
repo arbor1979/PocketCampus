@@ -8,6 +8,8 @@ public class SchoolWorkItem {
 	private String workText;// 事物标题
 	private String interfaceName;// 接口名称
 	private String TemplateName;// 模板名称
+	private String groupName;// 分组
+	private String transIcon;// 透明图标
 	private int unread;//未读
 	public SchoolWorkItem() {
 
@@ -18,9 +20,28 @@ public class SchoolWorkItem {
 		workText = jo.optString("文字");
 		interfaceName = jo.optString("接口地址");
 		TemplateName = jo.optString("模板名称");
+		groupName=jo.optString("分组");
+		transIcon=jo.optString("透明图标");
+		if(transIcon==null || transIcon.length()==0)
+			transIcon=workPicPath;
 		unread=0;
 	}
 
+	public String getGroupName() {
+		return groupName;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	public String getTransIcon() {
+		return transIcon;
+	}
+
+	public void setTransIcon(String transIcon) {
+		this.transIcon = transIcon;
+	}
 	public int getUnread() {
 		return unread;
 	}

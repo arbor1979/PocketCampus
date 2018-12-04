@@ -45,9 +45,35 @@ public class TeacherSchoolRecords {
 	private String compositeScoreText;// 本次授课综合评分_文本
 	private String compositeScoreValues;// 本次授课综合评分_分值
 	//private String[] compositeIds;// 课堂测验_编号对照表
-
+	private String rizhi_shouduan;//信息化手段
+	private String rizhi_pingtai;//教学平台
+	private String rizhi_kechengkuming;//课程库名称
 	public TeacherSchoolRecords() {
 
+	}
+
+	public String getRizhi_shouduan() {
+		return rizhi_shouduan;
+	}
+
+	public void setRizhi_shouduan(String rizhi_shouduan) {
+		this.rizhi_shouduan = rizhi_shouduan;
+	}
+
+	public String getRizhi_pingtai() {
+		return rizhi_pingtai;
+	}
+
+	public void setRizhi_pingtai(String rizhi_pingtai) {
+		this.rizhi_pingtai = rizhi_pingtai;
+	}
+
+	public String getRizhi_kechengkuming() {
+		return rizhi_kechengkuming;
+	}
+
+	public void setRizhi_kechengkuming(String rizhi_kechengkuming) {
+		this.rizhi_kechengkuming = rizhi_kechengkuming;
 	}
 
 	public TeacherSchoolRecords(JSONObject jo) {
@@ -78,11 +104,11 @@ public class TeacherSchoolRecords {
 		absenceStatusJSON = jo.optString("缺勤情况登记JSON");//
 		compositeScoreText = jo.optString("本次授课综合评分_文本");//
 		compositeScoreValues = jo.optString("本次授课综合评分_分值");//
+		rizhi_shouduan = jo.optString("信息化手段");
+		rizhi_pingtai = jo.optString("教学平台");
+		rizhi_kechengkuming =jo.optString("资源库课程库名称");
 		//JSONArray joids = jo.optJSONArray("课堂测验_编号对照表");//
-//		compositeIds = new String[joids.length()];
-//		for (int i = 0; i < joids.length(); i++) {
-//			compositeIds[i] = joids.optString(i);
-//		}
+
 	}
 
 	public TeacherSchoolRecords(net.minidev.json.JSONObject jo) {
@@ -113,6 +139,9 @@ public class TeacherSchoolRecords {
 		absenceStatusJSON = String.valueOf(jo.get("缺勤情况登记JSON"));//
 		compositeScoreText =String.valueOf( jo.get("本次授课综合评分_文本"));//
 		compositeScoreValues = String.valueOf(jo.get("本次授课综合评分_分值"));//
+		rizhi_shouduan = String.valueOf( jo.get("信息化手段"));
+		rizhi_pingtai = String.valueOf( jo.get("教学平台"));
+		rizhi_kechengkuming = String.valueOf( jo.get("资源库课程库名称"));
 		
 	}
 	public String getId() {

@@ -94,9 +94,13 @@ public class Alarmreceiver extends BroadcastReceiver {
 	private Context context;
 	private Location myLocation;
 	private LocationManager locationManager;
-
+	public static BRInteraction brInteraction;
 	public static NotificationManager mNotificationManager;
 
+	public interface BRInteraction {
+		public void callbackGPSXY(double lat,double lon);
+		public void callbackRealAddress(String realAddress);
+	}
 
 	@Override
 	public void onReceive(Context context1, Intent intent) {
@@ -138,6 +142,10 @@ public class Alarmreceiver extends BroadcastReceiver {
 			} else if ("reportLocation".equals(actionName)) {
 				locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 				getNetLocation();
+			}
+			else if ("reportGPSLocation".equals(actionName)) {
+				locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+				getGPSLocation();
 			}
 			else if ("getMsgList".equals(actionName)) {
 				getMsgFromServer();
@@ -936,8 +944,12 @@ public class Alarmreceiver extends BroadcastReceiver {
 							if (user_type.equals("学生"))
 								postGPS(cityStr, addressStr, lat, lon);
 							User user = ((CampusApplication) context.getApplicationContext()).getLoginUserObj();
-							if (user != null)
+							if (user != null) {
 								user.setLatestAddress(addressStr);
+								user.setLatestGps("lat="+lat+";lon="+lon);
+							}
+							if(brInteraction!=null)
+								brInteraction.callbackRealAddress(addressStr);
 						}
 
 					} catch (JSONException e) {
@@ -1156,7 +1168,8 @@ public class Alarmreceiver extends BroadcastReceiver {
 		
 		final double latitude=myLocation.getLatitude();
 		final double longitude=myLocation.getLongitude();
-		
+		if(brInteraction!=null)
+			brInteraction.callbackGPSXY(latitude,longitude);
 		CampusAPI.getAddressFromBaidu(latitude,longitude, new RequestListener() {
 			@Override
 			public void onComplete(String response) {

@@ -22,7 +22,8 @@
             android:layout_marginLeft="10dp"
             android:background="#27ae62"
             android:clickable="false"
-            android:focusable="false" />
+            android:focusable="false"
+            style="?android:attr/borderlessButtonStyle"/>
 
     </LinearLayout>
 
@@ -46,7 +47,8 @@
             android:background="#27ae62"
             android:clickable="false"
             android:textColor="@color/title_text_selector"
-            android:textSize="@dimen/text_size_normal" />
+            android:textSize="@dimen/text_size_normal"
+            style="?android:attr/borderlessButtonStyle"/>
 
     </LinearLayout>
 

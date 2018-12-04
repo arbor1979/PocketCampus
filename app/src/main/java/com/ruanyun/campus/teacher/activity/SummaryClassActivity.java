@@ -25,6 +25,7 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -37,8 +38,10 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -73,6 +76,7 @@ import com.ruanyun.campus.teacher.util.ImageUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
 import com.ruanyun.campus.teacher.util.AppUtility.CallBackInterface;
 import com.ruanyun.campus.teacher.widget.NonScrollableGridView;
+import com.ruanyun.campus.teacher.widget.wraplayout.WrapLayout;
 
 public class SummaryClassActivity extends Activity {
 	public static final int REQUEST_CODE_TAKE_PICTURE = 2;// //设置图片操作的标志
@@ -97,6 +101,7 @@ public class SummaryClassActivity extends Activity {
 	private LinearLayout loadingLayout;
 	private ScrollView contentLayout;
 	private LinearLayout failedLayout;
+	private WrapLayout layout_rizhi_shouduan,layout_rizhi_pingtai;
 	private String imagetype;
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
@@ -280,7 +285,8 @@ public class SummaryClassActivity extends Activity {
 		loadingLayout = (LinearLayout) findViewById(R.id.data_load);
 		contentLayout = (ScrollView) findViewById(R.id.content_layout);
 		failedLayout = (LinearLayout) findViewById(R.id.empty_error);
-		
+		layout_rizhi_shouduan = (WrapLayout) findViewById(R.id.rizhi_shouduan);
+		layout_rizhi_pingtai= (WrapLayout) findViewById(R.id.rizhi_pingtai);
 		subjectid = ClassDetailActivity.subjectid;
 		userType = ClassDetailActivity.userType;
 		Log.d(TAG, "subjectid:" + subjectid);
@@ -349,7 +355,98 @@ public class SummaryClassActivity extends Activity {
 		if (userType.equals("老师")) {
 			aq.id(R.id.ly_rb_1).visibility(View.GONE);
 			aq.id(R.id.ly_rb_2).visibility(View.GONE);
+
 			try {
+				String rizhi_shouduan_str=PrefUtility.get(Constants.PREF_ALLOW_SCHOOL_RECORD_SUMMARYKEYS_STR, "");
+				String rizhi_pingtai_str=PrefUtility.get(Constants.PREF_ALLOW_SCHOOL_RECORDWORK_ATTENDANCEKEYS_STR, "");
+				if(rizhi_shouduan_str!=null && rizhi_shouduan_str.length()>0)
+				{
+					findViewById(R.id.tv_6).setVisibility(View.VISIBLE);
+					layout_rizhi_shouduan.setVisibility(View.VISIBLE);
+					layout_rizhi_shouduan.removeAllViews();
+					JSONArray ja=new JSONArray(rizhi_shouduan_str);
+					ArrayList<String> shouduancheckList=new ArrayList<String>();
+					if (teacherInfo != null && teacherInfo.getCompositeScoreText()!=null) {
+						String shouduancheck[]=teacherInfo.getCompositeScoreText().split(",");
+						for(String item : shouduancheck)
+						{
+							if(item.length()>0)
+								shouduancheckList.add(item);
+						}
+					}
+
+					for(int i=0;i<ja.length();i++)
+					{
+						String item=ja.getString(i);
+
+						if(item.equals("其它") || item.equals("其他"))
+						{
+							EditText et=new EditText(this);
+							et.setHint(item);
+							et.setBackground(getResources().getDrawable(R.drawable.summary_bg));
+							et.setTextSize(16);
+							et.setEms(10);
+							layout_rizhi_shouduan.addView(et);
+							et.setPadding(5,5,5,5);
+							if(shouduancheckList.size()>0) {
+								et.setText(shouduancheckList.toString());
+							}
+						}
+						else
+						{
+							CheckBox cb=new CheckBox(this);
+							cb.setText(item);
+							layout_rizhi_shouduan.addView(cb);
+							if(shouduancheckList.contains(item)) {
+								cb.setChecked(true);
+								shouduancheckList.remove(item);
+							}
+						}
+					}
+				}
+				else {
+					layout_rizhi_shouduan.setVisibility(View.GONE);
+					findViewById(R.id.tv_6).setVisibility(View.GONE);
+				}
+				if(rizhi_pingtai_str!=null && rizhi_pingtai_str.length()>0)
+				{
+					findViewById(R.id.tv_7).setVisibility(View.VISIBLE);
+					layout_rizhi_pingtai.setVisibility(View.VISIBLE);
+					layout_rizhi_pingtai.removeAllViews();
+					JSONArray ja=new JSONArray(rizhi_pingtai_str);
+					ArrayList<String> pingtaicheckList=new ArrayList<String>();
+					if (teacherInfo != null && teacherInfo.getCompositeScoreValue()!=null) {
+						String[] pingtaicheck=teacherInfo.getCompositeScoreValue().split(",");
+						for(String item : pingtaicheck)
+						{
+							if(item.length()>0)
+								pingtaicheckList.add(item);
+						}
+					}
+					for(int i=0;i<ja.length();i++)
+					{
+						String item=ja.getString(i);
+						CheckBox cb=new CheckBox(this);
+						cb.setText(item);
+						layout_rizhi_pingtai.addView(cb);
+						if(pingtaicheckList.contains(item))
+							cb.setChecked(true);
+					}
+					EditText et=new EditText(this);
+					et.setBackground(getResources().getDrawable(R.drawable.summary_bg));
+					et.setTextSize(16);
+					et.setEms(10);
+					et.setHint("资源库课程库名称");
+					layout_rizhi_pingtai.addView(et);
+					et.setPadding(5,5,5,5);
+					if (teacherInfo != null && teacherInfo.getBeginTime()!=null)
+						et.setText(teacherInfo.getBeginTime());
+				}
+				else
+				{
+					layout_rizhi_pingtai.setVisibility(View.GONE);
+					findViewById(R.id.tv_7).setVisibility(View.GONE);
+				}
 				if (teacherInfo != null) {
 					RadioGroup group_discipline = (RadioGroup) findViewById(R.id.group_discipline);
 					RadioGroup group_health = (RadioGroup) findViewById(R.id.group_health);
@@ -379,6 +476,7 @@ public class SummaryClassActivity extends Activity {
 					} else {
 						group_health.check(R.id.group2_bn1);
 					}
+
 					if(AppUtility.isNotEmpty(teacherInfo.getShouldTime()) && AppUtility.isNotEmpty(teacherInfo.getLatestTime()))
 					{
 						Date dt_begin=DateHelper.getStringDate(teacherInfo.getShouldTime(),"yyyy-MM-dd");
@@ -564,14 +662,7 @@ public class SummaryClassActivity extends Activity {
 		return database;
 	}
 
-	/**
-	 * 功能描述:加工教师总结需要的数据
-	 * 
-	 * @author yanzy 2013-12-3 下午2:51:37
-	 * 
-	 * @param subjectIdList
-	 * @throws JSONException
-	 */
+
 	public String getChangekaoqininfo() throws JSONException {
 		RadioGroup group_discipline = (RadioGroup) findViewById(R.id.group_discipline);
 		RadioGroup group_health = (RadioGroup) findViewById(R.id.group_health);
@@ -587,6 +678,68 @@ public class SummaryClassActivity extends Activity {
 		teacherInfo.setClassroomDiscipline(rdobtn_discipline.getText()
 				.toString());
 		teacherInfo.setClassroomHealth(rdobtn_health.getText().toString());
+		String shouduanstr="";
+		for(int i=0;i<layout_rizhi_shouduan.getChildCount();i++)
+		{
+			View v=layout_rizhi_shouduan.getChildAt(i);
+			if(v instanceof CheckBox)
+			{
+				CheckBox cb=(CheckBox)v;
+				if (cb.isChecked())
+				{
+					if(shouduanstr.length()>0)
+						shouduanstr+=",";
+					shouduanstr+=cb.getText().toString();
+				}
+
+			}
+			else if(v instanceof EditText)
+			{
+				EditText et=(EditText)v;
+				if(et.getText().length()>0) {
+					if(shouduanstr.length()>0)
+						shouduanstr+=",";
+					shouduanstr += et.getText().toString().trim();
+				}
+			}
+		}
+		if(layout_rizhi_shouduan.getVisibility()==View.VISIBLE &&layout_rizhi_shouduan.getChildCount()>0 && shouduanstr.length()==0)
+		{
+			AppUtility.showToastMsg(this,"信息化手段请至少选择或填写一项");
+			contentLayout.fullScroll(ScrollView.FOCUS_DOWN);
+			return null;
+		}
+		String pingtaistr="";
+		String kechengname="";
+		for(int i=0;i<layout_rizhi_pingtai.getChildCount();i++)
+		{
+			View v=layout_rizhi_pingtai.getChildAt(i);
+			if(v instanceof CheckBox)
+			{
+				CheckBox cb=(CheckBox)v;
+				if (cb.isChecked())
+				{
+					if(pingtaistr.length()>0)
+						pingtaistr+=",";
+					pingtaistr+=cb.getText().toString();
+				}
+			}
+			else if(v instanceof EditText)
+			{
+				EditText et=(EditText)v;
+				if(et.getText().length()>0)
+					kechengname=et.getText().toString().trim();
+			}
+		}
+		if(layout_rizhi_pingtai.getVisibility()==View.VISIBLE &&layout_rizhi_pingtai.getChildCount()>0 && pingtaistr.length()==0)
+		{
+			AppUtility.showToastMsg(this,"教学平台请至少选择或填写一项");
+			contentLayout.fullScroll(ScrollView.FOCUS_DOWN);
+			return null;
+		}
+		teacherInfo.setCompositeScoreText(shouduanstr);
+		teacherInfo.setCompositeScoreValue(pingtaistr);
+		teacherInfo.setBeginTime(kechengname);
 		JSONArray joarr = new JSONArray();
 		JSONObject jo = new JSONObject();
 		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");// 获取用户校验码
@@ -597,19 +750,15 @@ public class SummaryClassActivity extends Activity {
 		jo.put("授课内容", et1.getText().toString());
 		jo.put("作业布置", et2.getText().toString());
 		jo.put("课堂情况简要", et3.getText().toString());
-		
+		jo.put("备注1", shouduanstr);
+		jo.put("备注2", pingtaistr);
+		jo.put("资源库课程库名称", kechengname);
 		Log.d(TAG, "----------------------json:" + jo.toString());
 		joarr.put(jo);
 		return joarr.toString();
 	}
 
-	/**
-	 * 功能描述:处理文件上传
-	 * 
-	 * @author shengguo 2013-12-26 下午4:36:51
-	 * 
-	 * @param mCurrentFile
-	 */
+
 	private void fileUploadWay(File file) {
 		if(!file.exists()) return;
 		if(AppUtility.formetFileSize(file.length()) > 5242880*2){
@@ -629,14 +778,7 @@ public class SummaryClassActivity extends Activity {
 		}
 	}
 
-	/**
-	 * 功能描述:上传文件
-	 * 
-	 * @author shengguo 2013-12-18 上午11:48:59
-	 * 
-	 * @param base64Str
-	 * @param action
-	 */
+
 	public void uploadFile(DownloadSubject downloadSubject) {
 		final CampusParameters params = new CampusParameters();
 		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");// 获取用户校验码
@@ -717,13 +859,7 @@ public class SummaryClassActivity extends Activity {
 		});
 	}
 
-	/**
-	 * 功能描述:保存学生的总结
-	 * 
-	 * @author shengguo 2014-5-8 下午3:52:16
-	 * 
-	 * @param base64Str
-	 */
+
 	public void saveSudentZongJie() {
 		JSONObject jo = new JSONObject();
 		long datatime = System.currentTimeMillis();
@@ -1174,7 +1310,10 @@ public class SummaryClassActivity extends Activity {
 			// TODO Auto-generated method stub
 		
 		}
-
+		@Override
+		public void getLocation2() {
+			// TODO Auto-generated method stub
+		}
 		@Override
 		public void getPictureByCamera1() {
 			// TODO Auto-generated method stub

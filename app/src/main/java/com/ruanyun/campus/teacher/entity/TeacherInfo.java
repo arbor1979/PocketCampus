@@ -76,15 +76,15 @@ public class TeacherInfo implements Serializable{// "教师上课记录"
 	@DatabaseField
 	private String remark; // 备注
 	@DatabaseField
-	private String compositeScoreText; //本次授课综合评分_文本
+	private String compositeScoreText; //信息化手段
 	@DatabaseField
-	private String compositeScoreValue; //本次授课综合评分_分值
+	private String compositeScoreValue; //教学平台
 	@DatabaseField
 	private int isModify = 0; // 是否修改
 	@DatabaseField
 	private String testStatus;//课堂测验状态
 	@DatabaseField
-	private String beginTime; //开始上课时间
+	private String beginTime; //资源库课程库名称
 	public TeacherInfo() {
 	}
 
@@ -140,10 +140,10 @@ public class TeacherInfo implements Serializable{// "教师上课记录"
 		latestTime = jo.optString("最迟填写时间");
 		fillTime = jo.optString("填写时间");
 		remark = jo.optString("备注");
-		compositeScoreText = jo.optString("本次授课综合评分_文本");
-		compositeScoreValue = jo.optString("本次授课综合评分_分值");
+		compositeScoreText = jo.optString("信息化手段");
+		compositeScoreValue = jo.optString("教学平台");
 		testStatus = jo.optString("课堂测验状态");
-		beginTime = jo.optString("上课开始时间");
+		beginTime = jo.optString("资源库课程库名称");
 	}
 
 	private TeacherInfo(net.minidev.json.JSONObject jo) {
@@ -171,10 +171,13 @@ public class TeacherInfo implements Serializable{// "教师上课记录"
 		latestTime = String.valueOf(jo.get("最迟填写时间"));
 		fillTime = String.valueOf(jo.get("填写时间"));
 		remark = String.valueOf(jo.get("备注"));
-		compositeScoreText = String.valueOf(jo.get("本次授课综合评分_文本"));
-		compositeScoreValue = String.valueOf(jo.get("本次授课综合评分_分值"));
+		if(jo.get("信息化手段")!=null)
+			compositeScoreText = String.valueOf(jo.get("信息化手段"));
+		if(jo.get("教学平台")!=null)
+			compositeScoreValue = String.valueOf(jo.get("教学平台"));
 		testStatus = String.valueOf(jo.get("课堂测验状态"));
-		beginTime = String.valueOf(jo.get("上课开始时间"));
+		if(jo.get("资源库课程库名称")!=null)
+			beginTime = String.valueOf(jo.get("资源库课程库名称"));
 	}
 	/**
 	 * 编号

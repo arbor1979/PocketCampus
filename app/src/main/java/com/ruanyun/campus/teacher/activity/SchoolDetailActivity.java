@@ -5,11 +5,14 @@ import java.util.List;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.ruanyun.campus.teacher.fragment.SchoolAchievementDetailFragment;
 import com.ruanyun.campus.teacher.fragment.SchoolNoticeDetailFragment;
@@ -51,6 +54,10 @@ public class SchoolDetailActivity extends FragmentActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			Window window = getWindow();
+			window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+		}
 		fragment = getSupportFragmentManager().findFragmentById(
 				android.R.id.content);
 		Intent intent = getIntent();

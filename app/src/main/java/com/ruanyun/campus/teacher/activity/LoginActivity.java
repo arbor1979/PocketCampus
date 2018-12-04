@@ -108,6 +108,11 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 		
 
 		setContentView(R.layout.activity_login);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+			getWindow().setNavigationBarColor(getResources().getColor(R.color.topbar_background));
+		}
+
 		ExitApplication.getInstance().addActivity(this);
 		try {
 			accountInfoDao = getHelper().getAccountInfoDao();
@@ -247,6 +252,9 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 			}
 		});
 		*/
+		String thisVersion = CampusApplication.getVersion();
+		TextView tv_copyright = (TextView) findViewById(R.id.tv_copyright);
+		tv_copyright.setText(tv_copyright.getText()+" v"+thisVersion);
 	}
 
 	@SuppressWarnings("deprecation")

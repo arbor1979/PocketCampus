@@ -283,7 +283,7 @@ public class AlbumPersonalActivity extends FragmentActivity implements SwipeRefr
 
 			@Override
 			public void onClick(View v) {
-				if (Build.VERSION.SDK_INT >= 23) 
+				if (Build.VERSION.SDK_INT >= 23)
 				{
 					if(AppUtility.checkPermission(AlbumPersonalActivity.this, 6,Manifest.permission.CAMERA))
 						getPictureByCamera();
@@ -821,7 +821,10 @@ public class AlbumPersonalActivity extends FragmentActivity implements SwipeRefr
 				// TODO Auto-generated method stub
 				getLocation();
 			}
-
+			@Override
+			public void getLocation2() {
+				// TODO Auto-generated method stub
+			}
 			@Override
 			public void getPictureByCamera1() {
 				// TODO Auto-generated method stub

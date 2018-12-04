@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="@dimen/topbar_layout_height"
-    android:background="#27ae62"
+    android:background="@color/background"
     android:gravity="center" >
 
     <LinearLayout
@@ -22,7 +22,8 @@
             android:layout_marginLeft="10dp"
             android:background="#27ae62"
             android:clickable="false"
-            android:focusable="false" />
+            android:focusable="false"
+            style="?android:attr/borderlessButtonStyle"/>
 
     </LinearLayout>
 
@@ -43,7 +44,8 @@
             android:layout_marginRight="10dp"
             android:background="#27ae62"
             android:clickable="false"
-            android:focusable="false" />
+            android:focusable="false"
+            style="?android:attr/borderlessButtonStyle"/>
 
     </LinearLayout>
 

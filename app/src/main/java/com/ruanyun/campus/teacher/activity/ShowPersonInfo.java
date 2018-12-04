@@ -909,7 +909,10 @@ public class ShowPersonInfo extends Activity {
 			// TODO Auto-generated method stub
 		
 		}
-
+		@Override
+		public void getLocation2() {
+			// TODO Auto-generated method stub
+		}
 		@Override
 		public void getPictureByCamera1() {
 			// TODO Auto-generated method stub

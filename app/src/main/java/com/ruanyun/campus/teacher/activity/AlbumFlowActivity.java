@@ -848,7 +848,10 @@ public class AlbumFlowActivity extends FragmentActivity  implements RadioGroup.O
 			// TODO Auto-generated method stub
 			getLocation();
 		}
-
+		@Override
+		public void getLocation2() {
+			// TODO Auto-generated method stub
+		}
 		@Override
 		public void getPictureByCamera1() {
 			// TODO Auto-generated method stub
