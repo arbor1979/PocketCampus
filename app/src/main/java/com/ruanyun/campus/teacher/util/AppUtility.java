@@ -54,6 +54,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.provider.Browser;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -841,39 +842,27 @@ public class AppUtility {
 
 	public static void permissionResult(int requestCode,int[] grantResults,Activity act,CallBackInterface callBack)
 	{
-		if (requestCode == 5)
+		if (requestCode == 5 || requestCode == 11) //11为精确定位
 		{
 			if (grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
 			{
-				callBack.getLocation1();
+				callBack.getLocation1(requestCode);
 				//Toast.makeText(act, "授权成功", Toast.LENGTH_SHORT).show();
 
 			} else
 			{
 				// Permission Denied
 				Toast.makeText(act, "权限被拒绝", Toast.LENGTH_SHORT).show();
+				goIntentSetting();
 			}
 
 		}
-		if (requestCode == 11)
+
+		if (requestCode == 6 || requestCode == 12) //12为扫描二维码
 		{
 			if (grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
 			{
-				callBack.getLocation2();
-				//Toast.makeText(act, "授权成功", Toast.LENGTH_SHORT).show();
-
-			} else
-			{
-				// Permission Denied
-				Toast.makeText(act, "权限被拒绝", Toast.LENGTH_SHORT).show();
-			}
-
-		}
-		if (requestCode == 6)
-		{
-			if (grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-			{
-				callBack.getPictureByCamera1();
+				callBack.getPictureByCamera1(requestCode);
 				//Toast.makeText(context, "授权成功", Toast.LENGTH_SHORT).show();
 
 			} else
@@ -960,9 +949,8 @@ public class AppUtility {
 	}
 	public interface CallBackInterface {
 
-		void getLocation1();
-		void getLocation2();
-		void getPictureByCamera1();
+		void getLocation1(int rqcode);
+		void getPictureByCamera1(int rqcode);
 		void getPictureFromLocation1();
 		void sendCall1();
 		void sendMsg1();
@@ -1267,5 +1255,15 @@ public class AppUtility {
 				mHandler.sendMessage(msg);
 			}
 		});
+	}
+	public static void goIntentSetting() {
+		Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+		Uri uri = Uri.fromParts("package", context.getPackageName(), null);
+		intent.setData(uri);
+		try {
+			context.startActivity(intent);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

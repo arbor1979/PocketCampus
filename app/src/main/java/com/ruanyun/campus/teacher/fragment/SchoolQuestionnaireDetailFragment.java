@@ -1859,16 +1859,12 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	{
 
 		@Override
-		public void getLocation1() {
+		public void getLocation1(int rqcode) {
 			getLocation();
 		}
+
 		@Override
-		public void getLocation2() {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void getPictureByCamera1() {
-			// TODO Auto-generated method stub
+		public void getPictureByCamera1(int rqcode) {
 			getPictureByCamera();
 		}
 

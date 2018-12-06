@@ -157,6 +157,7 @@ public class ScheduleDialogFragment extends DialogFragment implements
 	class ScheduleTime {
 		String section;
 		String sectionTime;
+		String wanzixi;
 	}
 
 	@Override

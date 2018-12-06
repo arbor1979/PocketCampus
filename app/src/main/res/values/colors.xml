@@ -84,4 +84,9 @@
     <color name="green_dark">#0F8A0B</color>
     <color name="colorPrimary">#27ae62</color>
     <color name="colorPrimaryDark">#27ae62</color>
+    <color name="result_view">#b0000000</color>
+    <color name="viewfinder_mask">#60000000</color>
+    <color name="possible_result_points">#c0ffff00</color>
+    <color name="viewfinder_frame">#ff000000</color>
+    <color name="viewfinder_laser">#ffff0000</color>
 </resources>

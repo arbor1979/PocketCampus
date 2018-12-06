@@ -1194,16 +1194,13 @@ public class AlbumShowImagePage extends FragmentActivity {
 	{
 
 		@Override
-		public void getLocation1() {
+		public void getLocation1(int rqcode) {
 			// TODO Auto-generated method stub
 			
 		}
+
 		@Override
-		public void getLocation2() {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void getPictureByCamera1() {
+		public void getPictureByCamera1(int rqcode) {
 			// TODO Auto-generated method stub
 			
 		}

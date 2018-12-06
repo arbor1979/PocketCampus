@@ -5,6 +5,8 @@ import org.json.JSONObject;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import com.ruanyun.campus.teacher.base.Constants;
+import com.ruanyun.campus.teacher.util.PrefUtility;
 
 /**
  * 课表规则
@@ -59,6 +61,24 @@ public class Schedule {
 			WeekBeginDay = jo.get("周开始日期").toString();
 		if(jo.get("周结束日期")!=null)
 			WeekEndDay = jo.get("周结束日期").toString();
+		String wanzixistr="";
+		if(jo.get("节次时间")!=null)
+		{
+			net.minidev.json.JSONArray ja=(net.minidev.json.JSONArray)jo.get("节次时间");
+			if(ja!=null && ja.size()>0)
+			{
+				for(int i=0;i<ja.size();i++)
+				{
+					net.minidev.json.JSONObject jo1=(net.minidev.json.JSONObject)ja.get(i);
+					if (jo1.get("名称")!=null && jo1.get("是否晚自习")!=null && jo1.get("是否晚自习").equals("是"))
+					{
+						wanzixistr+=jo1.get("名称")+",";
+					}
+				}
+
+			}
+		}
+		PrefUtility.put(Constants.PREF_WANZIXI_JIECI, wanzixistr);
 	}
 	
 

@@ -7,19 +7,17 @@
 
     <Button
         android:id="@+id/back"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
         android:background="@drawable/title_layout_selector"
         android:drawableLeft="@drawable/title_back_bg_selector"
-        android:layout_alignParentLeft="true"
         android:gravity="center"
-        android:paddingLeft="10dip"
+        android:paddingLeft="10dp"
         android:text="@string/back"
         android:textColor="@color/title_text_selector"
-        android:textSize="@dimen/text_size_small"
-        style="?android:attr/borderlessButtonStyle"
-        />
-
+        android:textSize="@dimen/text_size_small" />
     <Button
         android:id="@+id/menu"
         android:layout_width="23dip"

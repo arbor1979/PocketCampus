@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ruanyun.campus.teacher"
-    android:versionCode="53"
-    android:versionName="5.3" >
+    android:versionCode="54"
+    android:versionName="5.4" >
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -212,6 +212,13 @@
 			android:exported="false"
 			android:screenOrientation="behind" >
 		</activity>
+        <activity
+            android:configChanges="orientation|keyboardHidden"
+            android:name="com.ruanyun.campus.teacher.activity.CaptureActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:windowSoftInputMode="stateAlwaysHidden" >
+        </activity>
 
         <receiver
             android:name="com.ruanyun.campus.teacher.service.Alarmreceiver" android:exported="true">

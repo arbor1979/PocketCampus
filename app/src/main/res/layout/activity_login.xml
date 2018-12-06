@@ -4,7 +4,15 @@
     android:layout_height="match_parent"
     android:background="@color/background"
     android:orientation="vertical" >
-
+    <Button
+        android:id="@+id/btn_experience"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|right"
+        android:background="@drawable/bg_title_bar_btn"
+        android:text="@string/first_experience"
+        android:textColor="#ffffff"
+        android:textSize="14sp" />
     <LinearLayout
         style="@android:style/ButtonBar"
         android:layout_width="match_parent"
@@ -14,10 +22,11 @@
         android:orientation="vertical"
         android:padding="20dip" >
 
+
         <ImageView
             android:layout_width="180dp"
             android:layout_height="200dp"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="20dp"
             android:contentDescription="@null"
             android:src="@drawable/login_logo" />
 
@@ -25,15 +34,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
+            android:layout_marginTop="60dp"
             android:layout_marginRight="20dp"
-            android:layout_marginTop="40dp"
-            android:orientation="vertical" >
+            android:orientation="vertical">
 
             <TableRow
                 android:id="@+id/table_item"
                 android:layout_width="match_parent"
                 android:layout_height="45dip"
-                android:background="@drawable/round_corner_bg" >
+                android:background="@drawable/round_corner_bg">
 
                 <ImageView
                     android:layout_width="35dip"
@@ -41,8 +50,8 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="8.0dp"
                     android:contentDescription="@null"
-                    android:paddingBottom="2dip"
                     android:paddingTop="2dip"
+                    android:paddingBottom="2dip"
                     android:src="@drawable/login_userphoto" />
 
                 <EditText
@@ -63,9 +72,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginBottom="1dip"
-                    android:layout_marginRight="1dip"
                     android:layout_marginTop="1dip"
+                    android:layout_marginRight="1dip"
+                    android:layout_marginBottom="1dip"
                     android:background="@null"
                     android:contentDescription="@null"
                     android:padding="5dip"
@@ -78,7 +87,7 @@
                 android:layout_height="45dip"
                 android:layout_gravity="center_vertical"
                 android:layout_marginTop="10.0dp"
-                android:background="@drawable/round_corner_bg" >
+                android:background="@drawable/round_corner_bg">
 
                 <ImageView
                     android:layout_width="35dip"
@@ -86,8 +95,8 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginLeft="8.0dp"
                     android:contentDescription="@null"
-                    android:paddingBottom="2dip"
                     android:paddingTop="2dip"
+                    android:paddingBottom="2dip"
                     android:src="@drawable/login_password" />
 
                 <EditText
@@ -116,6 +125,7 @@
                 android:id="@+id/btn_login"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
                 android:layout_marginLeft="40dip"
                 android:background="@drawable/bg_title_bar_btn"
                 android:text="@string/login"
@@ -123,15 +133,17 @@
                 android:textSize="@dimen/text_size_normal" />
 
             <Button
-                android:id="@+id/btn_experience"
+                android:id="@+id/btn_yanzhengma"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
-                android:layout_marginRight="40dip"
+                android:layout_marginRight="40dp"
                 android:background="@drawable/bg_title_bar_btn"
-                android:text="@string/first_experience"
+                android:text="@string/login_forgotpwd"
                 android:textColor="#ffffff"
-                android:textSize="@dimen/text_size_normal" />
+                android:textSize="@dimen/text_size_normal"
+                android:visibility="gone" />
+
         </RelativeLayout>
 
         <TextView

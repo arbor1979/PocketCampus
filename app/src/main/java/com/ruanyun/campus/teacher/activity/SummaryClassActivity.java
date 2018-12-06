@@ -42,6 +42,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -129,15 +130,15 @@ public class SummaryClassActivity extends Activity {
 
 				try {
 					JSONObject jo = new JSONObject(resultStr);
-					resultStr = jo.getString("结果");
-					if (AppUtility.isNotEmpty(resultStr)) {
+					resultStr = jo.optString("成功");
+					if (resultStr.equals("1")) {
 						AppUtility.showToastMsg(SummaryClassActivity.this,
 								"保存成功！");
 						teacherInfoDao.update(teacherInfo);
 						Log.d(TAG, "----------------->结束保存数据：" + new Date());
 					} else {
 						AppUtility.showToastMsg(SummaryClassActivity.this,
-								"保存失败！");
+								jo.optString("结果"));
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -277,6 +278,7 @@ public class SummaryClassActivity extends Activity {
 			myPictureAdapter2.setPicPaths(picturePaths2);
 		}
 	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -359,7 +361,20 @@ public class SummaryClassActivity extends Activity {
 			try {
 				String rizhi_shouduan_str=PrefUtility.get(Constants.PREF_ALLOW_SCHOOL_RECORD_SUMMARYKEYS_STR, "");
 				String rizhi_pingtai_str=PrefUtility.get(Constants.PREF_ALLOW_SCHOOL_RECORDWORK_ATTENDANCEKEYS_STR, "");
-				if(rizhi_shouduan_str!=null && rizhi_shouduan_str.length()>0)
+                String wanzixistr=PrefUtility.get(Constants.PREF_WANZIXI_JIECI, "");
+                boolean bwanzixi=false;
+                if(wanzixistr!=null && wanzixistr.length()>0)
+                {
+                    String wanzixi[]=wanzixistr.split(",");
+                    String jieci[]=teacherInfo.getSection().split("-");
+                    for(String s: wanzixi){
+                        if(s.equals(jieci[0])){
+                            bwanzixi=true;
+                            break;
+                        }
+                    }
+                }
+				if(rizhi_shouduan_str!=null && rizhi_shouduan_str.length()>2 && !bwanzixi)
 				{
 					findViewById(R.id.tv_6).setVisibility(View.VISIBLE);
 					layout_rizhi_shouduan.setVisibility(View.VISIBLE);
@@ -386,11 +401,15 @@ public class SummaryClassActivity extends Activity {
 							et.setBackground(getResources().getDrawable(R.drawable.summary_bg));
 							et.setTextSize(16);
 							et.setEms(10);
+							et.setSingleLine(true);
 							layout_rizhi_shouduan.addView(et);
 							et.setPadding(5,5,5,5);
-							if(shouduancheckList.size()>0) {
-								et.setText(shouduancheckList.toString());
+							String leftstr="";
+							for(int m=0;m<shouduancheckList.size();m++) {
+								leftstr+=shouduancheckList.get(m);
 							}
+							et.setText(leftstr);
+                            et.clearFocus();
 						}
 						else
 						{
@@ -401,6 +420,33 @@ public class SummaryClassActivity extends Activity {
 								cb.setChecked(true);
 								shouduancheckList.remove(item);
 							}
+							cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+								@Override
+								public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+									if(buttonView.isChecked() && buttonView.getText().equals("无"))
+									{
+										for(int m=0;m<layout_rizhi_shouduan.getChildCount();m++) {
+											View v = layout_rizhi_shouduan.getChildAt(m);
+											if (v instanceof CheckBox) {
+												CheckBox cb = (CheckBox) v;
+												if (!cb.getText().equals("无"))
+													cb.setChecked(false);
+											}
+										}
+									}
+									if(buttonView.isChecked() && !buttonView.getText().equals("无"))
+									{
+										for(int m=0;m<layout_rizhi_shouduan.getChildCount();m++) {
+											View v = layout_rizhi_shouduan.getChildAt(m);
+											if (v instanceof CheckBox) {
+												CheckBox cb = (CheckBox) v;
+												if (cb.getText().equals("无"))
+													cb.setChecked(false);
+											}
+										}
+									}
+								}
+							});
 						}
 					}
 				}
@@ -408,7 +454,7 @@ public class SummaryClassActivity extends Activity {
 					layout_rizhi_shouduan.setVisibility(View.GONE);
 					findViewById(R.id.tv_6).setVisibility(View.GONE);
 				}
-				if(rizhi_pingtai_str!=null && rizhi_pingtai_str.length()>0)
+				if(rizhi_pingtai_str!=null && rizhi_pingtai_str.length()>2 && !bwanzixi)
 				{
 					findViewById(R.id.tv_7).setVisibility(View.VISIBLE);
 					layout_rizhi_pingtai.setVisibility(View.VISIBLE);
@@ -431,12 +477,41 @@ public class SummaryClassActivity extends Activity {
 						layout_rizhi_pingtai.addView(cb);
 						if(pingtaicheckList.contains(item))
 							cb.setChecked(true);
+						cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+							@Override
+							public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+								if(buttonView.isChecked() && buttonView.getText().equals("无"))
+								{
+									for(int m=0;m<layout_rizhi_pingtai.getChildCount();m++) {
+										View v = layout_rizhi_pingtai.getChildAt(m);
+										if (v instanceof CheckBox) {
+											CheckBox cb = (CheckBox) v;
+											if (!cb.getText().equals("无"))
+												cb.setChecked(false);
+										}
+									}
+								}
+								if(buttonView.isChecked() && !buttonView.getText().equals("无"))
+								{
+									for(int m=0;m<layout_rizhi_pingtai.getChildCount();m++) {
+										View v = layout_rizhi_pingtai.getChildAt(m);
+										if (v instanceof CheckBox) {
+											CheckBox cb = (CheckBox) v;
+											if (cb.getText().equals("无"))
+												cb.setChecked(false);
+										}
+									}
+								}
+							}
+						});
 					}
 					EditText et=new EditText(this);
 					et.setBackground(getResources().getDrawable(R.drawable.summary_bg));
 					et.setTextSize(16);
 					et.setEms(10);
 					et.setHint("资源库课程库名称");
+					et.setSingleLine(true);
+					et.clearFocus();
 					layout_rizhi_pingtai.addView(et);
 					et.setPadding(5,5,5,5);
 					if (teacherInfo != null && teacherInfo.getBeginTime()!=null)
@@ -463,7 +538,7 @@ public class SummaryClassActivity extends Activity {
 					} else if (teacherInfo.getClassroomDiscipline().equals("差")) {
 						group_discipline.check(R.id.group1_bn4);
 					} else {
-						group_discipline.check(R.id.group1_bn1);
+						group_discipline.check(R.id.group1_bn2);
 					}
 					if (teacherInfo.getClassroomHealth().equals("优")) {
 						group_health.check(R.id.group2_bn1);
@@ -474,7 +549,7 @@ public class SummaryClassActivity extends Activity {
 					} else if (teacherInfo.getClassroomHealth().equals("差")) {
 						group_health.check(R.id.group2_bn4);
 					} else {
-						group_health.check(R.id.group2_bn1);
+						group_health.check(R.id.group2_bn2);
 					}
 
 					if(AppUtility.isNotEmpty(teacherInfo.getShouldTime()) && AppUtility.isNotEmpty(teacherInfo.getLatestTime()))
@@ -512,6 +587,10 @@ public class SummaryClassActivity extends Activity {
 			ratingBar2 = (RatingBar) findViewById(R.id.rb_2);
 			et1.setHint("请输入课堂笔记内容");
 			et2.setHint("请输入对老师的建议");
+			layout_rizhi_shouduan.setVisibility(View.GONE);
+			findViewById(R.id.tv_6).setVisibility(View.GONE);
+			layout_rizhi_pingtai.setVisibility(View.GONE);
+			findViewById(R.id.tv_7).setVisibility(View.GONE);
 		}
 		
 		if (userType.equals("家长")) 
@@ -522,6 +601,8 @@ public class SummaryClassActivity extends Activity {
 			et1.setEnabled(false);
 			et2.setEnabled(false);
 		}
+
+
 	}
 
 	private void initListener() {
@@ -675,6 +756,7 @@ public class SummaryClassActivity extends Activity {
 		if(ClassDetailActivity.teacherInfo!=null)
 			ClassDetailActivity.teacherInfo.setCourseContent(teacherInfo.getCourseContent());
 		teacherInfo.setHomework(et2.getText().toString());
+		teacherInfo.setClassroomSituation(et3.getText().toString());
 		teacherInfo.setClassroomDiscipline(rdobtn_discipline.getText()
 				.toString());
 		teacherInfo.setClassroomHealth(rdobtn_health.getText().toString());
@@ -703,12 +785,7 @@ public class SummaryClassActivity extends Activity {
 				}
 			}
 		}
-		if(layout_rizhi_shouduan.getVisibility()==View.VISIBLE &&layout_rizhi_shouduan.getChildCount()>0 && shouduanstr.length()==0)
-		{
-			AppUtility.showToastMsg(this,"信息化手段请至少选择或填写一项");
-			contentLayout.fullScroll(ScrollView.FOCUS_DOWN);
-			return null;
-		}
+
 		String pingtaistr="";
 		String kechengname="";
 		for(int i=0;i<layout_rizhi_pingtai.getChildCount();i++)
@@ -731,11 +808,36 @@ public class SummaryClassActivity extends Activity {
 					kechengname=et.getText().toString().trim();
 			}
 		}
-		if(layout_rizhi_pingtai.getVisibility()==View.VISIBLE &&layout_rizhi_pingtai.getChildCount()>0 && pingtaistr.length()==0)
-		{
-			AppUtility.showToastMsg(this,"教学平台请至少选择或填写一项");
-			contentLayout.fullScroll(ScrollView.FOCUS_DOWN);
-			return null;
+		if (userType.equals("老师")) {
+			if(et1.getText().toString().trim().length()==0)
+			{
+				AppUtility.showToastMsg(this,"授课内容不能为空");
+				et1.requestFocus();
+				return null;
+			}
+			if(et2.getText().toString().trim().length()==0)
+			{
+				AppUtility.showToastMsg(this,"作业布置不能为空");
+				et2.requestFocus();
+				return null;
+			}
+			if(et3.getText().toString().trim().length()==0)
+			{
+				AppUtility.showToastMsg(this,"课堂情况摘要不能为空");
+				et3.requestFocus();
+				return null;
+			}
+			if(layout_rizhi_shouduan.getVisibility()==View.VISIBLE &&layout_rizhi_shouduan.getChildCount()>0 && shouduanstr.length()==0)
+			{
+				AppUtility.showToastMsg(this,"信息化手段请至少选择或填写一项");
+				contentLayout.fullScroll(ScrollView.FOCUS_DOWN);
+				return null;
+			}
+			if (layout_rizhi_pingtai.getVisibility() == View.VISIBLE && layout_rizhi_pingtai.getChildCount() > 0 && pingtaistr.length() == 0) {
+				AppUtility.showToastMsg(this, "教学平台请至少选择或填写一项");
+				contentLayout.fullScroll(ScrollView.FOCUS_DOWN);
+				return null;
+			}
 		}
 		teacherInfo.setCompositeScoreText(shouduanstr);
 		teacherInfo.setCompositeScoreValue(pingtaistr);
@@ -1306,17 +1408,12 @@ public class SummaryClassActivity extends Activity {
 	{
 
 		@Override
-		public void getLocation1() {
+		public void getLocation1(int rqcode) {
 			// TODO Auto-generated method stub
 		
 		}
 		@Override
-		public void getLocation2() {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void getPictureByCamera1() {
-			// TODO Auto-generated method stub
+		public void getPictureByCamera1(int rqcode) {
 			getPictureByCamera();
 		}
 

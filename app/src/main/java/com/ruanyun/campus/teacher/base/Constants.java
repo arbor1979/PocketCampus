@@ -81,6 +81,10 @@ public class Constants {
 	 */
 	public static final String PREF_WORK_ATTENDANCE_VALUES = "pref.work_attendance_values";
 	/**
+	 * 晚自习节次
+	 */
+	public static final String PREF_WANZIXI_JIECI = "pref.wanzixi_jieci";
+	/**
 	 * 允许教师修改教师上课记录信息字段
 	 */
 	public static final String PREF_ALLOW_SCHOOL_RECORDKEYS_STR = "pref.allow_school_recordkeys_str";
