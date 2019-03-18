@@ -98,7 +98,7 @@ public class Alarmreceiver extends BroadcastReceiver {
 	public static NotificationManager mNotificationManager;
 
 	public interface BRInteraction {
-		public void callbackGPSXY(double lat,double lon);
+		public void callbackGPSXY(Location loc);
 		public void callbackRealAddress(String realAddress);
 	}
 
@@ -1083,6 +1083,12 @@ public class Alarmreceiver extends BroadcastReceiver {
 						myLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 						if (myLocation != null)
 							getRealAddress();
+						else
+						{
+							if(brInteraction!=null)
+								brInteraction.callbackGPSXY(null);
+						}
+
 					}
 
 				}
@@ -1169,7 +1175,7 @@ public class Alarmreceiver extends BroadcastReceiver {
 		final double latitude=myLocation.getLatitude();
 		final double longitude=myLocation.getLongitude();
 		if(brInteraction!=null)
-			brInteraction.callbackGPSXY(latitude,longitude);
+			brInteraction.callbackGPSXY(myLocation);
 		CampusAPI.getAddressFromBaidu(latitude,longitude, new RequestListener() {
 			@Override
 			public void onComplete(String response) {

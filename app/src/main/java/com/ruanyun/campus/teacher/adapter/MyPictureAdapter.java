@@ -65,6 +65,8 @@ public class MyPictureAdapter extends BaseAdapter implements Serializable{
 	}
 
 	private void initData() {
+		if(picPaths != null && picPaths.size() >size && picPaths.contains(""))
+			picPaths.remove("");
 		if(picPaths != null && picPaths.size() < size && !picPaths.contains("loading")){
 			picPaths.remove("");
 			picPaths.add("");

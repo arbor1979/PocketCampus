@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -11,7 +12,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -20,10 +23,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -69,6 +74,7 @@ public class SchoolAchievementFragment extends Fragment {
 	private AchieveAdapter adapter;
 	private List<Achievement> achievements = new ArrayList<Achievement>();
 	private Dialog dialog;
+	private Dialog userTypeDialog;
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
@@ -111,13 +117,29 @@ public class SchoolAchievementFragment extends Fragment {
 										}
 										else
 										{
-											Intent intent =new Intent(getActivity(),SchoolDetailActivity.class);
-											intent.putExtra("templateName", "调查问卷");
 											int pos=interfaceName.indexOf("?");
 											String preUrl=interfaceName;
 											if(pos>-1)
 												preUrl=interfaceName.substring(0, pos);
-											intent.putExtra("interfaceName", preUrl+achievementItem.getRightButtonURL());
+											String template=AppUtility.findUrlQueryString(achievementItem.getRightButtonURL(),"template");
+											Intent intent;
+											if(template.equals("浏览器"))
+											{
+												intent = new Intent(getActivity(),WebSiteActivity.class);
+												String jiaoyanma = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+												String jumpurl=achievementItem.getRightButtonURL();
+												if(jumpurl.indexOf("?")>-1)
+													jumpurl+="&";
+												else
+													jumpurl+="?";
+												jumpurl+="jiaoyanma=" + Base64.safeUrlbase64(jiaoyanma);
+												intent.putExtra("url",jumpurl);
+											}
+											else {
+												intent = new Intent(getActivity(), SchoolDetailActivity.class);
+												intent.putExtra("templateName", "调查问卷");
+												intent.putExtra("interfaceName", preUrl+achievementItem.getRightButtonURL());
+											}
 											intent.putExtra("title", title);
 											intent.putExtra("status", "进行中");
 											intent.putExtra("autoClose", "是");
@@ -148,8 +170,33 @@ public class SchoolAchievementFragment extends Fragment {
 					showFetchFailedView();
 					
 				}
-
-				
+				break;
+			case 2:
+				result = msg.obj.toString();
+				if (AppUtility.isNotEmpty(result)) {
+					try {
+						resultStr = new String(Base64.decode(result.getBytes("GBK")));
+						JSONObject jo = new JSONObject(resultStr);
+						String res = jo.optString("结果");
+						if(res.equals("成功"))
+						{
+							AppUtility.showToastMsg(getActivity(), jo.optString("msg"));
+							getAchievesItem();
+						}
+						else {
+							String errmsg=res;
+							if(jo.optString("msg").length()>0)
+								errmsg+=":"+jo.optString("msg");
+							AppUtility.showToastMsg(getActivity(), errmsg);
+						}
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+						AppUtility.showErrorToast(getActivity(), e.getLocalizedMessage());
+					}
+				}
+				else
+					showFetchFailedView();
 				break;
 			case 3:
 				result = msg.obj.toString();
@@ -186,7 +233,7 @@ public class SchoolAchievementFragment extends Fragment {
 								getAchievesItem();
 						}
 						else
-							AppUtility.showErrorToast(getActivity(), "操作失败:"+res);
+							AppUtility.showToastMsg(getActivity(), "操作失败:"+res,1);
 						
 					} catch (JSONException e) {
 						showFetchFailedView();
@@ -244,6 +291,7 @@ public class SchoolAchievementFragment extends Fragment {
 		contentLayout = (LinearLayout) view.findViewById(R.id.content_layout);
 		failedLayout = (LinearLayout) view.findViewById(R.id.empty_error);
 		emptyLayout = (LinearLayout) view.findViewById(R.id.empty);
+
 		myListview.setEmptyView(emptyLayout);
 		btnLeft.setVisibility(View.VISIBLE);
 		btnLeft.setCompoundDrawablesWithIntrinsicBounds(
@@ -442,7 +490,10 @@ public class SchoolAchievementFragment extends Fragment {
 						.findViewById(R.id.thieDescription);
 				holder.rank = (TextView) convertView
 						.findViewById(R.id.tv_right);
-				
+				holder.iv_arrow=(ImageView) convertView
+						.findViewById(R.id.iv_right);
+				holder.iv_menu=(ImageView) convertView
+						.findViewById(R.id.iv_right1);
 				convertView.setTag(holder);
 			} else {
 				holder = (ViewHolder) convertView.getTag();
@@ -475,6 +526,15 @@ public class SchoolAchievementFragment extends Fragment {
 				else
 					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_bg));
 			}
+			if(achievement.getExtraMenu()==null)
+			{
+				holder.iv_arrow.setVisibility(View.VISIBLE);
+				holder.iv_menu.setVisibility(View.GONE);
+			}
+			else {
+				holder.iv_arrow.setVisibility(View.GONE);
+				holder.iv_menu.setVisibility(View.VISIBLE);
+			}
 			convertView.setOnClickListener(new OnClickListener() {
 
 				@Override
@@ -486,6 +546,10 @@ public class SchoolAchievementFragment extends Fragment {
 						if(DetailUrl.length()>0 && !DetailUrl.equals("null"))
 						{
 							Intent intent =null;
+							int pos=interfaceName.indexOf("?");
+							String preUrl=interfaceName;
+							if(pos>-1)
+								preUrl=interfaceName.substring(0, pos);
 							if(achievement.getTemplateName()==null || achievement.getTemplateName().length()==0)
 							{
 								intent=new Intent(getActivity(),SchoolDetailActivity.class);
@@ -493,16 +557,26 @@ public class SchoolAchievementFragment extends Fragment {
 							}
 							else
 							{
-								if(achievement.getTemplateGrade().equals("main"))
-									intent=new Intent(getActivity(),SchoolActivity.class);
-								else
-									intent=new Intent(getActivity(),SchoolDetailActivity.class);
-								intent.putExtra("templateName", achievement.getTemplateName());
+								if(achievement.getTemplateName().equals("浏览器")) {
+									intent = new Intent(getActivity(), WebSiteActivity.class);
+									intent.putExtra("url", DetailUrl);
+									String jiaoyanma = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+									String jumpurl=DetailUrl;
+									if(jumpurl.indexOf("?")>-1)
+										jumpurl+="&";
+									else
+										jumpurl+="?";
+									jumpurl+="jiaoyanma=" + Base64.safeUrlbase64(jiaoyanma);
+									intent.putExtra("url",jumpurl);
+								}
+								else {
+									if (achievement.getTemplateGrade().equals("main"))
+										intent = new Intent(getActivity(), SchoolActivity.class);
+									else
+										intent = new Intent(getActivity(), SchoolDetailActivity.class);
+									intent.putExtra("templateName", achievement.getTemplateName());
+								}
 							}
-							int pos=interfaceName.indexOf("?");
-							String preUrl=interfaceName;
-							if(pos>-1)
-								preUrl=interfaceName.substring(0, pos);
 							intent.putExtra("interfaceName", preUrl+DetailUrl);
 							intent.putExtra("title", title);
 							startActivityForResult(intent,101);
@@ -510,7 +584,26 @@ public class SchoolAchievementFragment extends Fragment {
 					}
 				}
 			});
-	
+			holder.iv_menu.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+					JSONObject popMenu=achievement.getExtraMenu();
+					if(popMenu!=null && popMenu.length()>0)
+					{
+						String[] popMenuStr=new String[popMenu.length()+1];
+						Iterator<?> it = popMenu.keys();
+						int i=0;
+						while(it.hasNext()){
+							popMenuStr[i]= (String) it.next().toString();
+							i++;
+						}
+						popMenuStr[popMenuStr.length-1]="取消";
+						showUserTypeDialog(popMenuStr,achievement);
+					}
+				}
+
+			});
 			return convertView;
 		}
 
@@ -519,7 +612,129 @@ public class SchoolAchievementFragment extends Fragment {
 			TextView title;
 			TextView total;
 			TextView rank;
+			ImageView iv_arrow;
+			ImageView iv_menu;
 		}
 		
+	}
+	private void showUserTypeDialog(String[] data,Achievement achievement) {
+		userTypeDialog = new Dialog(getActivity(), R.style.dialog);
+		View view = inflater.inflate(
+				R.layout.view_exam_login_dialog, null);
+		ListView mList = (ListView) view.findViewById(R.id.list);
+		TextView tvTitle=(TextView)view.findViewById(R.id.dialogtitle);
+		tvTitle.setVisibility(View.GONE);
+		DialogAdapter dialogAdapter = new DialogAdapter(data,achievement);
+		mList.setAdapter(dialogAdapter);
+		Window window = userTypeDialog.getWindow();
+		window.setGravity(Gravity.BOTTOM);// 在底部弹出
+		window.setWindowAnimations(R.style.CustomDialog);
+		window.setGravity(Gravity.CENTER);
+		userTypeDialog.setContentView(view);
+		userTypeDialog.show();
+
+	}
+	public class DialogAdapter extends BaseAdapter {
+		String[] arrayData;
+		Achievement achievement;
+		public DialogAdapter(String[] array,Achievement achievement) {
+			this.arrayData = array;
+			this.achievement=achievement;
+		}
+
+		@Override
+		public int getCount() {
+			return arrayData == null ? 0 : arrayData.length;
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return arrayData[position];
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(final int position, View convertView, ViewGroup arg2) {
+			ViewHolder holder = null;
+			if (convertView == null) {
+				holder = new ViewHolder();
+				convertView = inflater.inflate(
+						R.layout.view_testing_pop, arg2,false);
+
+				holder.title = (TextView) convertView.findViewById(R.id.time);
+
+				convertView.setTag(holder);
+			} else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+			final String text = arrayData[position];
+			holder.title.setText(text);
+			holder.title.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+					PrefUtility.put(Constants.PREF_CHECK_TEST, false);
+					if ("删除".equals(text)) {
+						new AlertDialog.Builder(getActivity())
+								.setIcon(android.R.drawable.ic_dialog_alert)
+								.setTitle("确认对话框")
+								.setMessage("是否确认删除?")
+								.setPositiveButton("是", new DialogInterface.OnClickListener()
+								{
+									@Override
+									public void onClick(DialogInterface dialog, int which)
+									{
+										JSONObject queryObj=AppUtility.parseQueryStrToJson(achievement.getExtraMenu().optString(text));
+										JSONObject jo = new JSONObject();
+										try {
+											Iterator it = queryObj.keys();
+											while (it.hasNext()) {
+												String key = (String) it.next();
+												String value = queryObj.getString(key);
+												jo.put(key, value);
+											}
+
+										} catch (JSONException e1) {
+											e1.printStackTrace();
+										}
+										CampusAPI.httpPost(interfaceName,jo, mHandler, 2);
+									}
+								})
+								.setNegativeButton("否", null)
+								.show();
+					}
+					else if ("取消".equals(text))
+					{
+
+					}
+					else
+					{
+						JSONObject queryObj=AppUtility.parseQueryStrToJson(achievement.getExtraMenu().optString(text));
+						JSONObject jo = new JSONObject();
+						try {
+							Iterator it = queryObj.keys();
+							while (it.hasNext()) {
+								String key = (String) it.next();
+								String value = queryObj.getString(key);
+								jo.put(key, value);
+							}
+
+						} catch (JSONException e1) {
+							e1.printStackTrace();
+						}
+						CampusAPI.httpPost(interfaceName,jo, mHandler, 2);
+					}
+					userTypeDialog.dismiss();
+				}
+			});
+			return convertView;
+		}
+		class ViewHolder {
+			TextView title;
+		}
 	}
 }

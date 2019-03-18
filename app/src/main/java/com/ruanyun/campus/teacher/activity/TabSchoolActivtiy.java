@@ -1,6 +1,7 @@
 package com.ruanyun.campus.teacher.activity;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
@@ -14,10 +15,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -73,6 +77,7 @@ public class TabSchoolActivtiy extends FragmentActivity {
 	private Timer timer; 
 	static LinearLayout layout_menu;
 	private Dao<User, Integer> userDao;
+	public final static int SCANNIN_GREQUEST_CODE = 2;
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
@@ -554,4 +559,59 @@ public class TabSchoolActivtiy extends FragmentActivity {
 			//}
 		}
 	};
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if (requestCode ==  SCANNIN_GREQUEST_CODE){
+			if(resultCode == RESULT_OK){
+				Bundle bundle = data.getExtras();
+				String result = bundle.getString("result");
+				String jumpurl=bundle.getString("jumpurl");
+
+				String template=AppUtility.findUrlQueryString(jumpurl,"template");
+				String templategrade=AppUtility.findUrlQueryString(jumpurl,"templategrade");
+				String targettitle=AppUtility.findUrlQueryString(jumpurl,"targettitle");
+				if(template.length()==0)
+					template="浏览器";
+				if(jumpurl.indexOf("?")>0)
+					jumpurl+="&";
+				else
+					jumpurl+="?";
+				try {
+					result = new String(Base64.decode(result.getBytes("GBK")));
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				if(result!=null && result.length()>0) {
+					if(template.equals("浏览器"))
+					{
+						Intent contractIntent = new Intent(this,WebSiteActivity.class);
+						String jiaoyanma = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+						jumpurl+= "scancode="+Base64.safeUrlbase64(bundle.getString("result"))+"&jiaoyanma=" + Base64.safeUrlbase64(jiaoyanma);
+						contractIntent.putExtra("url",jumpurl);
+						contractIntent.putExtra("title",targettitle);
+						startActivity(contractIntent);
+					}
+					else
+					{
+						jumpurl+="scancode="+Base64.safeUrlbase64(bundle.getString("result"));
+						Intent intent;
+						if (templategrade.equals("main"))
+							intent = new Intent(this, SchoolActivity.class);
+						else
+							intent = new Intent(this, SchoolDetailActivity.class);
+						intent.putExtra("title", targettitle);
+						intent.putExtra("interfaceName",jumpurl);
+						intent.putExtra("templateName",template);
+						startActivity(intent);
+					}
+				}
+				else
+					AppUtility.showToastMsg(this, "扫描结果为空");
+				Log.d(TAG,result);
+			}
+		}
+	}
+
 }

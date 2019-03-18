@@ -1101,6 +1101,15 @@ public class SummaryClassActivity extends Activity {
 				}
 			}
 		}
+		if(studentSummary.getTeacherkaoqin().length()>0 && !studentSummary.getTeacherkaoqin().equals("正常"))
+		{
+			AppUtility.showToastMsg(this, studentSummary.getTeacherkaoqin(),1);
+			aq.id(R.id.layout_btn_right).visibility(View.GONE);
+			et1.setHint(studentSummary.getTeacherkaoqin());
+			et1.setEnabled(false);
+			et2.setEnabled(false);
+			et3.setEnabled(false);
+		}
 	}
 	/**
 	 * 功能描述:清除缓存

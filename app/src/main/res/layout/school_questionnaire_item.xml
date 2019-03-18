@@ -41,9 +41,9 @@
             android:background="@drawable/edittext_bg"
             android:gravity="left|top"
             android:inputType="textMultiLine"
-            android:minLines="6"
-            android:textSize="@dimen/text_size_micro"
-            android:visibility="gone" />
+            android:padding="10px"
+            android:textSize="@dimen/text_size_normal"
+            android:visibility="gone"/>
 
         <Spinner
             android:id="@+id/sp_select"
@@ -68,12 +68,13 @@
             android:layout_height="wrap_content"
             android:calendarViewShown="false"
             android:visibility="gone" />
+
         <TextView
             android:id="@+id/tv_answer"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_margin="6.0dip"
-            android:visibility="gone" />
+            android:visibility="gone"/>
 
         <com.ruanyun.campus.teacher.widget.NonScrollableGridView
             android:id="@+id/grid_picture"

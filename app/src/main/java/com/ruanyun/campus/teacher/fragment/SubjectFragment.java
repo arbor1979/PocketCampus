@@ -41,11 +41,14 @@ import com.j256.ormlite.stmt.PreparedQuery;
 import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.activity.ClassDetailActivity;
+import com.ruanyun.campus.teacher.activity.CurriculumActivity;
+import com.ruanyun.campus.teacher.base.Constants;
 import com.ruanyun.campus.teacher.db.DatabaseHelper;
 import com.ruanyun.campus.teacher.entity.Schedule;
 import com.ruanyun.campus.teacher.entity.TeacherInfo;
 import com.ruanyun.campus.teacher.lib.BaseTableAdapter;
 import com.ruanyun.campus.teacher.lib.TableFixHeaders;
+import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.DateHelper;
 import com.ruanyun.campus.teacher.util.PrefUtility;
 
@@ -282,6 +285,8 @@ public class SubjectFragment extends Fragment {
 				{
 					tv.setText(tv.getText()+"\n"+weekdays[column].substring(5));
 				}
+				else
+					return null;
 				tv.setTextSize(13);
 				//tv.setPadding(5, 5, 5, 5);
 				//tv.setTextColor(Color.parseColor("#fadf8f"));
@@ -310,7 +315,8 @@ public class SubjectFragment extends Fragment {
 			}
 			TextView tv = (TextView) convertView.findViewById(R.id.tv_section);
 			SpannableString builder = new SpannableString(sections[row]);
-            builder.setSpan(new AbsoluteSizeSpan(10,true), 0, 5, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			if(sections[row]!=null && sections[row].length()>5)
+				builder.setSpan(new AbsoluteSizeSpan(10,true), 0, 5, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             tv.setText(builder);
 			
 			/*
@@ -367,20 +373,24 @@ public class SubjectFragment extends Fragment {
 				if (teacherInfo != null) {
 					int color =0;
 					bn.setTag(teacherInfo);
-					String teacherInfoStr = teacherInfo.getCourseName();
-                    if(teacherInfo.getClassroom()!=null && teacherInfo.getClassroom().length()>0)
-                        teacherInfoStr=teacherInfoStr + "("
-                                + teacherInfo.getClassroom() + ")";
-					if (userType.equals("老师"))
+					String teacherInfoStr = "";
+					if (userType.equals("老师") && PrefUtility.get(Constants.PREF_CLASSES_BANZHUREN_VIEW,"").length()==0)
 					{
-						teacherInfoStr+=teacherInfo.getClassGrade();
 						color = Color.parseColor(getColor(teacherInfo.getClassGrade()));
 					}
 					else
 					{
-						teacherInfoStr+=teacherInfo.getName();
 						color = Color.parseColor(getColor(teacherInfo.getCourseName()));
 					}
+					teacherInfoStr = teacherInfo.getCourseName();
+					teacherInfoStr= AppUtility.cutStringToLength(teacherInfoStr,12);
+					if(teacherInfo.getClassroom()!=null && teacherInfo.getClassroom().length()>0)
+						teacherInfoStr=teacherInfoStr + "("
+								+ teacherInfo.getClassroom() + ")";
+					if (userType.equals("老师") && PrefUtility.get(Constants.PREF_CLASSES_BANZHUREN_VIEW,"").length()==0)
+						teacherInfoStr=teacherInfoStr+ teacherInfo.getClassGrade();
+					else
+						teacherInfoStr=teacherInfoStr+ teacherInfo.getName();
 					bn.setText(teacherInfoStr);
 					TeacherInfo lastInfo = null;
 					TeacherInfo nextInfo = null;
@@ -392,10 +402,14 @@ public class SubjectFragment extends Fragment {
 					}
 					if (nextInfo == null && lastInfo == null) {
 						teacherInfoStr = teacherInfo.getCourseName();
+						teacherInfoStr= AppUtility.cutStringToLength(teacherInfoStr,12);
 						if(teacherInfo.getClassroom()!=null && teacherInfo.getClassroom().length()>0)
                             teacherInfoStr=teacherInfoStr + "("
 								+ teacherInfo.getClassroom() + ")";
-                        teacherInfoStr=teacherInfoStr+ teacherInfo.getClassGrade();
+						if (userType.equals("老师") && PrefUtility.get(Constants.PREF_CLASSES_BANZHUREN_VIEW,"").length()==0)
+							teacherInfoStr=teacherInfoStr+ teacherInfo.getClassGrade();
+						else
+							teacherInfoStr=teacherInfoStr+ teacherInfo.getName();
 						bn.setText(teacherInfoStr);
 					} else {
 						if (nextInfo != null) {
@@ -404,15 +418,16 @@ public class SubjectFragment extends Fragment {
 								showButtons.put(teacherInfo.getId() + "up", bn);
 								
 								teacherInfoStr = teacherInfo.getCourseName();
-                                if(teacherInfo.getClassroom()!=null && teacherInfo.getClassroom().length()>0)
-                                    teacherInfoStr=teacherInfoStr + "("
-                                            + teacherInfo.getClassroom() + ")";
+								teacherInfoStr=AppUtility.cutStringToLength(teacherInfoStr,12);
+								if(teacherInfo.getClassroom()!=null && teacherInfo.getClassroom().length()>0)
+									teacherInfoStr=teacherInfoStr + "("
+											+ teacherInfo.getClassroom()+")";
 								bn.setText(teacherInfoStr);
 								bn.setGravity(Gravity.BOTTOM);
 								MarginLayoutParams  layoutParams=(ViewGroup.MarginLayoutParams)bn.getLayoutParams();
 								layoutParams.bottomMargin=0;
-								
 							}
+
 						}
 
 						if (lastInfo != null) {
@@ -420,13 +435,13 @@ public class SubjectFragment extends Fragment {
 									lastInfo.getSection())) {
 								showButtons.put(teacherInfo.getId() + "down",
 										bn);
-								
-								if (userType.equals("老师"))
+								if (userType.equals("老师") && PrefUtility.get(Constants.PREF_CLASSES_BANZHUREN_VIEW,"").length()==0)
 									bn.setText(teacherInfo.getClassGrade());
 								else
 									bn.setText(teacherInfo.getName());
 								bn.setGravity(Gravity.TOP);
 							}
+
 						}
 					}
 					
@@ -498,10 +513,19 @@ public class SubjectFragment extends Fragment {
 						}
 						else
 						{
-							Intent intent = new Intent(getActivity(),
-									ClassDetailActivity.class);
-							intent.putExtra("teacherInfo", ti);
-							startActivity(intent);
+							if (userType.equals("老师") && PrefUtility.get(Constants.PREF_CLASSES_BANZHUREN_VIEW,"").length()>0)
+							{
+								Intent intent = new Intent(getActivity(),
+										CurriculumActivity.class);
+								intent.putExtra("subjectid", ti.getId());
+								startActivity(intent);
+							}
+							else {
+								Intent intent = new Intent(getActivity(),
+										ClassDetailActivity.class);
+								intent.putExtra("teacherInfo", ti);
+								startActivity(intent);
+							}
 						}
 					}
 				});

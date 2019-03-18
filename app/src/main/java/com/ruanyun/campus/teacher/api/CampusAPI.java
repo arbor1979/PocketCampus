@@ -1,7 +1,18 @@
 package com.ruanyun.campus.teacher.api;
 
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+
 import com.ruanyun.campus.teacher.base.Constants;
+import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.PrefUtility;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 public class CampusAPI {
 	
@@ -297,10 +308,12 @@ public class CampusAPI {
 	 */
 	public static void getSchoolItem(CampusParameters params, String Interface,
 			RequestListener listener) {
-		String url = "http://laoshi.dandian.net/InterfaceStudent/" + Interface;
-		if(Interface.substring(0, 4).toLowerCase().equals("http"))
-			url=Interface;
-		AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
+		if(Interface!=null) {
+			String url = "http://laoshi.dandian.net/InterfaceStudent/" + Interface;
+			if (Interface.substring(0, 4).toLowerCase().equals("http"))
+				url = Interface;
+			AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
+		}
 	}
 
 	/**
@@ -354,7 +367,7 @@ public class CampusAPI {
 	 * @author shengguo 2014-4-28 下午5:39:06
 	 * 
 	 * @param params
-	 * @param Interface
+	 * @param
 	 * @param listener
 	 */
 	public static void getCeyanStatus(CampusParameters params,
@@ -369,7 +382,7 @@ public class CampusAPI {
 	 * @author shengguo 2014-4-28 下午5:39:06
 	 * 
 	 * @param params
-	 * @param Interface
+	 * @param
 	 * @param listener
 	 */
 	public static void getCeyanInfo(CampusParameters params,
@@ -454,5 +467,62 @@ public class CampusAPI {
 		AsyncFoodSafeRunner.request(
 				"http://laoshi.dandian.net/Baidu_Get_MSG_List.php", params,
 				HTTP_METHOD, listener);
+	}
+	public static void httpPost(String Interface,JSONObject jsonParam, final Handler mHandler, final int completeCode)
+	{
+		CampusParameters params = new CampusParameters();
+		Iterator<String> iterator = jsonParam.keys();
+		while(iterator.hasNext()){
+			String key = (String) iterator.next();
+			String value="";
+			try {
+				value = jsonParam.getString(key);
+			} catch (JSONException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			params.add(key, value);
+		}
+		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+		long datatime = System.currentTimeMillis();
+		JSONObject jo = new JSONObject();
+		try {
+			jo.put("用户较验码", checkCode);
+			jo.put("DATETIME", datatime);
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
+		String base64Str = Base64.encode(jo.toString().getBytes());
+		params.add(Constants.PARAMS_DATA, base64Str);
+		String url = "http://laoshi.dandian.net/InterfaceStudent/" + Interface;
+		if(Interface.substring(0, 4).toLowerCase().equals("http"))
+			url=Interface;
+		RequestListener listener=new RequestListener() {
+
+			@Override
+			public void onIOException(IOException e) {
+
+			}
+
+			@Override
+			public void onError(CampusException e) {
+				Message msg = new Message();
+				msg.what = -1;
+				msg.obj = e.getMessage();
+				mHandler.sendMessage(msg);
+			}
+
+			@Override
+			public void onComplete(String response) {
+				Message msg = new Message();
+				msg.what = completeCode;
+				msg.obj = response;
+				mHandler.sendMessage(msg);
+			}
+		};
+		AsyncFoodSafeRunner.request(
+				url, params,
+				HTTP_METHOD, listener);
+
 	}
 }

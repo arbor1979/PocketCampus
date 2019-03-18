@@ -318,7 +318,7 @@ public class TabHostActivity extends TabActivity   {
 		//Intent intent = new Intent(TabHostActivity.this,SchoolService.class);
 		//bindService(intent, connection, Context.BIND_AUTO_CREATE);
 		
-		//showUnreadCnt();
+		showUnreadCnt();
 		
 		//UpdateManager.checkUpdate(this);
 		//版本检测
@@ -806,6 +806,7 @@ public class TabHostActivity extends TabActivity   {
 						PrefUtility.put(Constants.PREF_LOGIN_PASS, "");
 						PrefUtility.put(Constants.PREF_INIT_CONTACT_STR, "");
 						PrefUtility.put(Constants.PREF_INIT_DATA_STR, "");
+						PrefUtility.put(Constants.PREF_CLASSES_BANZHUREN_VIEW,"");
 						Intent intent = new Intent(TabHostActivity.this,
 								LoginActivity.class);
 						intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP

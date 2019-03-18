@@ -135,4 +135,10 @@ public class Base64 {
 		}
 		return null;
 	}
+	public static String safeUrlbase64(String base64str) {
+		base64str=base64str.replace("+","-");
+		base64str=base64str.replace("/","_");
+		base64str=base64str.replace("=","");
+		return base64str;
+	}
 }

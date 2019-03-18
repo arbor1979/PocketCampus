@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ruanyun.campus.teacher"
-    android:versionCode="54"
-    android:versionName="5.4" >
+    android:versionCode="55"
+    android:versionName="5.5" >
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -244,7 +244,6 @@
                 <category android:name="com.ruanyun.campus.teacher"></category>
             </intent-filter>
         </receiver>
-
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="com.ruanyun.campus.teacher.fileProvider"

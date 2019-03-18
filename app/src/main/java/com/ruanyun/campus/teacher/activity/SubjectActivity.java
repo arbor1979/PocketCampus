@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
@@ -27,6 +28,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
+import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
@@ -98,7 +100,7 @@ public class SubjectActivity extends FragmentActivity {
 	private void initTitle() {
 		initlayout = (LinearLayout) findViewById(R.id.initlayout);
 		layout_menu = (LinearLayout) findViewById(R.id.layout_back);
-		//layoutRefresh = (LinearLayout) findViewById(R.id.layout_goto);
+		LinearLayout layoutRefresh = (LinearLayout) findViewById(R.id.layout_goto);
 		bn_menu = (Button) findViewById(R.id.btn_back);
 		bn_refresh = (Button) findViewById(R.id.btn_goto);
 		tv_title = (TextView) findViewById(R.id.tv_title);
@@ -108,6 +110,13 @@ public class SubjectActivity extends FragmentActivity {
 		imageButton_right.setOnClickListener(new MyListener());
 		bn_menu.setBackgroundResource(R.drawable.bg_title_homepage_back);
 		//bn_refresh.setBackgroundResource(R.drawable.bg_title_homepage_go);
+		if(PrefUtility.get(Constants.PREF_CHECK_USERTYPE,"").equals("老师") && PrefUtility.get(Constants.PREF_CLASSES_BANZHUREN,"").length()>0) {
+			bn_refresh.setBackgroundResource(R.drawable.dropdown);
+			layoutRefresh.setOnClickListener(new MyListener());
+			bn_refresh.setVisibility(View.VISIBLE);
+		}
+		else
+			bn_refresh.setVisibility(View.INVISIBLE);
 		tv_title.setOnClickListener(new MyListener());
 		//layoutRefresh.setOnClickListener(new MyListener());
 	
@@ -169,26 +178,37 @@ public class SubjectActivity extends FragmentActivity {
 				selectedWeeks();
 				break;
 			case R.id.layout_goto:
-				Log.d(TAG, "----------isInitDate"+isInitDate);
-				isInitDate = PrefUtility.getBoolean(Constants.PREF_INIT_BASEDATE_FLAG, false);
-				if (isInitDate) {
-					currentWeek=PrefUtility.getInt(Constants.PREF_CURRENT_WEEK, 0);
-					selectedWeek = PrefUtility.getInt(Constants.PREF_SELECTED_WEEK, 0);
-					maxWeek = PrefUtility.getInt(Constants.PREF_MAX_WEEK, 0);
-					Log.d(TAG, "currentWeek:" + currentWeek + ",selectedWeek:"
-							+ selectedWeek + ",maxWeek:" + maxWeek);
-					subjectFragment.initTable();
-
-					initlayout.setVisibility(View.INVISIBLE);
-					tv_title.setVisibility(View.VISIBLE);
-					if (currentWeek == selectedWeek) {
-						tv_title.setText("第" + selectedWeek + "周(本周)");
-					} else {
-						tv_title.setText("第" + selectedWeek + "周(非本周)");
+				PopupMenu popupMenu = new PopupMenu(SubjectActivity.this, v);
+				android.view.Menu menu_more = popupMenu.getMenu();
+				String banjistr=PrefUtility.get(Constants.PREF_CLASSES_BANZHUREN,"");
+				final String banji[]=banjistr.split(",");
+				menu_more.add(0, 0, 0, "我的课表");
+				int selectindex=0;
+				String banzhuren_view_banji=PrefUtility.get(Constants.PREF_CLASSES_BANZHUREN_VIEW,"");
+				for (int i = 0; i < banji.length; i++) {
+					if(banji[i]!=null && banji[i].length()>0) {
+						menu_more.add(0, i + 1, i + 1, banji[i]);
+						if(banzhuren_view_banji.equals(banji[i]))
+							selectindex=i+1;
 					}
-				} else {
-					AppUtility.showToastMsg(SubjectActivity.this, "正在初始化数据");
 				}
+				menu_more.setGroupCheckable(0,true,true);
+				menu_more.findItem(selectindex).setChecked(true);
+				popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+					@Override
+					public boolean onMenuItemClick(MenuItem menuItem) {
+						String banzhuren_view_banji;
+						if(menuItem.getItemId()==0) {
+							banzhuren_view_banji="";
+						}
+						else
+							banzhuren_view_banji=banji[menuItem.getItemId()-1];
+						PrefUtility.put(Constants.PREF_CLASSES_BANZHUREN_VIEW,banzhuren_view_banji);
+						regetKebiao();
+						return true;
+					}
+				});
+				popupMenu.show();
 				break;
 			case R.id.imageButton_left:
 				if(selectedWeek>1)

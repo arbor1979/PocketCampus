@@ -1,8 +1,11 @@
 package com.ruanyun.campus.teacher.adapter;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -12,9 +15,11 @@ import android.view.ViewGroup;
 import com.androidquery.AQuery;
 import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.activity.SchoolActivity;
+import com.ruanyun.campus.teacher.activity.TabSchoolActivtiy;
 import com.ruanyun.campus.teacher.activity.WebSiteActivity;
 import com.ruanyun.campus.teacher.base.Constants;
 import com.ruanyun.campus.teacher.entity.SchoolWorkItem;
+import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.BadgeView;
 import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.PrefUtility;
@@ -180,6 +185,15 @@ public class SchoolWorkGroupAdapter extends SectionedRecyclerViewAdapter<HeaderH
                     contractIntent.putExtra("url",url);
                     contractIntent.putExtra("title", item.getWorkText());
                     mContext.startActivity(contractIntent);
+                }
+                else if(item.getTemplateName().equals("二维码"))
+                {
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        Activity act=(Activity)mContext;
+                        if (AppUtility.checkPermission(act.getParent(), 12, Manifest.permission.CAMERA))
+                            AppUtility.openScanCode((Activity)mContext, TabSchoolActivtiy.SCANNIN_GREQUEST_CODE,item.getInterfaceName());
+                    } else
+                        AppUtility.openScanCode((Activity)mContext,TabSchoolActivtiy.SCANNIN_GREQUEST_CODE,item.getInterfaceName());
                 }
                 else
                 {

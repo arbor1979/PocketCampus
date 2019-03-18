@@ -417,9 +417,7 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 					    
 						if (user.getLoginStatus().equals("登录成功")) {
 							Log.d(TAG, "--->  登录成功！");
-							String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");// 获取用户校验码
-							Log.d(TAG, "-------------checkCode"+ checkCode);
-							Log.d(TAG,"--------------->服务器返回校验码："+ user.getCheckCode());
+
 							// 保存用户校验码
 							//PrefUtility.put(Constants.PREF_DOMAIN,user.getDomain());
 							PrefUtility.put(Constants.PREF_CHECK_CODE,user.getCheckCode());
@@ -428,9 +426,9 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 							PrefUtility.put(Constants.PREF_SCHOOL_DOMAIN,user.getDomain());
 							PrefUtility.put(Constants.PREF_CHECK_HOSTID,user.getUserNumber());
 							PrefUtility.put(Constants.PREF_CHECK_USERTYPE,user.getUserType());
-							
-							checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");// 获取用户校验码
-							
+							String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");// 获取用户校验码
+							Log.d(TAG, "-------------checkCode"+ checkCode);
+							Log.d(TAG,"--------------->服务器返回校验码："+ user.getCheckCode());
 							//PrefUtility.putObject("user", user);
 							((CampusApplication)getApplicationContext()).setLoginUserObj(user);
 							

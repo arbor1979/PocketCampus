@@ -24,7 +24,7 @@
     <color name="subject_single">#288d4d</color>
     <color name="subject_double">#4ebc77</color>
     <color name="red_color">#F20331</color>
-    
+    <color name="subject_current">#21ab00</color>
     <color name="blue_color_shade">#3698D2</color>
     <!-- title -->
     <color name="title_sel">#66ffffff</color>

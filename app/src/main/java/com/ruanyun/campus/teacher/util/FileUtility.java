@@ -1,5 +1,7 @@
 package com.ruanyun.campus.teacher.util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,8 +27,13 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
-
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 @SuppressLint("NewApi")
 public class FileUtility {
 	
@@ -216,10 +223,20 @@ public class FileUtility {
         index=fileName.indexOf("?");
         if(index>-1)
         {
-        	fileName=fileName.substring(index+1);
-        	index=fileName.lastIndexOf("=");
-        	if(index>-1)
-        		fileName=fileName.substring(index+1);
+			fileName=fileName.substring(index+1);
+			String[] params=fileName.split("&");
+			for(String item :params)
+			{
+				if(item.indexOf(".")>0) {
+					String tempStr[]=item.split("=");
+					if(tempStr.length==2)
+						return tempStr[1];
+
+				}
+			}
+			index=fileName.lastIndexOf("=");
+			if(index>-1)
+				fileName=fileName.substring(index+1);
         }
 		try {
 				fileName=java.net.URLDecoder.decode(fileName,"utf-8");
@@ -236,17 +253,33 @@ public class FileUtility {
 				 return false;
 			 }
 	 }
-    public static String getFileExtName(String path)
-    {
-    	String filename=getFileRealName(path);
-    	int index=filename.lastIndexOf(".");
-        String extName;
-        if(index>-1)
-        	extName=filename.substring(index+1);
-        else
-        	extName="";
-        return  extName;
-    }
+	public static String getFileExtName(String path)
+	{
+		String filename=getFileRealName(path);
+		int index=filename.lastIndexOf(".");
+		String extName;
+		if(index>-1) {
+			extName = filename.substring(index + 1);
+		}
+		else
+			extName="";
+		return  extName;
+	}
+	public static String getUrlExtName(String path)
+	{
+		int index=path.lastIndexOf(".");
+		String extName="";
+		if(index>-1) {
+			extName = path.substring(index + 1);
+			String tempstr[]=extName.split("&");
+			if(tempstr.length>1)
+				extName=tempstr[0];
+			index=extName.lastIndexOf("\\?");
+			if(index>-1)
+				extName = extName.substring(0,index);
+		}
+		return  extName;
+	}
     public static String getFileDir(String path)
     {
     	
@@ -352,6 +385,7 @@ public class FileUtility {
     }
 	public static String getFilePathInSD(Activity context,Uri uri)
 	{
+	    /*
 		String filepath=uri.getPath();
 		final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT; 
 		if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) 
@@ -410,8 +444,15 @@ public class FileUtility {
 	    	filepath= uri.getPath();  
 	    } 
 	    return filepath;
-		
-		
+		*/
+
+        String str ="";
+        if (Build.VERSION.SDK_INT >= 23) {
+            str = getFilePathFromURI(context, uri);//新的方式
+        } else {
+            str= uri.getPath();
+        }
+        return str;
 	}
 	public static String getDataColumn(Context context, Uri uri, String selection,  
 	        String[] selectionArgs) {  
@@ -471,5 +512,66 @@ public class FileUtility {
     	String[] imageArray=imageType.split(",");
         return Arrays.asList(imageArray).contains(extName);
 	}
-	
+
+    public static String getFilePathFromURI(Context context, Uri contentUri) {
+        File rootDataDir = context.getFilesDir();
+        String fileName = getFileName(contentUri);
+        if (!TextUtils.isEmpty(fileName)) {
+            File copyFile = new File(rootDataDir + File.separator + fileName);
+            copyFile(context, contentUri, copyFile);
+            return copyFile.getAbsolutePath();
+        }
+        return null;
+    }
+
+    public static String getFileName(Uri uri) {
+        if (uri == null) return null;
+        String fileName = null;
+        String path = uri.getPath();
+        int cut = path.lastIndexOf('/');
+        if (cut != -1) {
+            fileName = path.substring(cut + 1);
+        }
+        return fileName;
+    }
+
+    public static void copyFile(Context context, Uri srcUri, File dstFile) {
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(srcUri);
+            if (inputStream == null) return;
+            OutputStream outputStream = new FileOutputStream(dstFile);
+            copyStream(inputStream, outputStream);
+            inputStream.close();
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int copyStream(InputStream input, OutputStream output) throws Exception, IOException {
+        int BUFFER_SIZE = 1024 * 2;
+        byte[] buffer = new byte[BUFFER_SIZE];
+
+        BufferedInputStream in = new BufferedInputStream(input, BUFFER_SIZE);
+        BufferedOutputStream out = new BufferedOutputStream(output, BUFFER_SIZE);
+        int count = 0, n = 0;
+        try {
+            while ((n = in.read(buffer, 0, BUFFER_SIZE)) != -1) {
+                out.write(buffer, 0, n);
+                count += n;
+            }
+            out.flush();
+        } finally {
+            try {
+                out.close();
+            } catch (IOException e) {
+            }
+            try {
+                in.close();
+            } catch (IOException e) {
+
+            }
+        }
+        return count;
+    }
 }

@@ -2,7 +2,9 @@ package com.ruanyun.campus.teacher.activity;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +27,8 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
@@ -114,13 +118,25 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 	@SuppressLint({ "SetJavaScriptEnabled", "CutPasteId" })
 
 	@Override
-	public void callbackGPSXY(double lat,double lon) {
+	public void callbackGPSXY(Location loc) {
+		double lat=0;
+		double lon=0;
+		String datestr="";
+		double accu=0;
+		if(loc!=null)
+		{
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			datestr=format.format(loc.getTime());
+			lat=loc.getLatitude();
+			lon=loc.getLongitude();
+			accu=loc.getAccuracy();
+		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-			mWebView.evaluateJavascript("javascript:callbackGPSXY("+lat+","+lon+")",null);
+			mWebView.evaluateJavascript("javascript:callbackGPSXY("+lat+","+lon+",'"+datestr+"',"+accu+")",null);
 		}
 		else
-			mWebView.loadUrl("javascript:callbackGPSXY("+lat+","+lon+")");
-		Log.d(TAG,"lat="+lat+",lon="+lon);
+			mWebView.loadUrl("javascript:callbackGPSXY("+lat+","+lon+",'"+datestr+"',"+accu+")");
+
 	}
 	public void callbackRealAddress(String realAddress)
 	{
@@ -221,15 +237,21 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 				if(mWebView.canGoBack())
 					mWebView.goBack();
 				else
-					finish();
+					closeSelf();
 			}
 		});
 		btn_close.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-					finish();
+				closeSelf();
 			}
 		});
+	}
+	private void closeSelf()
+	{
+		Intent aintent = new Intent();
+		setResult(1,aintent);
+		finish();
 	}
 	public class MyChromeClient extends WebChromeClient implements OnCompletionListener {
 
@@ -351,9 +373,9 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 		public void GetScanCode() {
 			if (Build.VERSION.SDK_INT >= 23) {
 				if (AppUtility.checkPermission(WebSiteActivity.this, 12, Manifest.permission.CAMERA))
-					openScanCode();
+					AppUtility.openScanCode(WebSiteActivity.this,SCANNIN_GREQUEST_CODE,null);
 			} else
-				openScanCode();
+				AppUtility.openScanCode(WebSiteActivity.this,SCANNIN_GREQUEST_CODE,null);
 		}
 		@JavascriptInterface
 		public void GetCamera(String type) {
@@ -565,6 +587,10 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 					intent.putExtra("templateName",uri.getQueryParameter("templateName"));
 					startActivity(intent);
 				}
+				else if(uri.getAuthority().equals("closeWebWindow"))
+				{
+					closeSelf();
+				}
 				return true;
 			}
 		    /*
@@ -723,7 +749,7 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 					return true;
 				}
 				else {
-					finish();
+					closeSelf();
 					return true;
 				}
 			}
@@ -765,7 +791,7 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 		@Override
 		public void getPictureByCamera1(int rqcode) {
 			if(rqcode==12)
-			    openScanCode();
+			    AppUtility.openScanCode(WebSiteActivity.this,SCANNIN_GREQUEST_CODE,null);
 			else
 			    cameraPicPath=AppUtility.getPictureByCamera(WebSiteActivity.this,REQUEST_CODE_TAKE_CAMERA);
 		}
@@ -836,12 +862,6 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 			}
 		}
 	};
-	private void openScanCode()
-	{
-		Intent intent = new Intent();
-		intent.setClass(WebSiteActivity.this, CaptureActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		startActivityForResult(intent, SCANNIN_GREQUEST_CODE);
-	}
+
 }
 

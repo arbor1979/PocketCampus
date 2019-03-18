@@ -105,7 +105,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	private final String TAG = "SchoolQuestionnaireDetailFragment";
 	private ListView myListview;
 	private Button btnLeft;
-	private TextView tvTitle, tvRight;
+	private TextView tvTitle, tvRight,emptytext;
 	private LinearLayout lyLeft, lyRight,loadingLayout,contentLayout,failedLayout,emptyLayout;
 	private QuestionnaireList questionnaireList;
 	private String title,status, interfaceName,picturePath,delImagePath,autoClose;
@@ -159,7 +159,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 						JSONObject jo = new JSONObject(resultStr);
 						String res = jo.optString("结果");
 						if (AppUtility.isNotEmpty(res)) {
-							AppUtility.showToastMsg(getActivity(), res);
+							//AppUtility.showToastMsg(getActivity(), res,1);
+							emptytext.setText(res);
 						} else {
 							questionnaireList = new QuestionnaireList(jo);
 							
@@ -300,7 +301,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 									}
 								}
 								questions.get(curIndex).setFujianArray(fujianArray);
-								View view= myListview.getChildAt(curIndex);
+								View view= myListview.getChildAt(curIndex-myListview.getFirstVisiblePosition());
 								NonScrollableListView listview=(NonScrollableListView) view.findViewById(R.id.lv_choose);
 								SimpleAdapter fujianAdapter=setupFujianAdpter(questions.get(curIndex));
 								listview.setAdapter(fujianAdapter);
@@ -417,7 +418,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		contentLayout = (LinearLayout) view.findViewById(R.id.content_layout);
 		failedLayout = (LinearLayout) view.findViewById(R.id.empty_error);
 		emptyLayout = (LinearLayout) view.findViewById(R.id.empty);
-
+		emptytext=(TextView) view.findViewById(R.id.emptytext);
 		myListview.setEmptyView(emptyLayout);
 		btnLeft.setVisibility(View.VISIBLE);
 		btnLeft.setCompoundDrawablesWithIntrinsicBounds(
@@ -1226,26 +1227,27 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			holder.etAnswer.setTag(position);
 			
 			String mStatus = question.getStatus();
-			
-			holder.title.setText(position+1+"."+question.getTitle());
-			if(!isEnable){
-				String remark = question.getRemark();
-				Log.d(TAG, "-----------remark:"+remark);
-				
-				holder.tvRemark.setVisibility(View.INVISIBLE);
-				if(AppUtility.isNotEmpty(remark) && !mStatus.equals("单行文本输入框") && !mStatus.equals("图片")){
-					holder.tvRemark.setText(remark);
-					holder.tvRemark.setVisibility(View.VISIBLE);
-					
-					if(remark.length()>7 && (remark.substring(0, 7).equals("答题状态:错误") || remark.indexOf("error")>0)){
+			String addstr="";
+			if(question.getIsRequired().equals("是") && !question.getTitle().endsWith("*"))
+				addstr="*";
+			holder.title.setText(position+1+"."+question.getTitle()+addstr);
+			String remark = question.getRemark();
+			if(AppUtility.isNotEmpty(remark) && remark.trim().length()>0){
+				holder.tvRemark.setText(remark);
+				holder.tvRemark.setVisibility(View.VISIBLE);
+				if(status.equals("已结束") && !mStatus.equals("单行文本输入框") && !mStatus.equals("图片") && !mStatus.equals("日期")){
+
+					if(remark.length()>=7 && (remark.substring(0, 7).equals("答题状态:错误") || remark.indexOf("error")>0)){
 						holder.tvRemark.setTextColor(getActivity().getResources().getColor(R.color.red_color));
-					}else if(remark.length()>7 && (remark.substring(0, 7).equals("答题状态:正确") || remark.indexOf("right")>0)){
-						holder.tvRemark.setTextColor(getActivity().getResources().getColor(R.color.title_nor));
+					}else if(remark.length()>=7 && (remark.substring(0, 7).equals("答题状态:正确") || remark.indexOf("right")>0)){
+						holder.tvRemark.setTextColor(getActivity().getResources().getColor(R.color.subject_current));
 					}
 					else
 						holder.tvRemark.setTextColor(Color.BLUE);
 				}
 			}
+			else
+				holder.tvRemark.setVisibility(View.GONE);
 			if (mStatus.equals("单选")) {
 				holder.imageGridView.setVisibility(View.GONE);
 				holder.radioGroup.setVisibility(View.VISIBLE);
@@ -1257,6 +1259,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
 				final String[] answers = question.getOptions();
+				final List<JSONObject> jsonanswers = question.getOptionsJson();
 				holder.radioGroup.removeAllViews();
 				int checkIndex = -1;
 				holder.radioGroup.setOnCheckedChangeListener(null);
@@ -1266,10 +1269,32 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					radioButton.setText(answers[i].toString());
 					radioButton.setTextSize(12.0f);
 					radioButton.setId(i);
-					radioButton.setEnabled(isEnable);
+					boolean bflag=false;
+					if(isEnable && !question.isIfRead())
+						bflag=true;
+					radioButton.setEnabled(bflag);
 					if (answers[i].equals(question.getUsersAnswer())) {
 						checkIndex = i;
 					}
+					holder.radioGroup.addView(radioButton);
+				}
+				for (int i = 0; i < jsonanswers.size(); i++) {
+					JSONObject objItem=jsonanswers.get(i);
+					String key=objItem.optString("key");
+					String value=objItem.optString("value");
+					View v= inflater.inflate(R.layout.my_radiobutton, parent, false);
+					RadioButton radioButton = (RadioButton) v.findViewById(R.id.rb_chenck);
+					radioButton.setText(value);
+					radioButton.setTextSize(12.0f);
+					radioButton.setId(i);
+					boolean bflag=false;
+					if(isEnable && !question.isIfRead())
+						bflag=true;
+					radioButton.setEnabled(bflag);
+					if (key.equals(question.getUsersAnswer())) {
+						checkIndex = i;
+					}
+					radioButton.setTag(key);
 					holder.radioGroup.addView(radioButton);
 				}
 				if (checkIndex != -1) {
@@ -1284,8 +1309,14 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 							@Override
 							public void onCheckedChanged(RadioGroup group,
 									int checkedId) {
-								Log.d(TAG, "选中了" + answers[checkedId]);
-								question.setUsersAnswer(answers[checkedId]);
+								if(answers.length>0)
+									question.setUsersAnswer(answers[checkedId]);
+								else if(jsonanswers.size()>0)
+								{
+									JSONObject objItem=jsonanswers.get(checkedId);
+									String key=objItem.optString("key");
+									question.setUsersAnswer(key);
+								}
 								questions.set(position, question);
 								questionnaireList.setQuestions(questions);
 								int linkIndex=question.getLinkUpdate();
@@ -1342,10 +1373,13 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					holder.tvAnswer.setText(question.getUsersAnswer());
 				} else {
 					holder.etAnswer.setVisibility(View.VISIBLE);
+					holder.etAnswer.setEnabled(!question.isIfRead());
 					holder.tvAnswer.setVisibility(View.GONE);
 					holder.etAnswer.setText(question.getUsersAnswer());
-					if(question.getLines()>0)
+					if(question.getLines()>2)
 						holder.etAnswer.setLines(question.getLines());
+					else
+						holder.etAnswer.setLines(1);
 					if (mFocusPosition == position) {
 						holder.etAnswer.requestFocus();
 			        } else {
@@ -1390,7 +1424,10 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				int size=5;
 				if(question.getLines()>0)
 					size=question.getLines();
-				myPictureAdapter = new MyPictureAdapter(getActivity(),isEnable,new ArrayList<String>(),size,"调查问卷");
+				boolean bflag=false;
+				if(!question.isIfRead() && isEnable)
+					bflag=true;
+				myPictureAdapter = new MyPictureAdapter(getActivity(),bflag,new ArrayList<String>(),size,"调查问卷");
 				myPictureAdapter.setFrom(TAG);
 				myPictureAdapter.setCurIndex(position);
 				myPictureAdapter.setPicPathsByImages(question.getImages());
@@ -1406,6 +1443,10 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				boolean bflag=false;
+				if(!question.isIfRead() && isEnable)
+					bflag=true;
+				holder.bt_date.setEnabled(bflag);
 				if(!AppUtility.isNotEmpty(question.getUsersAnswer()))
 				{
 					question.setUsersAnswer(DateHelper.getToday());
@@ -1462,6 +1503,10 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.VISIBLE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				boolean bflag=false;
+				if(!question.isIfRead() && isEnable)
+					bflag=true;
+				holder.bt_datetime.setEnabled(bflag);
 				if(!AppUtility.isNotEmpty(question.getUsersAnswer()))
 				{
 					question.setUsersAnswer(DateHelper.getToday());
@@ -1493,14 +1538,33 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.VISIBLE);
 				holder.sp_select1.setVisibility(View.GONE);
-				ArrayAdapter<String> aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,question.getOptions());
-				holder.sp_select.setAdapter(aa);
+				boolean bflag=false;
+				if(!question.isIfRead() && isEnable)
+					bflag=true;
+				holder.sp_select.setEnabled(bflag);
+
 				int pos=0;
 				for(int i=0;i<question.getOptions().length;i++)
 				{
 					if(question.getOptions()[i].equalsIgnoreCase(question.getUsersAnswer()))
 						pos=i;
 				}
+				String [] listStr=new String[question.getOptionsJson().size()];
+				for(int i=0;i<question.getOptionsJson().size();i++)
+				{
+					JSONObject obj=question.getOptionsJson().get(i);
+					if(i==0 && !AppUtility.isNotEmpty(question.getUsersAnswer()))
+						question.setUsersAnswer(obj.optString("key"));
+					listStr[i]=obj.optString("value");
+					if(obj.optString("key").equals(question.getUsersAnswer()))
+						pos=i;
+				}
+				ArrayAdapter<String> aa;
+				if(question.getOptions().length>0)
+					aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,question.getOptions());
+				else
+					aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,listStr);
+				holder.sp_select.setAdapter(aa);
 				holder.sp_select.setSelection(pos);
 				holder.sp_select.setOnItemSelectedListener(new OnItemSelectedListener() {
 					
@@ -1508,7 +1572,14 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					public void onItemSelected(AdapterView<?> parent,
 							View view, int position, long id) {
 						// TODO Auto-generated method stub
-						question.setUsersAnswer(question.getOptions()[position]);
+						if(question.getOptions().length>0)
+							question.setUsersAnswer(question.getOptions()[position]);
+						else
+						{
+							JSONObject obj=question.getOptionsJson().get(position);
+							question.setUsersAnswer(obj.optString("key"));
+						}
+
 					}
 					@Override
 					public void onNothingSelected(AdapterView<?> parent) {
@@ -1531,38 +1602,48 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				SimpleAdapter fujianAdapter=setupFujianAdpter(question);
 				holder.multipleChoice.setAdapter(fujianAdapter);
 				holder.multipleChoice.setTag(position);
-				holder.multipleChoice.setOnItemClickListener(new OnItemClickListener(){  
+				boolean bflag=false;
+				if(!question.isIfRead() && isEnable)
+					bflag=true;
+				final boolean finalBflag = bflag;
+				holder.multipleChoice.setOnItemClickListener(new OnItemClickListener(){
 					
 					@Override
 					public void onItemClick(AdapterView<?> parent, View view,
 							int position, long id) {
 						curIndex=(Integer) parent.getTag();
 						final HashMap<String, Object> item=(HashMap<String, Object>) parent.getAdapter().getItem(position);
-                        if(item.get("url").toString().length()>0)
+						if(finalBflag)
 						{
-							new AlertDialog.Builder(view.getContext())
-						    .setMessage("是否删除此附件?")
-						    .setPositiveButton("是", new DialogInterface.OnClickListener()
-						    {
-						    @Override
-						    public void onClick(DialogInterface dialog, int which) {
-						      
-						    	SubmitDeleteinfo(item.get("newname").toString(),2);
-						    }})
-						    .setNegativeButton("否", null)
-						    .show();
-						}
-						else
-						{
-							if (Build.VERSION.SDK_INT >= 23) 
+							if(item.get("url").toString().length()>0)
 							{
-								if(AppUtility.checkPermission(getActivity(), 7,Manifest.permission.READ_EXTERNAL_STORAGE))
-									getFujian();
+								new AlertDialog.Builder(view.getContext())
+										.setMessage("是否删除此附件?")
+										.setPositiveButton("是", new DialogInterface.OnClickListener()
+										{
+											@Override
+											public void onClick(DialogInterface dialog, int which) {
+
+												SubmitDeleteinfo(item.get("newname").toString(),2);
+											}})
+										.setNegativeButton("否", null)
+										.show();
 							}
 							else
-								getFujian();
-							
+							{
+								if (Build.VERSION.SDK_INT >= 23)
+								{
+									if(AppUtility.checkPermission(getActivity(), 7,Manifest.permission.READ_EXTERNAL_STORAGE))
+										getFujian();
+								}
+								else
+									getFujian();
+
+							}
 						}
+						else if(item.get("url").toString().length()>0)
+							AppUtility.downloadAndOpenFile(item.get("url").toString(),view);
+
 					}     
 				});
 				
@@ -1592,21 +1673,46 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.VISIBLE);
 				holder.sp_select1.setVisibility(View.VISIBLE);
-				ArrayAdapter<String> aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,question.getOptions());
-				holder.sp_select.setAdapter(aa);
+				boolean bflag=false;
+				if(!question.isIfRead() && isEnable)
+					bflag=true;
+				holder.sp_select.setEnabled(bflag);
+				holder.sp_select1.setEnabled(bflag);
 				int pos=0;
 				for(int i=0;i<question.getOptions().length;i++)
 				{
 					if(question.getOptions()[i].equalsIgnoreCase(question.getUsersAnswerOne()))
 						pos=i;
 				}
+				String [] listStr=new String[question.getOptionsJson().size()];
+				for(int i=0;i<question.getOptionsJson().size();i++)
+				{
+					JSONObject obj=question.getOptionsJson().get(i);
+					if(i==0 && !AppUtility.isNotEmpty(question.getUsersAnswer()))
+						question.setUsersAnswer(obj.optString("key"));
+					listStr[i]=obj.optString("value");
+					if(obj.optString("key").equals(question.getUsersAnswer()))
+						pos=i;
+				}
+				ArrayAdapter<String> aa;
+				if(question.getOptions().length>0)
+					aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,question.getOptions());
+				else
+					aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,listStr);
+				holder.sp_select.setAdapter(aa);
 				holder.sp_select.setSelection(pos);
 				holder.sp_select.setOnItemSelectedListener(new OnItemSelectedListener() {
 					
 					@Override
 					public void onItemSelected(AdapterView<?> parent,
 							View view, int position, long id) {
-						question.setUsersAnswerOne(question.getOptions()[position]);
+						if(question.getOptions().length>0)
+							question.setUsersAnswerOne(question.getOptions()[position]);
+						else
+						{
+							JSONObject obj=question.getOptionsJson().get(position);
+							question.setUsersAnswerOne(obj.optString("key"));
+						}
 						reloadSpinner2(holder.sp_select1,question);
 					}
 					@Override
@@ -1755,6 +1861,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 
 		private Context context;
 		private String[] anwsers;
+		private List<JSONObject> jsonanwsers;
 		private String anwser;
 		private int questionIndex;// question 在list中的下标
 		private Question question;
@@ -1767,6 +1874,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			this.questionIndex = questionIndex;
 			this.question = question;
 			anwsers = question.getOptions();
+			jsonanwsers=question.getOptionsJson();
 			anwser = question.getUsersAnswer();
 			initDate();
 		}
@@ -1782,6 +1890,15 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					isChecked.put(anwsers[i], false);
 				}
 			}
+			for(JSONObject item :jsonanwsers)
+			{
+				String key=item.optString("key");
+				if (list.contains(key)) {
+					isChecked.put(key, true);
+				} else {
+					isChecked.put(key, false);
+				}
+			}
 		}
 
 		public String getAnwser() {
@@ -1789,6 +1906,13 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			for (int i = 0; i < anwsers.length; i++) {
 				if (isChecked.get(anwsers[i])) {
 					str.append(anwsers[i]).append("@");
+				}
+			}
+			for(JSONObject item :jsonanwsers)
+			{
+				String key=item.optString("key");
+				if (isChecked.get(key)) {
+					str.append(key).append("@");
 				}
 			}
 			if (str.indexOf(",") > -1) {
@@ -1820,20 +1944,42 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		public View getView(final int position, View view, ViewGroup parent) {
 			view = inflater.inflate(R.layout.checkbox_item, parent, false);
 			final CheckBox cb = (CheckBox) view.findViewById(R.id.cb_chenck);
-
-			cb.setText(anwsers[position]);
-			if (isChecked.get(anwsers[position])) {
-				cb.setChecked(true);
-			} else {
-				cb.setChecked(false);
+			if(anwsers.length>0) {
+				cb.setText(anwsers[position]);
+				if (isChecked.get(anwsers[position])) {
+					cb.setChecked(true);
+				} else {
+					cb.setChecked(false);
+				}
 			}
-			cb.setEnabled(isEnable);
+			else if(jsonanwsers.size()>0)
+			{
+				JSONObject item=jsonanwsers.get(position);
+				cb.setText(item.optString("value"));
+				String key=item.optString("key");
+				if (isChecked.get(key)) {
+					cb.setChecked(true);
+				} else {
+					cb.setChecked(false);
+				}
+			}
+			boolean bflag=false;
+			if(isEnable && !question.isIfRead())
+				bflag=true;
+			cb.setEnabled(bflag);
 			cb.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
 
 					Boolean flag = cb.isChecked();
-					isChecked.put(anwsers[position], flag);
+					if(anwsers.length>0)
+						isChecked.put(anwsers[position], flag);
+					else if(jsonanwsers.size()>0)
+					{
+						JSONObject item=jsonanwsers.get(position);
+						String key=item.optString("key");
+						isChecked.put(key, flag);
+					}
 					String answer = getAnwser();
 					Log.d(TAG, "---------" + answer +question.getStatus()+"ss" +question.getTitle());
 					question.setUsersAnswer(answer);

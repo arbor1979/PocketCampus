@@ -2,6 +2,8 @@ package com.ruanyun.campus.teacher.api;
 
 import android.util.Log;
 
+import com.ruanyun.campus.teacher.CampusApplication;
+
 public class AsyncFoodSafeRunner {
 	private static final String TAG = "AsyncFoodSafeRunner";
 
@@ -13,7 +15,6 @@ public class AsyncFoodSafeRunner {
 				try {
 					Log.d(TAG, "-->   url: " + url);
 					Log.d(TAG, "-->params: " + params);
-
 					String resp = HttpManager.openUrl(url, httpMethod, params,
 							params.getValue("pic"));
 					listener.onComplete(resp);

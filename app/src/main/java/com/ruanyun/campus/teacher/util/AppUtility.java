@@ -19,6 +19,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.conn.util.InetAddressUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -75,7 +77,9 @@ import android.widget.Toast;
 
 import com.ruanyun.campus.teacher.BuildConfig;
 import com.ruanyun.campus.teacher.R;
+import com.ruanyun.campus.teacher.activity.CaptureActivity;
 import com.ruanyun.campus.teacher.activity.TabHostActivity;
+import com.ruanyun.campus.teacher.activity.WebSiteActivity;
 import com.ruanyun.campus.teacher.api.CampusAPI;
 import com.ruanyun.campus.teacher.api.CampusException;
 import com.ruanyun.campus.teacher.api.CampusParameters;
@@ -1265,5 +1269,75 @@ public class AppUtility {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	public static void openScanCode(Activity activity,int SCANNIN_GREQUEST_CODE,String jumpurl)
+	{
+		Intent intent = new Intent();
+		intent.setClass(activity, CaptureActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.putExtra("jumpurl",jumpurl);
+		activity.startActivityForResult(intent, SCANNIN_GREQUEST_CODE);
+	}
+	public static String findUrlQueryString(String jumpurl,String template)
+	{
+		String templatevalue="";
+		String[] urlarr=jumpurl.split("\\?");
+		urlarr=urlarr[urlarr.length-1].split("&");
+		for(String item : urlarr)
+		{
+			String[] itemarr=item.split("=");
+			if(itemarr[0].equals(template)) {
+				templatevalue = itemarr[1];
+				break;
+			}
+		}
+		return templatevalue;
+	}
+	public static JSONObject parseQueryStrToJson(String queryStr)
+	{
+		JSONObject obj=new JSONObject();
+		String temp[]=queryStr.split("\\?");
+		if(temp.length>1)
+			queryStr=temp[1];
+		temp=queryStr.split("&");
+		for(int i=0;i<temp.length;i++)
+		{
+			String item[]=temp[i].split("=");
+			if(item[1]!=null)
+			{
+				try {
+					obj.put(item[0], item[1]);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return obj;
+	}
+	public static int chineseLength(String value) {
+		int valueLength = 0;
+		String chinese = "[\u0391-\uFFE5]";
+		/* 获取字段值的长度，如果含中文字符，则每个中文字符长度为2，否则为1 */
+		for (int i = 0; i < value.length(); i++) {
+			/* 获取一个字符 */
+			String temp = value.substring(i, i + 1);
+			/* 判断是否为中文字符 */
+			if (temp.matches(chinese)) {
+				/* 中文字符长度为2 */
+				valueLength += 2;
+			} else {
+				/* 其他字符长度为1 */
+				valueLength += 1;
+			}
+		}
+		return valueLength;
+	}
+	public static String cutStringToLength(String s,int length)
+	{
+		while(chineseLength(s)>length)
+			s=s.substring(0,s.length()-1);
+		return s;
 	}
 }

@@ -130,6 +130,7 @@ public class QuestionnaireList implements Serializable {
 		}
 
 		private String options[];
+		private List<JSONObject> optionsJson;
 		private JSONObject subOptions;
 		private List<ImageItem> images; 
 		private String isRequired;
@@ -141,6 +142,7 @@ public class QuestionnaireList implements Serializable {
 		private String delcallback;
 		private int maxLetter;
 		private String validate;
+		private boolean ifRead;
 
 		public String getNeedCut() {
 			return needCut;
@@ -188,12 +190,24 @@ public class QuestionnaireList implements Serializable {
 			remark = jo.optString("备注");
 			Log.d("-----", jo.toString());
 			JSONArray ja = jo.optJSONArray("选项");
-			if(ja!=null){
-				options = new String[ja.length()];
-				for (int i = 0; i < ja.length(); i++) {
-					options[i] = ja.optString(i);
+			optionsJson=new ArrayList<JSONObject>();
+			options = new String[0];
+			try {
+				if(ja!=null) {
+
+					for (int i = 0; i < ja.length(); i++) {
+						if (ja.get(i) instanceof String) {
+							if(i==0)
+								options = new String[ja.length()];
+							options[i] = ja.optString(i);
+						}
+						else if(ja.get(i) instanceof JSONObject)
+							optionsJson.add((JSONObject)ja.get(i));
+					}
 				}
-			}
+			} catch (JSONException e) {
+					e.printStackTrace();
+				}
 			subOptions= jo.optJSONObject("子选项");
 			isRequired = jo.optString("是否必填");
 			lines=jo.optInt("行数");
@@ -220,9 +234,15 @@ public class QuestionnaireList implements Serializable {
 			linkUpdate=jo.optInt("关联更新");
 			maxLetter=jo.optInt("字符数");
 			validate=jo.optString("校验");
+			if(jo.optString("只读").equals("是"))
+				ifRead=true;
+			else
+				ifRead=false;
 		}
 
-
+		public boolean isIfRead() {
+			return ifRead;
+		}
 		public JSONObject getSubOptions() {
 			return subOptions;
 		}
@@ -293,6 +313,10 @@ public class QuestionnaireList implements Serializable {
 
 		public void setRemark(String remark) {
 			this.remark = remark;
+		}
+
+		public List<JSONObject> getOptionsJson() {
+			return optionsJson;
 		}
 
 		public String[] getOptions() {

@@ -147,7 +147,9 @@ public class ListOfBillAdapter extends BaseAdapter{
 		holder.tv_price.setText(String.valueOf(imgInfo.get("price")));
 		holder.et_num.setText(String.valueOf(imgInfo.get("num")));
 		holder.et_num.setOnFocusChangeListener(new OnFocusChangeListenerImpl(position));
-		
+		boolean flag=mQuestion.isIfRead();
+		holder.et_num.setEnabled(!flag);
+		holder.tv_name.setEnabled(!flag);
 		if (mFocusPosition == position) {
 			holder.et_num.requestFocus();
         } 

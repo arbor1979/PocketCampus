@@ -42,6 +42,7 @@ public class AchievementItem {
 		rightButton=jo.optString("右上按钮");
 		rightButtonURL=jo.optString("右上按钮URL");
 		submitTarget=jo.optString("右上按钮Submit");
+
 	}
 
 	public String getSubmitTarget() {
@@ -78,7 +79,7 @@ public class AchievementItem {
 		private String thecolor;//总分颜色
 		private String templateName;
 	    private String templateGrade;
-	    
+		private JSONObject extraMenu;
 		public String getTemplateName() {
 			return templateName;
 		}
@@ -105,9 +106,11 @@ public class AchievementItem {
 			thecolor=jo.optString("颜色");
 			templateName = jo.optString("模板");
 			templateGrade = jo.optString("模板级别");
-			
+			extraMenu= jo.optJSONObject("附加菜单");
 		}
-
+		public JSONObject getExtraMenu() {
+			return extraMenu;
+		}
 		public String getThecolor() {
 			return thecolor;
 		}
