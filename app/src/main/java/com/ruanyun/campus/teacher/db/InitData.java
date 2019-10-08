@@ -310,7 +310,7 @@ public class InitData {
 			JSONObject jsonObj = new JSONObject();
 			jsonObj.put("用户较验码", checkCode);
 
-			if (PrefUtility.getInt("weekFirstDay", 0) == 0)
+			if (PrefUtility.getInt("weekFirstDay", 1) == 0)
 				jsonObj.put("周日为第一天", "1");
 			String banjiname=PrefUtility.get(Constants.PREF_CLASSES_BANZHUREN_VIEW,"");
 			jsonObj.put("banjiname",banjiname);

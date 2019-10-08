@@ -283,10 +283,8 @@ public class SchoolAchievementDetailFragment extends Fragment {
 		super.onCreate(savedInstanceState);
 		title=getArguments().getString("title");
 		interfaceName=getArguments().getString("interfaceName");
-		leftParams = new LayoutParams(LayoutParams.MATCH_PARENT,
-				LayoutParams.WRAP_CONTENT, 1.0f);
-		rightParams = new LayoutParams(LayoutParams.MATCH_PARENT,
-				LayoutParams.WRAP_CONTENT, 1.0f);
+		//leftParams = new LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT, 1.0f);
+		//rightParams = new LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT, 1.0f);
 	}
 
 	@Override
@@ -343,11 +341,11 @@ public class SchoolAchievementDetailFragment extends Fragment {
 		tvTitle.setText(achievementDetail.getTitle());
 		achievements = achievementDetail.getAchievements();
 		//设置Weight值
-		float leftWeight = achievementDetail.getLeftWeight() / 10.0f;
-		float rightWeight = achievementDetail.getRightWeight() / 10.0f;
-		Log.d(TAG, "leftWeight:" + leftWeight + ",rightWeight:" + rightWeight);
-		leftParams = new LayoutParams(0,LayoutParams.WRAP_CONTENT, leftWeight);
-		rightParams = new LayoutParams(0,LayoutParams.WRAP_CONTENT, rightWeight);
+		//float leftWeight = achievementDetail.getLeftWeight() / 10.0f;
+		//float rightWeight = achievementDetail.getRightWeight() / 10.0f;
+		//Log.d(TAG, "leftWeight:" + leftWeight + ",rightWeight:" + rightWeight);
+		//leftParams = new LayoutParams(0,LayoutParams.MATCH_PARENT, leftWeight);
+		//rightParams = new LayoutParams(0,LayoutParams.MATCH_PARENT, rightWeight);
 		if(achievementDetail.getSubmitBtn()!=null && achievementDetail.getSubmitBtn().length()>0)
 		{
 			tvRight.setText(achievementDetail.getSubmitBtn());
@@ -549,7 +547,6 @@ public class SchoolAchievementDetailFragment extends Fragment {
 				holder.ly_hidden=(LinearLayout)convertView.findViewById(R.id.ly_hidden);
 				holder.grid_picture=(NonScrollableGridView)convertView.findViewById(R.id.grid_picture);
 				holder.list_fujian=(NonScrollableListView)convertView.findViewById(R.id.list_fujian);
-				
 				holder.right_layout=(LinearLayout)convertView.findViewById(R.id.right_layout);
 				convertView.setTag(holder);
 				
@@ -593,6 +590,10 @@ public class SchoolAchievementDetailFragment extends Fragment {
 					
 				});
 			}
+			leftParams=(LinearLayout.LayoutParams)holder.left.getLayoutParams();
+			leftParams.weight=achievementDetail.getLeftWeight()/10;
+			rightParams=(LinearLayout.LayoutParams)holder.right_layout.getLayoutParams();
+			rightParams.weight=achievementDetail.getRightWeight()/10;
 			holder.left.setLayoutParams(leftParams);
 			holder.right_layout.setLayoutParams(rightParams);
 			if(achievement.getImageList()!=null && achievement.getImageList().size()>0)

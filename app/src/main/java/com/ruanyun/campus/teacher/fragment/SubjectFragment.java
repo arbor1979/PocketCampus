@@ -184,7 +184,7 @@ public class SubjectFragment extends Fragment {
 				}
 				
 				for (int i = 0; i < jaWeeks.length(); i++) {
-					if(PrefUtility.getInt("weekFirstDay", 0)==0)
+					if(PrefUtility.getInt("weekFirstDay", 1)==0)
 						weeks[i] = weekJson.getString(String.valueOf(i));
 					else
 					{
@@ -633,7 +633,7 @@ public class SubjectFragment extends Fragment {
 			for (int j = 0; j < sectionArray.length; j++) {
 				if (leftText.equals(sectionArray[j])) {
 					int col=0;
-					if(PrefUtility.getInt("weekFirstDay", 0)==0)
+					if(PrefUtility.getInt("weekFirstDay", 1)==0)
 					{
 						if(li.getWeek()==7)
 							li.setWeek(0);

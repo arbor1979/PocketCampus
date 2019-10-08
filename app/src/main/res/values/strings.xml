@@ -12,8 +12,8 @@
     <string name="hint_name">请输入您的真实姓名</string>
     <string name="hint_password">请输入您的登陆密码</string>
     <string name="submit_photo">上传头像</string>
-    <string name="hint_login_username">工号/学号@学校域名</string>
-    <string name="hint_login_password">请输入您的密码</string>
+    <string name="hint_login_username">教工号/学号/家长账号</string>
+    <string name="hint_login_password">输入密码</string>
     <string name="login">登录系统</string>
     <string name="hint_verify_info">请登录邮箱获取验证码</string>
     <string name="re_register_password">重复密码</string>
@@ -210,4 +210,5 @@
     <string name="ifconfirmdelete">是否确认删除此条留言?</string>
     <string name="yes">是</string>
     <string name="no">否</string>
+
 </resources>

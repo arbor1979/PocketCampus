@@ -5,7 +5,7 @@ android {
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.ruanyun.campus.teacher"
-        minSdkVersion 16
+        minSdkVersion 19
         targetSdkVersion 26
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_7

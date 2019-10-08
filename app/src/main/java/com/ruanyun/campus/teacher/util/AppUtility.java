@@ -2,16 +2,21 @@ package com.ruanyun.campus.teacher.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -170,7 +175,7 @@ public class AppUtility {
 	 *
 	 * @param f
 	 * @return
-	 * @throws Exception
+	 * @throws
 	 */
 	public static long getFileSize(File f) throws Exception {
 		long size = 0;
@@ -423,25 +428,7 @@ public class AppUtility {
 	 *            If true, will display a message for the user.
 	 * @return True if the SD Card is available, false otherwise.
 	 */
-	public static boolean checkCardState(Context context, boolean showMessage) {
-		// Check to see if we have an SDCard.
-		String status = Environment.getExternalStorageState();
-		if (!status.equals(Environment.MEDIA_MOUNTED)) {
-			int messageId;
-			// Check to see if the SDCard is busy,same as the music app.
-			if (status.equals(Environment.MEDIA_SHARED)) {
-				messageId = R.string.Commons_SDCardErrorSDUnavailable;
-			} else {
-				messageId = R.string.Commons_SDCardErrorNoSDMsg;
-			}
-			if (showMessage) {
-				AppUtility.showErrorDialog(context,
-						R.string.Commons_SDCardErrorTitle, messageId);
-			}
-			return false;
-		}
-		return true;
-	}
+
 
 	/**
 	 * Show an error dialog.
@@ -453,7 +440,7 @@ public class AppUtility {
 	 * @param message
 	 *            The message string id.
 	 */
-	public static void showErrorDialog(Context context, int title, int message) {
+	public static void showErrorDialog(Context context, String title, String message) {
 		new AlertDialog.Builder(context).setTitle(title)
 				.setIcon(android.R.drawable.ic_dialog_alert)
 				.setMessage(message)
@@ -794,23 +781,23 @@ public class AppUtility {
 			manager.cancel(pi);
 
 	}
-	public static void beginGPS(Context ct,String userType) {
+
+	public static void beginGPS(Context ct) {
 		if(context!=null)
 			ct=context;
 		Intent intent = new Intent(ct, Alarmreceiver.class);
 		intent.setAction("reportLocation");
+		ct.sendBroadcast(intent);
 		PendingIntent sender = PendingIntent.getBroadcast(ct,
 				0, intent, 0);
 		AlarmManager am = (AlarmManager) ct.getSystemService(ALARM_SERVICE);
 		am.cancel(sender);
-		if(userType.equals("学生"))
-		{
+
 			String dtStr=DateHelper.getToday("yyyy-MM-dd HH:00:00");
 			Date dt=DateHelper.getStringDate(dtStr,null);
-			am.setRepeating(AlarmManager.RTC_WAKEUP, dt.getTime(),60*60*1000,sender);
-		}
-
+			am.setRepeating(AlarmManager.RTC_WAKEUP, dt.getTime(),1*60*60*1000,sender);
 	}
+
 	public static boolean checkPermission(final Activity act,final int MY_PERMISSIONS_REQUEST_Code,final String permission)
 	{
 
@@ -1293,6 +1280,29 @@ public class AppUtility {
 		}
 		return templatevalue;
 	}
+	public static String removeURLQuery(String jumpurl) {
+		String[] urlarr = jumpurl.split("\\?");
+		return urlarr[0];
+	}
+	public static String jsonToUrlQuery(JSONObject queryObj1) {
+		String templatevalue = "";
+		try {
+			Iterator it = queryObj1.keys();
+			while (it.hasNext()) {
+				String key = (String) it.next();
+				String value = queryObj1.getString(key);
+				if(templatevalue.length()>0)
+					templatevalue+="&";
+				templatevalue+= URLEncoder.encode(key,"utf-8")+"="+URLEncoder.encode(value,"utf-8");
+			}
+
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return templatevalue;
+	}
 	public static JSONObject parseQueryStrToJson(String queryStr)
 	{
 		JSONObject obj=new JSONObject();
@@ -1303,7 +1313,7 @@ public class AppUtility {
 		for(int i=0;i<temp.length;i++)
 		{
 			String item[]=temp[i].split("=");
-			if(item[1]!=null)
+			if(item.length==2 && item[1]!=null)
 			{
 				try {
 					obj.put(item[0], item[1]);

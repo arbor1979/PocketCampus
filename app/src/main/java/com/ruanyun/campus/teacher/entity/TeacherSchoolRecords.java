@@ -48,6 +48,7 @@ public class TeacherSchoolRecords {
 	private String rizhi_shouduan;//信息化手段
 	private String rizhi_pingtai;//教学平台
 	private String rizhi_kechengkuming;//课程库名称
+	private String classroomSituation;
 	public TeacherSchoolRecords() {
 
 	}
@@ -91,6 +92,7 @@ public class TeacherSchoolRecords {
 		Lectures = jo.optString("授课内容");//
 		jobLayout = jo.optString("作业布置");//
 		classDetails = jo.optString("课堂详情");//
+		classroomSituation=jo.optString("课堂情况简要");//
 		classroomDiscipline = jo.optString("课堂纪律");//
 		numberOfPeople = jo.optString("班级人数");//
 		realToNumberOfPeople = jo.optString("实到人数");//
@@ -126,6 +128,7 @@ public class TeacherSchoolRecords {
 		Lectures =  String.valueOf(jo.get("授课内容"));//
 		jobLayout =  String.valueOf(jo.get("作业布置"));//
 		classDetails =  String.valueOf(jo.get("课堂详情"));//
+		classroomSituation=String.valueOf(jo.get("课堂情况简要"));//
 		classroomDiscipline =  String.valueOf(jo.get("课堂纪律"));//
 		numberOfPeople =  String.valueOf(jo.get("班级人数"));//
 		realToNumberOfPeople =  String.valueOf(jo.get("实到人数"));//

@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ruanyun.campus.teacher"
-    android:versionCode="55"
-    android:versionName="5.5" >
+    android:versionCode="58"
+    android:versionName="5.8" >
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -124,7 +124,8 @@
         <activity
             android:name="com.ruanyun.campus.teacher.activity.SchoolDetailActivity"
             android:screenOrientation="portrait" 
-            android:configChanges="orientation|keyboardHidden|screenSize">
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:windowSoftInputMode="adjustPan">
             
         </activity>
         <activity
@@ -219,7 +220,10 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:windowSoftInputMode="stateAlwaysHidden" >
         </activity>
-
+        <activity
+            android:name="com.ruanyun.campus.teacher.activity.StudentSelectActivity"
+            android:screenOrientation="portrait" >
+        </activity>
         <receiver
             android:name="com.ruanyun.campus.teacher.service.Alarmreceiver" android:exported="true">
         </receiver>

@@ -105,7 +105,7 @@ public class SearchParser {
 		return flag;
 	}
 
-	// 判断是否含有
+	// 判断是否含有韵母
 	public boolean isFinals(String str) {
 		boolean flag = false;
 		for (int i = 0; i < Finals.length; i++) {

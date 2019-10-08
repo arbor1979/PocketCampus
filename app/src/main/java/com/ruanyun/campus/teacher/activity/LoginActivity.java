@@ -12,7 +12,9 @@ import org.android.agoo.common.AgooConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Dialog;
@@ -29,6 +31,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -409,6 +412,7 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 						Log.d(TAG, "--->  登录失败！");
 						// mLoadingDialog.dismiss(); // 关闭登陆提醒
 						AppUtility.showToastMsg(LoginActivity.this, loginStatus,1);
+
 						if(mLoadingDialog!=null)
 							mLoadingDialog.dismiss();
 					} else {
@@ -465,15 +469,7 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 							}
 							
 							getInitDataAndContracts();
-							/*
-							if (Build.VERSION.SDK_INT >= 23)
-						    {
-								if (ActivityCompat.checkSelfPermission(LoginActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-									AppUtility.beginGPS(getApplication(),user.getUserType());
-						    }
-							else
-								AppUtility.beginGPS(getApplication(),user.getUserType());
-							*/
+
 							String baiduUserId=PrefUtility.get(Constants.PREF_BAIDU_USERID, "");
 							if(baiduUserId.length()>0)
 							{
@@ -497,8 +493,8 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 							
 						} else {
 							// mLoadingDialog.dismiss(); // 关闭登陆提醒
-							AppUtility.showToastMsg(LoginActivity.this,
-									user.getLoginStatus());
+							//AppUtility.showToastMsg(LoginActivity.this,user.getLoginStatus());
+							AppUtility.showErrorDialog(LoginActivity.this,"",user.getLoginStatus());
 							if(mLoadingDialog!=null)
 								mLoadingDialog.dismiss();
 						}
@@ -746,4 +742,6 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 		String body = intent.getStringExtra(AgooConstants.MESSAGE_BODY);
 		Log.i(TAG, body);
 	}
+
+
 }

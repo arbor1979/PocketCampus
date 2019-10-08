@@ -72,9 +72,12 @@ import android.widget.TextView;
 import com.ruanyun.campus.teacher.BuildConfig;
 import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
+import com.ruanyun.campus.teacher.activity.ChatFriendActivity;
 import com.ruanyun.campus.teacher.activity.ClassDetailActivity;
+import com.ruanyun.campus.teacher.activity.ContactsSelectActivity;
 import com.ruanyun.campus.teacher.activity.ImagesActivity;
 import com.ruanyun.campus.teacher.activity.SchoolDetailActivity;
+import com.ruanyun.campus.teacher.activity.StudentSelectActivity;
 import com.ruanyun.campus.teacher.adapter.ListOfBillAdapter;
 import com.ruanyun.campus.teacher.adapter.MyPictureAdapter;
 import com.ruanyun.campus.teacher.api.CampusAPI;
@@ -84,6 +87,7 @@ import com.ruanyun.campus.teacher.api.RequestListener;
 import com.ruanyun.campus.teacher.base.Constants;
 import com.ruanyun.campus.teacher.entity.DownloadSubject;
 import com.ruanyun.campus.teacher.entity.ImageItem;
+import com.ruanyun.campus.teacher.entity.QuestionnaireItem;
 import com.ruanyun.campus.teacher.entity.QuestionnaireList;
 import com.ruanyun.campus.teacher.entity.QuestionnaireList.Question;
 import com.ruanyun.campus.teacher.entity.User;
@@ -120,6 +124,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	private static final int REQUEST_CODE_TAKE_PICTURE = 2;// //设置图片操作的标志
 	private static final int REQUEST_CODE_TAKE_CAMERA = 1;// //设置拍照操作的标志
 	private static final int REQUEST_CODE_TAKE_DOCUMENT = 3;// //设置图片操作的标志
+	private static final int REQUEST_CODE_SelectMuti = 4;// //设置图片操作的标志
 	//private int size = 5;//已提交图片数量;size:图片最大数量
 	private int curIndex;
 	private ProgressDialog progressDlg;
@@ -481,11 +486,24 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			String fromTag=intent.getStringExtra("TAG");
+			String imageSource=intent.getStringExtra("imageSource");
 			curIndex=intent.getIntExtra("position",0);
 			Log.d(TAG, "--------action:" + action);
 			Log.d(TAG, "--------fromTag:" + fromTag);
 			if (action.equals(Constants.GET_PICTURE)&&fromTag.equals(TAG)) {
-				showGetPictureDiaLog();
+				if(imageSource!=null && imageSource.length()>0) {
+					if(imageSource.equals("camera")) {
+						if (AppUtility.checkPermission(getActivity(), 6, Manifest.permission.CAMERA))
+							getPictureByCamera();
+					}
+					else if(imageSource.equals("gallery"))
+					{
+						if(AppUtility.checkPermission(getActivity(),7,Manifest.permission.READ_EXTERNAL_STORAGE))
+							getPictureFromLocation();
+					}
+				}
+				else
+					showGetPictureDiaLog();
 			}else if(action.equals(Constants.DEL_OR_LOOK_PICTURE)&&fromTag.equals(TAG)){
 				//查看详图或删除图片
 				delImagePath = intent.getStringExtra("imagePath");
@@ -529,12 +547,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 
 			@Override
 			public void onClick(View v) {
-				if (Build.VERSION.SDK_INT >= 23) 
-				{
-					if(AppUtility.checkPermission(getActivity(), 6,Manifest.permission.CAMERA))
-						getPictureByCamera();
-				}
-				else
+				if(AppUtility.checkPermission(getActivity(), 6,Manifest.permission.CAMERA))
 					getPictureByCamera();
 				getPictureDiaLog.dismiss();
 			}
@@ -544,12 +557,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 
 			@Override
 			public void onClick(View v) {
-				if (Build.VERSION.SDK_INT >= 23) 
-				{
-					if(AppUtility.checkPermission(getActivity(),7,Manifest.permission.READ_EXTERNAL_STORAGE))
-						getPictureFromLocation();
-				}
-				else
+				if(AppUtility.checkPermission(getActivity(),7,Manifest.permission.READ_EXTERNAL_STORAGE))
 					getPictureFromLocation();
 				getPictureDiaLog.dismiss();
 			}
@@ -1024,7 +1032,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				}
 				joarr.put(fujianArray);
 			}
-			else if(mStatus.equals("弹出列表"))
+			else if(mStatus.equals("弹出列表") || mStatus.equals("弹出多选"))
 			{
 				JSONArray fujianArray=questions.get(i).getFujianArray();
 				String isRequired = questions.get(i).getIsRequired();//是否必填
@@ -1170,6 +1178,27 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 						uploadFile(new File(filepath),2);
 					
 				}
+				break;
+			case REQUEST_CODE_SelectMuti:
+				if(resultCode==1)
+				{
+					String returnJsonStr=data.getStringExtra("returnJson");
+					JSONArray returnJson=null;
+					try {
+						returnJson=new JSONArray(returnJsonStr);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					int index=data.getIntExtra("curIndex",-1);
+					if(index>-1 && returnJson!=null)
+					{
+						Question question=questions.get(index);
+						question.setFujianArray(returnJson);
+						adapter.notifyDataSetChanged();
+					}
+				}
+				break;
+
 		}
 	}
 
@@ -1223,6 +1252,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			holder.bt_datetime=(Button)convertView.findViewById(R.id.bt_datetime);
 			holder.sp_select=(Spinner)convertView.findViewById(R.id.sp_select);
 			holder.sp_select1=(Spinner)convertView.findViewById(R.id.sp_select1);
+			holder.sp_select2=(Spinner)convertView.findViewById(R.id.sp_select2);
 			holder.etAnswer.setOnFocusChangeListener(mListener);
 			holder.etAnswer.setTag(position);
 			
@@ -1258,6 +1288,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
 				final String[] answers = question.getOptions();
 				final List<JSONObject> jsonanswers = question.getOptionsJson();
 				holder.radioGroup.removeAllViews();
@@ -1345,7 +1376,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 								}
 							}
 						});
-			} else if (mStatus.equals("多选")) {
+			}
+			else if (mStatus.equals("多选")) {
 				holder.imageGridView.setVisibility(View.GONE);
 				holder.radioGroup.setVisibility(View.GONE);
 				holder.multipleChoice.setVisibility(View.VISIBLE);
@@ -1355,11 +1387,13 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
 				CheckBoxAdapter checkBoxAdapter = new CheckBoxAdapter(
 						getActivity(), position, question);
 				holder.multipleChoice.setAdapter(checkBoxAdapter);
 				
-			} else if (mStatus.equals("单行文本输入框")) {
+			}
+			else if (mStatus.equals("单行文本输入框")) {
 				holder.imageGridView.setVisibility(View.GONE);
 				holder.radioGroup.setVisibility(View.GONE);
 				holder.multipleChoice.setVisibility(View.GONE);
@@ -1367,6 +1401,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
 				if (status.equals("已结束") || status.equals("未开始")) {
 					holder.etAnswer.setVisibility(View.GONE);
 					holder.tvAnswer.setVisibility(View.VISIBLE);
@@ -1411,7 +1446,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				});
 					
 				}
-			} else if (mStatus.equals("图片")) {
+			}
+			else if (mStatus.equals("图片")) {
 				holder.imageGridView.setVisibility(View.VISIBLE);
 				holder.radioGroup.setVisibility(View.GONE);
 				holder.multipleChoice.setVisibility(View.GONE);
@@ -1421,6 +1457,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
 				int size=5;
 				if(question.getLines()>0)
 					size=question.getLines();
@@ -1431,6 +1468,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				myPictureAdapter.setFrom(TAG);
 				myPictureAdapter.setCurIndex(position);
 				myPictureAdapter.setPicPathsByImages(question.getImages());
+				myPictureAdapter.setImageSource(question.getImageSource());
 				holder.imageGridView.setAdapter(myPictureAdapter);
 			}
 			else if (mStatus.equals("日期")) {
@@ -1443,6 +1481,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
 				boolean bflag=false;
 				if(!question.isIfRead() && isEnable)
 					bflag=true;
@@ -1503,6 +1542,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.VISIBLE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
 				boolean bflag=false;
 				if(!question.isIfRead() && isEnable)
 					bflag=true;
@@ -1538,6 +1578,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.VISIBLE);
 				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
 				boolean bflag=false;
 				if(!question.isIfRead() && isEnable)
 					bflag=true;
@@ -1599,6 +1640,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
 				SimpleAdapter fujianAdapter=setupFujianAdpter(question);
 				holder.multipleChoice.setAdapter(fujianAdapter);
 				holder.multipleChoice.setTag(position);
@@ -1658,6 +1700,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
 				ListOfBillAdapter billAdapter=setupPeiJianAdpter(question,position);
 				holder.multipleChoice.setAdapter(billAdapter);
 				holder.multipleChoice.setTag(position);
@@ -1673,6 +1716,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.bt_datetime.setVisibility(View.GONE);
 				holder.sp_select.setVisibility(View.VISIBLE);
 				holder.sp_select1.setVisibility(View.VISIBLE);
+				holder.sp_select2.setVisibility(View.GONE);
 				boolean bflag=false;
 				if(!question.isIfRead() && isEnable)
 					bflag=true;
@@ -1730,7 +1774,14 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 						// TODO Auto-generated method stub
 						JSONArray subOptionsJson=question.getSubOptions().optJSONArray(question.getUsersAnswerOne());
 						JSONObject item=subOptionsJson.optJSONObject(holder.sp_select1.getSelectedItemPosition());
-						question.setUsersAnswer(item.optString("id"));
+						if(item!=null)
+							question.setUsersAnswer(item.optString("id"));
+						else
+						{
+							String itemvalue=subOptionsJson.optString(holder.sp_select1.getSelectedItemPosition());
+							if(itemvalue!=null)
+								question.setUsersAnswer(itemvalue);
+						}
 					}
 					@Override
 					public void onNothingSelected(AdapterView<?> parent) {
@@ -1739,6 +1790,181 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					}
 				});
 				
+			}
+			else if (mStatus.equals("三级下拉")) {
+				holder.imageGridView.setVisibility(View.GONE);
+				holder.radioGroup.setVisibility(View.GONE);
+				holder.multipleChoice.setVisibility(View.GONE);
+				holder.etAnswer.setVisibility(View.GONE);
+				holder.tvAnswer.setVisibility(View.GONE);
+				holder.bt_date.setVisibility(View.GONE);
+				holder.bt_datetime.setVisibility(View.GONE);
+				holder.sp_select.setVisibility(View.VISIBLE);
+				holder.sp_select1.setVisibility(View.VISIBLE);
+				holder.sp_select2.setVisibility(View.VISIBLE);
+				boolean bflag=false;
+				if(!question.isIfRead() && isEnable)
+					bflag=true;
+				holder.sp_select.setEnabled(bflag);
+				holder.sp_select1.setEnabled(bflag);
+				holder.sp_select2.setEnabled(bflag);
+
+				int pos1=0;
+				String answer2="";
+				try {
+					for(int i=0;i<question.getOptions().length;i++) {
+						String key1 = question.getOptions()[i];//key=省
+						JSONObject json2 = question.getSubOptions().optJSONObject(key1);
+						Iterator<String> it1 = json2.keys();
+						while (it1.hasNext()) {
+							String key2 = it1.next();//key=市
+							JSONArray json3 = json2.getJSONArray(key2);
+							for (int j = 0; j < json3.length(); j++) {
+								JSONObject townItem =  json3.getJSONObject(j);
+								if (townItem.optString("id").equals(question.getUsersAnswer())) {
+									pos1 = i;
+									answer2 = key2;
+								}
+							}
+						}
+					}
+				}catch (JSONException e) {
+					e.printStackTrace();
+				}
+				question.setUsersAnswerOne(question.getOptions()[pos1]);
+				question.setUsersAnswerTwo(answer2);
+				ArrayAdapter<String> aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,question.getOptions());
+				holder.sp_select.setAdapter(aa);
+				holder.sp_select.setSelection(pos1);
+
+				holder.sp_select.setOnItemSelectedListener(new OnItemSelectedListener() {
+					@Override
+					public void onItemSelected(AdapterView<?> parent,
+											   View view, int position, long id) {
+						question.setUsersAnswerOne(question.getOptions()[position]);
+						reloadThreeSpinner1(holder.sp_select1,question,holder.sp_select2);
+
+					}
+					@Override
+					public void onNothingSelected(AdapterView<?> parent) {
+						// TODO Auto-generated method stub
+
+					}
+				});
+
+				holder.sp_select1.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+					@Override
+					public void onItemSelected(AdapterView<?> parent,
+											   View view, int position, long id) {
+						// TODO Auto-generated method stub
+						String selitem=(String)parent.getAdapter().getItem(position);
+						question.setUsersAnswerTwo(selitem);
+						JSONObject subOptionsJson=question.getSubOptions().optJSONObject(question.getUsersAnswerOne());
+						JSONArray grade3= null;
+						try {
+							grade3 = subOptionsJson.getJSONArray(selitem);
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						reloadThreeSpinner2(holder.sp_select2,question,grade3);
+
+					}
+					@Override
+					public void onNothingSelected(AdapterView<?> parent) {
+						// TODO Auto-generated method stub
+
+					}
+				});
+
+				holder.sp_select2.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+					@Override
+					public void onItemSelected(AdapterView<?> parent,
+											   View view, int position, long id) {
+						JSONObject subOptionsJson=question.getSubOptions().optJSONObject(question.getUsersAnswerOne());
+						JSONArray grade3=subOptionsJson.optJSONArray(question.getUsersAnswerTwo());
+						JSONObject item=grade3.optJSONObject(position);
+						if(item!=null)
+							question.setUsersAnswer(item.optString("id"));
+					}
+					@Override
+					public void onNothingSelected(AdapterView<?> parent) {
+						// TODO Auto-generated method stub
+
+					}
+				});
+				reloadThreeSpinner1(holder.sp_select1,question,holder.sp_select2);
+			}
+			else if (mStatus.equals("弹出多选")) {
+				holder.imageGridView.setVisibility(View.GONE);
+				holder.radioGroup.setVisibility(View.GONE);
+				holder.multipleChoice.setVisibility(View.VISIBLE);
+				holder.etAnswer.setVisibility(View.GONE);
+				holder.tvAnswer.setVisibility(View.GONE);
+				holder.bt_date.setVisibility(View.GONE);
+				holder.bt_datetime.setVisibility(View.GONE);
+				holder.sp_select.setVisibility(View.GONE);
+				holder.sp_select1.setVisibility(View.GONE);
+				holder.sp_select2.setVisibility(View.GONE);
+				SimpleAdapter fujianAdapter=setupPopMutiAdpter(question);
+				holder.multipleChoice.setAdapter(fujianAdapter);
+				holder.multipleChoice.setTag(position);
+				boolean bflag=false;
+				if(!question.isIfRead() && isEnable)
+					bflag=true;
+				final boolean finalBflag = bflag;
+				holder.multipleChoice.setOnItemClickListener(new OnItemClickListener(){
+
+					@Override
+					public void onItemClick(AdapterView<?> parent, View view,
+											int position, long id) {
+						curIndex=(Integer) parent.getTag();
+						final HashMap<String, Object> item=(HashMap<String, Object>) parent.getAdapter().getItem(position);
+						if(finalBflag)
+						{
+							if(item.get("id").toString().length()>0)
+							{
+								new AlertDialog.Builder(view.getContext())
+										.setMessage("是否删除此行?")
+										.setPositiveButton("是", new DialogInterface.OnClickListener()
+										{
+											@Override
+											public void onClick(DialogInterface dialog, int which) {
+												for(int i=0;i<question.getFujianArray().length();i++)
+												{
+													JSONObject jo= null;
+													try {
+														jo = question.getFujianArray().getJSONObject(i);
+														if(jo.optString("id").equals(item.get("id").toString()))
+														{
+															question.getFujianArray().remove(i);
+															adapter.notifyDataSetChanged();
+															break;
+														}
+													} catch (JSONException e) {
+														e.printStackTrace();
+													}
+
+												}
+											}})
+										.setNegativeButton("否", null)
+										.show();
+							}
+							else
+							{
+								Intent intent = new Intent(getActivity(), StudentSelectActivity.class);
+								intent.putExtra("选项",question.getOptions());
+								intent.putExtra("子选项",question.getSubOptions().toString());
+								intent.putExtra("用户答案",question.getFujianArray().toString());
+								intent.putExtra("curIndex",curIndex);
+								startActivityForResult(intent,REQUEST_CODE_SelectMuti);
+							}
+						}
+
+					}
+				});
+
 			}
 			return convertView;
 		}
@@ -1754,11 +1980,13 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			NonScrollableGridView imageGridView;
 			Spinner sp_select;
 			Spinner sp_select1;
+			Spinner sp_select2;
 			Button bt_date;
 			Button bt_datetime;
 		}
 		
 	}
+
 	private void reloadSpinner2(Spinner sp,Question question)
 	{
 		JSONArray subOptionsJson=question.getSubOptions().optJSONArray(question.getUsersAnswerOne());
@@ -1768,12 +1996,67 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			int pos=0;
 			for(int i=0;i<subOptionsJson.length();i++)
 			{
-				JSONObject item=subOptionsJson.optJSONObject(i);
+				JSONObject item=null;
+				item = subOptionsJson.optJSONObject(i);
 				if(item!=null)
 					subOptions[i]=item.optString("name");
 				if(question.getUsersAnswer().equals(item.optString("id")))
 					pos=i;
 					
+			}
+			ArrayAdapter<String> bb = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,subOptions);
+			sp.setAdapter(bb);
+			sp.setSelection(pos);
+		}
+	}
+	private void reloadThreeSpinner1(Spinner sp,Question question,Spinner sp2) {
+		try
+		{
+			JSONObject subOptionsJson=question.getSubOptions().optJSONObject(question.getUsersAnswerOne());
+			if(subOptionsJson!=null && subOptionsJson.length()>0)
+			{
+				String [] subOptions=new String[subOptionsJson.length()];
+				Iterator<String> it = subOptionsJson.keys();
+				int i=0;
+				int pos2=0;
+				JSONArray json3=null;
+				while(it.hasNext()) {
+					String key = it.next();
+					json3=subOptionsJson.getJSONArray(key);
+					subOptions[i]=key;
+					if(question.getUsersAnswerTwo().equals(key)) {
+						pos2 = i;
+					}
+					i++;
+				}
+				question.setUsersAnswerTwo(subOptions[pos2]);
+				ArrayAdapter<String> bb = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,subOptions);
+				sp.setAdapter(bb);
+				sp.setSelection(pos2);
+				reloadThreeSpinner2(sp2,question,subOptionsJson.getJSONArray(question.getUsersAnswerTwo()));
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	private void reloadThreeSpinner2(Spinner sp,Question question,JSONArray json3)  {
+		if(json3!=null && json3.length()>0)
+		{
+			String [] subOptions=new String[json3.length()];
+			int pos=0;
+			for(int i=0;i<json3.length();i++)
+			{
+				JSONObject item=json3.optJSONObject(i);
+				if(item!=null)
+					subOptions[i]=item.optString("name");
+				if(question.getUsersAnswer().equals(item.optString("id")))
+					pos=i;
+
+			}
+			try {
+				question.setUsersAnswer(json3.getJSONObject(pos).optString("id"));
+			} catch (JSONException e) {
+				e.printStackTrace();
 			}
 			ArrayAdapter<String> bb = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_spinner_dropdown_item,subOptions);
 			sp.setAdapter(bb);
@@ -1817,6 +2100,35 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		}
 		SimpleAdapter fujianAdapter = new SimpleAdapter(getActivity(), arrayList, R.layout.list_item_simple,  
                 new String[]{"name"}, new int[]{R.id.item_textView});
+		return fujianAdapter;
+	}
+	private SimpleAdapter setupPopMutiAdpter(Question question)
+	{
+		final ArrayList<HashMap<String, Object>> arrayList = new ArrayList<HashMap<String,Object>>();
+		for(int i=0;i<question.getFujianArray().length();i++){
+			JSONObject item = null;
+			try {
+				item = (JSONObject) question.getFujianArray().get(i);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(item!=null)
+			{
+				HashMap<String, Object> tempHashMap = new HashMap<String, Object>();
+				tempHashMap.put("name", item.optString("name"));
+				tempHashMap.put("id", item.optString("id"));
+				arrayList.add(tempHashMap);
+			}
+
+		}
+		HashMap<String, Object> tempHashMap = new HashMap<String, Object>();
+		tempHashMap.put("name", "弹出多选");
+		tempHashMap.put("id", "");
+		arrayList.add(tempHashMap);
+
+		SimpleAdapter fujianAdapter = new SimpleAdapter(getActivity(), arrayList, R.layout.list_item_simple,
+				new String[]{"name"}, new int[]{R.id.item_textView});
 		return fujianAdapter;
 	}
 	private ListOfBillAdapter setupPeiJianAdpter(Question question,int position)

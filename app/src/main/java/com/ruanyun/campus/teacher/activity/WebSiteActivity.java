@@ -19,6 +19,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.app.DownloadManager.Request;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -564,6 +565,17 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 				startActivity(searchAddress);
 				return true;
 			}
+			else if (url.startsWith("weixin://") || url.startsWith("alipays://") || url.startsWith("jsbridge://")) {
+				//类型我目前用到的是微信、支付宝、拨号 三种跳转方式，其他类型自加
+				try {
+					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+					startActivity(intent);
+				}catch(ActivityNotFoundException a)
+				{
+					a.getMessage();
+				}
+				return true;
+			}
 			else if ( uri.getScheme().equals("js")) {
 				if (uri.getAuthority().equals("PersonInfo")) {
 					Intent intent = new Intent(WebSiteActivity.this,
@@ -845,6 +857,7 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 					try {
 						JSONObject jo = new JSONObject(resultStr);
 						if ("OK".equals(jo.optString("STATUS"))) {
+
 							String newFileName = jo.getString("文件名");
 							FileUtility.fileRename(oldFileName, newFileName);
 							ImageItem ds = new ImageItem(jo);

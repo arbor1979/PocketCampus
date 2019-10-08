@@ -38,13 +38,37 @@ public class StudentSummary {
 	private List<ImageItem> classNoteImages;
 	private List<ImageItem> classAssignImages;
 	private List<ImageItem> classSiduationImages;
-
+	private String classroomDiscipline;
+	private String classroomHealth;
+	private String courseContent; // 授课内容
+	private String homework; // 作业布置
+	private String classroomSituation; // 课堂情况
 	public String getTeacherkaoqin() {
 		return teacherkaoqin;
 	}
 
 	public void setTeacherkaoqin(String teacherkaoqin) {
 		this.teacherkaoqin = teacherkaoqin;
+	}
+
+	public String getClassroomDiscipline() {
+		return classroomDiscipline;
+	}
+
+	public String getClassroomHealth() {
+		return classroomHealth;
+	}
+
+	public String getCourseContent() {
+		return courseContent;
+	}
+
+	public String getHomework() {
+		return homework;
+	}
+
+	public String getClassroomSituation() {
+		return classroomSituation;
 	}
 
 	public StudentSummary(JSONObject jo) {
@@ -72,6 +96,11 @@ public class StudentSummary {
 			ImageItem imageInfo=new ImageItem(joii.optJSONObject(i));
 			classSiduationImages.add(imageInfo);
 		}
+		courseContent = jo.optString("授课内容");
+		homework = jo.optString("作业布置");
+		classroomSituation = jo.optString("课堂情况简要");
+		classroomDiscipline = jo.optString("课堂纪律");
+		classroomHealth = jo.optString("教室卫生");
 	}
 	
 	public List<ImageItem> getClassSiduationImages() {

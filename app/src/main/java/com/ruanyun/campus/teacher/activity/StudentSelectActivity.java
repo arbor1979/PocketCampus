@@ -1,10 +1,5 @@
 package com.ruanyun.campus.teacher.activity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
@@ -12,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -27,19 +23,34 @@ import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
+import com.ruanyun.campus.teacher.base.Constants;
 import com.ruanyun.campus.teacher.entity.ContactsMember;
-import com.ruanyun.campus.teacher.fragment.ContactsSearchFragment;
 import com.ruanyun.campus.teacher.fragment.ContactsSelectFragment;
 import com.ruanyun.campus.teacher.fragment.ContactsSelectSearchFragment;
 import com.ruanyun.campus.teacher.fragment.ContactsSelectSearchFragment.MyListener;
+import com.ruanyun.campus.teacher.fragment.StudentSelectFragment;
 import com.ruanyun.campus.teacher.util.DialogUtility;
+import com.ruanyun.campus.teacher.util.PrefUtility;
+import com.ruanyun.campus.teacher.util.SearchParser;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * 
@@ -54,7 +65,7 @@ import com.ruanyun.campus.teacher.util.DialogUtility;
  * 
  * 
  */
-public class ContactsSelectActivity extends FragmentActivity implements MyListener  {
+public class StudentSelectActivity extends FragmentActivity implements MyListener  {
 	static Button menu;
 	static LinearLayout layout_menu;
 	public static LinearLayout layout_refresh;
@@ -70,7 +81,7 @@ public class ContactsSelectActivity extends FragmentActivity implements MyListen
 	static ContactsSelectSearchFragment contactsSearchFragment;
 	private DisplayMetrics dm;
 	public static Dialog mLoadingDialog;
-	ContactsSelectFragment mContactsFragment;
+	StudentSelectFragment mContactsFragment;
 	RelativeLayout contactlayout;
 	LinearLayout initlayout;
 	Button selectOk;
@@ -79,22 +90,106 @@ public class ContactsSelectActivity extends FragmentActivity implements MyListen
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "----------------onCreate-----------------------");
 		dm = getResources().getDisplayMetrics();
-		setContentView(R.layout.activity_contacts_select);
+		setContentView(R.layout.activity_student_select);
 		
 		contacts = (LinearLayout) findViewById(R.id.content);
 		search = (EditText) findViewById(R.id.edit_search);
-		mContactsFragment=(ContactsSelectFragment)getSupportFragmentManager().findFragmentById(R.id.contacts_list);
+		mContactsFragment=(StudentSelectFragment)getSupportFragmentManager().findFragmentById(R.id.contacts_list);
+		mLoadingDialog = DialogUtility.createLoadingDialog(StudentSelectActivity.this, "正在获取数据...");
+		String[] groups= getIntent().getStringArrayExtra("选项");
+		JSONObject subOptions=null;
+		JSONArray answers=null;
+		try {
+			subOptions=new JSONObject(getIntent().getStringExtra("子选项"));
+			answers=new JSONArray(getIntent().getStringExtra("用户答案"));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		List<String> grouplist=new ArrayList<String>();
+		List<List<ContactsMember>> childList=new ArrayList<List<ContactsMember>>() ;
+		List<List<ContactsMember>> childSelectedList=new ArrayList<List<ContactsMember>>() ;
+		List<ContactsMember> memberList = new ArrayList<ContactsMember>();
+		String[] weiyimaarr=PrefUtility.get(Constants.PREF_CHECK_HOSTID,"1").split("_");
+		PinyinComparator pinyinComparator = new PinyinComparator();
+		for(String item :groups) {
+			if(item.equals("请选择"))
+				continue;
+			grouplist.add(item);
+			try {
+				JSONArray ja=subOptions.getJSONArray(item);
+				if(ja==null)
+					ja=new JSONArray();
+				List<ContactsMember> groupitem=new ArrayList<ContactsMember>();
+				List<ContactsMember> selectitem=new ArrayList<ContactsMember>();
+				for(int i=0;i<ja.length();i++)
+				{
+					JSONObject jo=ja.getJSONObject(i);
+					ContactsMember person=new ContactsMember();
+					if(jo!=null)
+					{
+						person.setClassName(item);
+						person.setStudentID(jo.optString("id"));
+						person.setName(jo.optString("name"));
+						person.setXingMing(SearchParser.getPinYinHeadChar(person.getName())+person.getName());
+						person.setUserImage(jo.optString("icon"));
+						person.setGender(jo.optString("sex"));
+						if(jo.optString("usertype").length()==0)
+							person.setUserType("学生");
+						else
+							person.setUserType(jo.optString("usertype"));
+						String weiyima="用户_"+person.getUserType()+"_"+person.getStudentID()+"____"+weiyimaarr[weiyimaarr.length-1];
+						person.setUserNumber(weiyima);
+						if(person.getUserImage()==null || person.getUserImage().length()==0)
+						{
 
-		mLoadingDialog = DialogUtility.createLoadingDialog(ContactsSelectActivity.this, "正在获取数据...");
+							ContactsMember contactsMember=((CampusApplication)getApplicationContext()).getLinkManDic().get(weiyima);
+							if(contactsMember!=null && contactsMember.getUserImage().length()>0)
+								person.setUserImage(contactsMember.getUserImage());
+						}
+						groupitem.add(person);
+						for(int j=0;j<answers.length();j++)
+						{
+							JSONObject answerItem=answers.getJSONObject(j);
+							if(answerItem.optString("id").equals(person.getStudentID())) {
+								selectitem.add(person);
+								break;
+							}
+						}
+						memberList.add(person);
+					}
+				}
+
+				Collections.sort(groupitem, pinyinComparator);
+				childList.add(groupitem);
+				childSelectedList.add(selectitem);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		mContactsFragment.groupList=grouplist;
+		mContactsFragment.childList=childList;
+		mContactsFragment.childSelectedList=childSelectedList;
+		mContactsFragment.memberList=memberList;
+		mContactsFragment.initContent();
 		mHandler = new MyHandler();
 		initViews();
-		
 		initSearch();
 
 	
 	}
-	
 
+	public class PinyinComparator implements Comparator<ContactsMember> {
+
+		public int compare(ContactsMember o1, ContactsMember o2) {
+			// 这里主要是用来对ListView里面的数据根据ABCDEFG...来排序
+			String o1Name=o1.getXingMing().trim().substring(0,1)+o1.getName().trim();
+			String o2Name=o2.getXingMing().trim().substring(0,1)+o2.getName().trim();
+			return o1Name.compareTo(o2Name);
+
+		}
+
+
+	}
 
 	
 	/**
@@ -126,7 +221,7 @@ public class ContactsSelectActivity extends FragmentActivity implements MyListen
 					for(ContactsMember item:sublist)
 						list.add(item);
 				}
-				contactsSearchFragment = ContactsSelectSearchFragment.newInstance(1, mContactsFragment.memberList,list);
+				contactsSearchFragment = ContactsSelectSearchFragment.newInstance(2, mContactsFragment.memberList,list);
 				
 				Message msg = new Message();
 				msg.what = 0;
@@ -146,7 +241,7 @@ public class ContactsSelectActivity extends FragmentActivity implements MyListen
 		
 		TextView tv_title = (TextView) findViewById(R.id.setting_tv_title);
 		final Button bn_back = (Button) findViewById(R.id.back);
-		tv_title.setText("选择联系人");
+		tv_title.setText("搜索多选");
 		
 		bn_back.setOnClickListener(new OnClickListener() {
 
@@ -159,32 +254,32 @@ public class ContactsSelectActivity extends FragmentActivity implements MyListen
 			}
 		});
 		selectOk=(Button)findViewById(R.id.confirm_sel);
-		selectOk.setEnabled(false);
 		selectOk.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
 				if(mContactsFragment.selectedlist!=null)
 				{
-					String toid="";
-					String toname="";
-					
+					JSONArray returnJson=new JSONArray();
 					for(ContactsMember item:mContactsFragment.selectedlist)
 					{
-						if(toid.length()==0)
-						{
-							toid=item.getUserNumber();
-							toname=item.getName()+"等"+mContactsFragment.selectedlist.size()+"人";
+						if(item.getStudentID()!=null && item.getStudentID().length()>0) {
+							JSONObject jo = new JSONObject();
+							try {
+								jo.put("id", item.getStudentID());
+								jo.put("name", item.getName());
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+							returnJson.put(jo);
 						}
-						else
-							toid+=","+item.getUserNumber();
 					}
-					Intent intent = new Intent(ContactsSelectActivity.this,ChatMsgActivity.class);
-					intent.putExtra("toid", toid);
-					intent.putExtra("type", "消息");
-					intent.putExtra("toname", toname);
-					intent.putExtra("userImage", "group");
-					startActivity(intent);
+					Intent aintent = new Intent();
+					aintent.putExtra("returnJson", returnJson.toString());
+					int curIndex=getIntent().getIntExtra("curIndex",-1);
+					aintent.putExtra("curIndex",curIndex);
+					setResult(1,aintent);
+					finish();
 				}
 			}
 			
@@ -258,12 +353,13 @@ public class ContactsSelectActivity extends FragmentActivity implements MyListen
 	@Override
 	public void updateSelectedList(List<ContactsMember> selectList) {
 		// TODO Auto-generated method stub
-		
 		for(int i=0;i<mContactsFragment.childSelectedList.size();i++)
 			mContactsFragment.childSelectedList.get(i).clear();
 		for(ContactsMember item:selectList)
 		{
-			String group=item.getClassName();
+			String group=item.getVirtualClass();
+			if(group==null)
+				group=item.getClassName();
 			for(int i=0;i<mContactsFragment.groupList.size();i++)
 			{
 				if(mContactsFragment.groupList.get(i).equals(group))
@@ -274,10 +370,7 @@ public class ContactsSelectActivity extends FragmentActivity implements MyListen
 					break;
 				}
 			}
-			
-			
 		}
-
 		mContactsFragment.updateViewBySelected();
 	}
 	

@@ -14,6 +14,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -54,6 +55,7 @@ import com.ruanyun.campus.teacher.entity.Notice;
 import com.ruanyun.campus.teacher.entity.NoticesItem;
 import com.ruanyun.campus.teacher.entity.SchoolWorkItem;
 import com.ruanyun.campus.teacher.entity.User;
+import com.ruanyun.campus.teacher.service.Alarmreceiver;
 import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.PrefUtility;
@@ -288,7 +290,13 @@ public class TabSchoolActivtiy extends FragmentActivity {
 		registerBoradcastReceiver();
 
 		layout_menu.setOnClickListener(TabHostActivity.menuListener);
-
+		if(user.getUserType().equals("学生")) {
+			if (Build.VERSION.SDK_INT >= 23) {
+				if (AppUtility.checkPermission(getParent(), 5, Manifest.permission.ACCESS_FINE_LOCATION))
+					AppUtility.beginGPS(getApplication());
+			} else
+				AppUtility.beginGPS(getApplication());
+		}
 	}
 
 	/*
@@ -525,7 +533,7 @@ public class TabSchoolActivtiy extends FragmentActivity {
 		super.onStart();
 		isruning = true;
 		Log.d(TAG, "生命周期:Start");
-
+		((TabHostActivity)getParent()).callBack=callBack;
 		//if(needCount)
 		//	getUnreadCount();
 	}
@@ -613,5 +621,39 @@ public class TabSchoolActivtiy extends FragmentActivity {
 			}
 		}
 	}
+	public AppUtility.CallBackInterface callBack=new AppUtility.CallBackInterface()
+	{
 
+		@Override
+		public void getLocation1(int rqcode) {
+			// TODO Auto-generated method stub
+			AppUtility.beginGPS(getApplication());
+		}
+		@Override
+		public void getPictureByCamera1(int rqcode) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void getPictureFromLocation1() {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void sendCall1() {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void sendMsg1() {
+			// TODO Auto-generated method stub
+
+		}
+		@Override
+		public void getFujian1() {
+			// TODO Auto-generated method stub
+		}
+
+	};
 }

@@ -44,6 +44,7 @@ import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.activity.ChatMsgActivity;
 import com.ruanyun.campus.teacher.activity.ContactsActivity;
 import com.ruanyun.campus.teacher.activity.ContactsSelectActivity;
+import com.ruanyun.campus.teacher.activity.StudentSelectActivity;
 import com.ruanyun.campus.teacher.db.DatabaseHelper;
 import com.ruanyun.campus.teacher.entity.ContactsMember;
 import com.ruanyun.campus.teacher.util.SearchParser;
@@ -239,10 +240,10 @@ public class ContactsSelectSearchFragment extends DialogFragment {
 		Log.i(TAG, "----------onDismiss is running");
 		Message msg = new Message();
 		msg.what = 1;
-		if(id==0)
-			ContactsActivity.mHandler.sendMessage(msg);
-		else if(id==1)
+		if(id==1)
 			ContactsSelectActivity.mHandler.sendMessage(msg);
+		else if(id==2)
+			StudentSelectActivity.mHandler.sendMessage(msg);
 		search.setText("");
 	}
 
@@ -294,16 +295,16 @@ public class ContactsSelectSearchFragment extends DialogFragment {
 			final ContactsMember contactsMember = this.list.get(position);
 			
 			aq = new AQuery(convertView);
-			if (contactsMember.getUserImage() != null) {
+			if (contactsMember.getUserImage() != null && contactsMember.getUserImage().length()>0) {
 				ImageOptions options = new ImageOptions();
 				options.memCache=false;
 			    options.round = 20;
+                options.fallback = R.drawable.ic_launcher;
 			    aq.id(holder.photo).image(contactsMember.getUserImage(), options);
 			}else{
 				holder.photo.setImageDrawable(getResources().getDrawable(R.drawable.ic_launcher));
 			}
-			
-			holder.name.setText(contactsMember.getName());
+			holder.name.setText(contactsMember.getName()+" "+contactsMember.getClassName());
 			
 			boolean flag=false;
 			for(ContactsMember item:childSelectedList)

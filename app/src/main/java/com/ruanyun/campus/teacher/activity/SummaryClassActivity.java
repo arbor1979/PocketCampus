@@ -148,7 +148,7 @@ public class SummaryClassActivity extends Activity {
 				break;
 			case 1:// 获取学生信息成功
 				showProgress(false);
-				
+
 				result = msg.obj.toString();
 				try {
 					resultStr = new String(
@@ -165,20 +165,20 @@ public class SummaryClassActivity extends Activity {
 						bCanAdd=false;
 					if (userType.equals("老师")) {
 						initTeacherDate();
-						
+
 					} else {
 						initStudentDate();
-						
+
 					}
 					myPictureAdapter = new MyPictureAdapter(SummaryClassActivity.this,
 							bCanAdd, picturePaths, size,"课堂笔记");
-					
+
 					myPictureAdapter1 = new MyPictureAdapter(SummaryClassActivity.this,
 							bCanAdd, picturePaths1, size,"课堂作业");
-					
+
 					myPictureAdapter2 = new MyPictureAdapter(SummaryClassActivity.this,
 							bCanAdd, picturePaths2, size,"课堂情况");
-					
+
 					myPictureAdapter.setFrom(TAG);
 					myPictureAdapter1.setFrom(TAG);
 					myPictureAdapter2.setFrom(TAG);
@@ -203,14 +203,14 @@ public class SummaryClassActivity extends Activity {
 					try {
 						JSONObject jo = new JSONObject(resultStr);
 						if ("成功".equals(jo.optString("STATUS"))) {
-							
+
 							updateImagesAdpter(delImagePath,null);
-							
+
 							File cacheFile=FileUtility.getCacheFile(delImagePath);
 							if(cacheFile.exists())
 								cacheFile.delete();
-							
-							
+
+
 						}
 					} catch (JSONException e) {
 						e.printStackTrace();
@@ -241,7 +241,7 @@ public class SummaryClassActivity extends Activity {
 						updateImagesAdpter("loading",ds.getDownAddress());
 					}
 
-					
+
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
@@ -283,7 +283,7 @@ public class SummaryClassActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_view_classroom_summary);
-		
+
 		loadingLayout = (LinearLayout) findViewById(R.id.data_load);
 		contentLayout = (ScrollView) findViewById(R.id.content_layout);
 		failedLayout = (LinearLayout) findViewById(R.id.empty_error);
@@ -308,18 +308,18 @@ public class SummaryClassActivity extends Activity {
 		if(!AppUtility.isNotEmpty(teacherInfo.getClassroomSituation()))
 			teacherInfo.setClassroomSituation("");
 		//myPictureAdapter = new MyPictureAdapter(SummaryClassActivity.this,false, picturePaths, size);
-		
-		
+
+
 		initView();
 		getPingjia();
 		initListener();
 		registerBroastcastReceiver();
-			
+
 	}
 
 	private void showProgress(boolean progress) {
 		if (progress) {
-			
+
 			contentLayout.setVisibility(View.GONE);
 			failedLayout.setVisibility(View.GONE);
 			loadingLayout.setVisibility(View.VISIBLE);
@@ -522,56 +522,27 @@ public class SummaryClassActivity extends Activity {
 					layout_rizhi_pingtai.setVisibility(View.GONE);
 					findViewById(R.id.tv_7).setVisibility(View.GONE);
 				}
-				if (teacherInfo != null) {
-					RadioGroup group_discipline = (RadioGroup) findViewById(R.id.group_discipline);
-					RadioGroup group_health = (RadioGroup) findViewById(R.id.group_health);
-
-					et1.setText(teacherInfo.getCourseContent());
-					et2.setText(teacherInfo.getHomework());
-					et3.setText(teacherInfo.getClassroomSituation());
-					if (teacherInfo.getClassroomDiscipline().equals("优")) {
-						group_discipline.check(R.id.group1_bn1);
-					} else if (teacherInfo.getClassroomDiscipline().equals("良")) {
-						group_discipline.check(R.id.group1_bn2);
-					} else if (teacherInfo.getClassroomDiscipline().equals("中")) {
-						group_discipline.check(R.id.group1_bn3);
-					} else if (teacherInfo.getClassroomDiscipline().equals("差")) {
-						group_discipline.check(R.id.group1_bn4);
-					} else {
-						group_discipline.check(R.id.group1_bn2);
-					}
-					if (teacherInfo.getClassroomHealth().equals("优")) {
-						group_health.check(R.id.group2_bn1);
-					} else if (teacherInfo.getClassroomHealth().equals("良")) {
-						group_health.check(R.id.group2_bn2);
-					} else if (teacherInfo.getClassroomHealth().equals("中")) {
-						group_health.check(R.id.group2_bn3);
-					} else if (teacherInfo.getClassroomHealth().equals("差")) {
-						group_health.check(R.id.group2_bn4);
-					} else {
-						group_health.check(R.id.group2_bn2);
-					}
-
-					if(AppUtility.isNotEmpty(teacherInfo.getShouldTime()) && AppUtility.isNotEmpty(teacherInfo.getLatestTime()))
+				fillData();
+				if(AppUtility.isNotEmpty(teacherInfo.getShouldTime()) && AppUtility.isNotEmpty(teacherInfo.getLatestTime()))
+				{
+					Date dt_begin=DateHelper.getStringDate(teacherInfo.getShouldTime(),"yyyy-MM-dd 00:00:00");
+					Date dt_end=DateHelper.getStringDate(teacherInfo.getLatestTime(),"yyyy-MM-dd 23:59:59");
+					Date dt_now=new Date();
+					if(dt_now.getTime()>=dt_begin.getTime() && dt_now.getTime()<=dt_end.getTime())
 					{
-						Date dt_begin=DateHelper.getStringDate(teacherInfo.getShouldTime(),"yyyy-MM-dd");
-						Date dt_end=DateHelper.getStringDate(teacherInfo.getLatestTime(),"yyyy-MM-dd");
-						Date dt_now=new Date();
-						if(dt_now.getTime()>=dt_begin.getTime() && dt_now.getTime()<=dt_end.getTime())
-						{
-							
-						}
-						else
-						{
-							AppUtility.showToastMsg(this, "请在"+teacherInfo.getShouldTime()+"至"+teacherInfo.getLatestTime()+"内填写",1);
-							aq.id(R.id.layout_btn_right).visibility(View.GONE);
-							et1.setEnabled(false);
-							et2.setEnabled(false);
-							et3.setEnabled(false);
-						}
-						
+
 					}
+					else
+					{
+						AppUtility.showToastMsg(this, "请在"+teacherInfo.getShouldTime()+"至"+teacherInfo.getLatestTime()+"内填写",1);
+						aq.id(R.id.layout_btn_right).visibility(View.GONE);
+						et1.setEnabled(false);
+						et2.setEnabled(false);
+						et3.setEnabled(false);
+					}
+
 				}
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -580,7 +551,7 @@ public class SummaryClassActivity extends Activity {
 			myGridView2.setVisibility(View.GONE);
 			et3.setVisibility(View.GONE);
 			aq.id(R.id.tv_5).visibility(View.GONE);
-			
+
 			aq.id(R.id.group_discipline).visibility(View.GONE);
 			aq.id(R.id.group_health).visibility(View.GONE);
 			ratingBar1 = (RatingBar) findViewById(R.id.rb_1);
@@ -592,8 +563,8 @@ public class SummaryClassActivity extends Activity {
 			layout_rizhi_pingtai.setVisibility(View.GONE);
 			findViewById(R.id.tv_7).setVisibility(View.GONE);
 		}
-		
-		if (userType.equals("家长")) 
+
+		if (userType.equals("家长"))
 		{
 			aq.id(R.id.layout_btn_right).visibility(View.INVISIBLE);
 			ratingBar1.setIsIndicator(true);
@@ -604,7 +575,40 @@ public class SummaryClassActivity extends Activity {
 
 
 	}
+	private void fillData()
+	{
+		if (teacherInfo != null) {
+			RadioGroup group_discipline = (RadioGroup) findViewById(R.id.group_discipline);
+			RadioGroup group_health = (RadioGroup) findViewById(R.id.group_health);
+			et1.setText(teacherInfo.getCourseContent());
+			et2.setText(teacherInfo.getHomework());
+			et3.setText(teacherInfo.getClassroomSituation());
+			if (teacherInfo.getClassroomDiscipline().equals("优")) {
+				group_discipline.check(R.id.group1_bn1);
+			} else if (teacherInfo.getClassroomDiscipline().equals("良")) {
+				group_discipline.check(R.id.group1_bn2);
+			} else if (teacherInfo.getClassroomDiscipline().equals("中")) {
+				group_discipline.check(R.id.group1_bn3);
+			} else if (teacherInfo.getClassroomDiscipline().equals("差")) {
+				group_discipline.check(R.id.group1_bn4);
+			} else {
+				group_discipline.check(R.id.group1_bn2);
+			}
+			if (teacherInfo.getClassroomHealth().equals("优")) {
+				group_health.check(R.id.group2_bn1);
+			} else if (teacherInfo.getClassroomHealth().equals("良")) {
+				group_health.check(R.id.group2_bn2);
+			} else if (teacherInfo.getClassroomHealth().equals("中")) {
+				group_health.check(R.id.group2_bn3);
+			} else if (teacherInfo.getClassroomHealth().equals("差")) {
+				group_health.check(R.id.group2_bn4);
+			} else {
+				group_health.check(R.id.group2_bn2);
+			}
 
+
+		}
+	}
 	private void initListener() {
 		aq.id(R.id.layout_btn_left).clicked(new OnClickListener() {
 
@@ -1101,6 +1105,18 @@ public class SummaryClassActivity extends Activity {
 				}
 			}
 		}
+
+		teacherInfo.setClassroomDiscipline(studentSummary.getClassroomDiscipline());
+		teacherInfo.setClassroomHealth(studentSummary.getClassroomHealth());
+		teacherInfo.setCourseContent(studentSummary.getCourseContent());
+		teacherInfo.setHomework(studentSummary.getHomework());
+		teacherInfo.setClassroomSituation(studentSummary.getClassroomSituation());
+		try {
+			teacherInfoDao.update(teacherInfo);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		fillData();
 		if(studentSummary.getTeacherkaoqin().length()>0 && !studentSummary.getTeacherkaoqin().equals("正常"))
 		{
 			AppUtility.showToastMsg(this, studentSummary.getTeacherkaoqin(),1);

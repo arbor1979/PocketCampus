@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -22,6 +23,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -375,6 +377,7 @@ public class TabHostActivity extends TabActivity   {
 			initData.initAllInfo();
 		}
 		Log.d(TAG,"生命周期:onStart");
+
 	}
 
 	@Override
@@ -1070,6 +1073,6 @@ public class TabHostActivity extends TabActivity   {
 			AppUtility.permissionResult(requestCode,grantResults,this,callBack);
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
-	
+
 	
 }

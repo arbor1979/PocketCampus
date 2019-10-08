@@ -688,20 +688,22 @@ public class SchoolAchievementFragment extends Fragment {
 									@Override
 									public void onClick(DialogInterface dialog, int which)
 									{
-										JSONObject queryObj=AppUtility.parseQueryStrToJson(achievement.getExtraMenu().optString(text));
+										JSONObject queryObj=AppUtility.parseQueryStrToJson(interfaceName);
+										JSONObject queryObj1=AppUtility.parseQueryStrToJson(achievement.getExtraMenu().optString(text));
 										JSONObject jo = new JSONObject();
 										try {
-											Iterator it = queryObj.keys();
+											Iterator it = queryObj1.keys();
 											while (it.hasNext()) {
 												String key = (String) it.next();
-												String value = queryObj.getString(key);
-												jo.put(key, value);
+												String value = queryObj1.getString(key);
+												queryObj.put(key, value);
 											}
 
 										} catch (JSONException e1) {
 											e1.printStackTrace();
 										}
-										CampusAPI.httpPost(interfaceName,jo, mHandler, 2);
+										String url=AppUtility.removeURLQuery(interfaceName)+"?"+AppUtility.jsonToUrlQuery(queryObj);
+										CampusAPI.httpPost(url,jo, mHandler, 2);
 									}
 								})
 								.setNegativeButton("否", null)
@@ -714,19 +716,8 @@ public class SchoolAchievementFragment extends Fragment {
 					else
 					{
 						JSONObject queryObj=AppUtility.parseQueryStrToJson(achievement.getExtraMenu().optString(text));
-						JSONObject jo = new JSONObject();
-						try {
-							Iterator it = queryObj.keys();
-							while (it.hasNext()) {
-								String key = (String) it.next();
-								String value = queryObj.getString(key);
-								jo.put(key, value);
-							}
-
-						} catch (JSONException e1) {
-							e1.printStackTrace();
-						}
-						CampusAPI.httpPost(interfaceName,jo, mHandler, 2);
+						String url=AppUtility.removeURLQuery(interfaceName)+"?"+AppUtility.jsonToUrlQuery(queryObj);
+						CampusAPI.httpPost(url,new JSONObject(), mHandler, 2);
 					}
 					userTypeDialog.dismiss();
 				}

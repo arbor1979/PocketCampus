@@ -119,6 +119,7 @@ public class QuestionnaireList implements Serializable {
 		private String status;
 		private String usersAnswer;
 		private String usersAnswerOne;
+		private String usersAnswerTwo;
 		private String remark;
 		private int lines;
 		public int getLines() {
@@ -143,7 +144,11 @@ public class QuestionnaireList implements Serializable {
 		private int maxLetter;
 		private String validate;
 		private boolean ifRead;
+		private String imageSource;
 
+		public String getImageSource() {
+			return imageSource;
+		}
 		public String getNeedCut() {
 			return needCut;
 		}
@@ -184,6 +189,14 @@ public class QuestionnaireList implements Serializable {
 			this.validate = validate;
 		}
 
+		public String getUsersAnswerTwo() {
+			return usersAnswerTwo;
+		}
+
+		public void setUsersAnswerTwo(String usersAnswerTwo) {
+			this.usersAnswerTwo = usersAnswerTwo;
+		}
+
 		public Question(JSONObject jo) {
 			title = jo.optString("题目");
 			status = jo.optString("类型");
@@ -222,13 +235,14 @@ public class QuestionnaireList implements Serializable {
 					setImages(new ArrayList<ImageItem>());
 				}
 			}
-			else if(status.equals("附件") || status.equals("弹出列表"))
+			else if(status.equals("附件") || status.equals("弹出列表") || status.equals("弹出多选") )
 			{
 				fujianArray=jo.optJSONArray("用户答案");
 			}
 			else{
 				usersAnswer = jo.optString("用户答案");
 				usersAnswerOne=jo.optString("用户答案一级");
+				usersAnswerTwo=jo.optString("用户答案二级");
 			}
 			filterObj=jo.optJSONObject("Json过滤");
 			linkUpdate=jo.optInt("关联更新");
@@ -238,6 +252,7 @@ public class QuestionnaireList implements Serializable {
 				ifRead=true;
 			else
 				ifRead=false;
+			imageSource=jo.optString("图片来源");
 		}
 
 		public boolean isIfRead() {

@@ -166,7 +166,7 @@ public class ClassDetailActivity extends TabActivity {
 		classroomCourseIntent = new Intent(this, CourseClassActivity.class);
 		classroomTestIntent = new Intent(this, TestClassActivity.class);
 		summaryIntent = new Intent(this, SummaryClassActivity.class);
-		summaryIntent.putExtra(subjectid, subjectid);
+		summaryIntent.putExtra("subjectid", subjectid);
 	}
 
 	private void setupIntent() {
