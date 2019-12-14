@@ -124,10 +124,10 @@ public class DateHelper
 	/**
 	 * 得到月份列表 eg: getMonthList("2008-01","2007-08","yyyy-MM")
 	 * 
-	 * @param startMonth
-	 *            开始月份
-	 * @param endMonth
-	 *            结束月份
+	 * @param
+	 *
+	 * @param
+	 *
 	 * @param pattern
 	 *            格式：如yyyy-MM
 	 * @return
@@ -576,7 +576,7 @@ public class DateHelper
 	}
 	/**
 	 * 得到某月第一天
-	 * @param date
+	 * @param
 	 * @return
 	 */
 	public static String getFirstdayOfMonth(String month, String pattern)
@@ -594,7 +594,7 @@ public class DateHelper
 	}
 	/**
 	 * 得到某月最后一天
-	 * @param date
+	 * @param
 	 * @return
 	 */
 	public static String getLastdayOfMonth(String month, String pattern)

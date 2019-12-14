@@ -100,7 +100,7 @@ public class SysSettingActivity extends FragmentActivity implements
 	private ViewGroup /*time, initInfo,*/ schedule, alertTime;
 	private String setTime;
 	private SwitchButton dayAlert;
-	private RelativeLayout contract,aboutus,versionDetection;
+	private RelativeLayout contract,aboutus,versionDetection,ll_private_set;
 	private RadioGroup weekfirstday;
 	private static final int PIC_Select_CODE_ImageFromLoacal = 3;
 	
@@ -200,6 +200,7 @@ public class SysSettingActivity extends FragmentActivity implements
 		
 		contract = (RelativeLayout) findViewById(R.id.contract);
 		aboutus = (RelativeLayout) findViewById(R.id.aboutus);
+		ll_private_set= (RelativeLayout) findViewById(R.id.ll_private_set);
 		//commonQuestions = (RelativeLayout) findViewById(R.id.common_questions);
 		versionDetection = (RelativeLayout) findViewById(R.id.version_detection);
 		weekfirstday=(RadioGroup)findViewById(R.id.weekfirstday);
@@ -219,6 +220,8 @@ public class SysSettingActivity extends FragmentActivity implements
 		alertTime.setOnClickListener(this);
 		contract.setOnClickListener(this);
 		aboutus.setOnClickListener(this);
+		ll_private_set.setOnClickListener(this);
+
 		//commonQuestions.setOnClickListener(this);
 		versionDetection.setOnClickListener(this);
 		
@@ -336,6 +339,12 @@ public class SysSettingActivity extends FragmentActivity implements
 			aboutusIntent.putExtra("url", CampusAPI.aboutusUrl+"?school="+check);
 			aboutusIntent.putExtra("title", getResources().getString(R.string.settings_aboutus));
 			startActivity(aboutusIntent);
+			break;
+		case R.id.ll_private_set:
+			Intent privateIntent = new Intent(SysSettingActivity.this,WebSiteActivity.class);
+			privateIntent.putExtra("url", CampusAPI.privateUrl);
+			privateIntent.putExtra("title", "隐私政策");
+			startActivity(privateIntent);
 			break;
 		/*
 		case R.id.common_questions:

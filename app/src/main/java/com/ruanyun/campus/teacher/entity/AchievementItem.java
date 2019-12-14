@@ -26,6 +26,9 @@ public class AchievementItem {
 	private String rightButton;
 	private String rightButtonURL;
 	private String submitTarget;
+	private int page;
+	private int allnum;
+	private JSONArray filterArr;
 
 	public AchievementItem(JSONObject jo) {
 		templateName = jo.optString("适用模板");
@@ -42,9 +45,19 @@ public class AchievementItem {
 		rightButton=jo.optString("右上按钮");
 		rightButtonURL=jo.optString("右上按钮URL");
 		submitTarget=jo.optString("右上按钮Submit");
-
+		page=jo.optInt("page");
+		allnum=jo.optInt("allnum");
+		filterArr=jo.optJSONArray("过滤条件");
 	}
-
+	public int getPage() {
+		return page;
+	}
+	public int getAllnum() {
+		return allnum;
+	}
+	public JSONArray getFilterArr() {
+		return filterArr;
+	}
 	public String getSubmitTarget() {
 		return submitTarget;
 	}

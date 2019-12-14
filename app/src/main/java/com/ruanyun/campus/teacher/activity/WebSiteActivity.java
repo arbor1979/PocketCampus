@@ -502,12 +502,16 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 			super.onPageFinished(view, url);
 			if(moodleText!=null && moodleText.length()>0)
 			{
+				/*
 				view.loadUrl("javascript:if(document.getElementById('region-main')) "
 						+ "{document.body.innerHTML=document.getElementById('region-main').innerHTML.replace(new RegExp('pluginfile.php','gm'),'pluginfile_dandian.php?');"
 						+ "var tags=document.getElementsByTagName('a');"
 						+ "for(var i=0;i<tags.length;i++)"
 						+ "{tags[i].innerHTML=decodeURIComponent(tags[i].innerHTML);}"
 						+ "setTimeout('',100);}");
+
+				 */
+				//view.loadUrl("javascript:var tags=document.getElementsByTagName('a');for(var i=0;i<tags.length;i++){if(tags[i]._href!='' && tags[i].href==''){tags[i].href=tags[i]._href;}}");
 			}
 			mWebView.setVisibility(View.VISIBLE);
 			loading.setVisibility(View.GONE);
@@ -534,6 +538,15 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 			else {
 				btn_close.setVisibility(View.GONE);
 			}
+			view.loadUrl("javascript:if(typeof $ != 'undefined'){$(document).ready(function(){\n " +
+					"   $('body').on('click','a',function(){\n" +
+					"      var _href = $(this).attr('_href');\n" +
+					"      if(_href!=null && _href!='')\n" +
+					"      { \n" +
+					"         location.href = _href;           \n" +
+					"      }     \n" +
+					"   });\n" +
+					"});}");
 			/*
 			int navBarHeight=AppUtility.getDaoHangHeight(mWebView.getContext());
 			if(navBarHeight>0) {
@@ -643,7 +656,14 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 				if(file.exists() && file.isFile())
 				{
 					intent=IntentUtility.openUrl(WebSiteActivity.this,filePath);
-					IntentUtility.openIntent(WebSiteActivity.this, intent,true);
+					if(intent==null) {
+						if(url.indexOf("mycourse.cn")>0 || url.indexOf("about:blank")>=0)
+							return  false;
+						else
+							view.loadUrl(url);
+					}
+					else
+						IntentUtility.openIntent(WebSiteActivity.this, intent,true);
 				}
 				else
 				{
@@ -651,7 +671,10 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 					intent=IntentUtility.openUrl(WebSiteActivity.this,url);
 					if(intent==null)
 					{
-						view.loadUrl(url);
+						if(url.indexOf("mycourse.cn")>0 || url.indexOf("about:blank")>=0)
+							return  false;
+						else
+							view.loadUrl(url);
 					}
 					else
 					{

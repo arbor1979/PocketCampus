@@ -86,13 +86,13 @@ public class HttpManager {
 			client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,
 					NetStateManager.getAPN());
 			HttpParams httpparams = client.getParams(); 
-			StringBuilder user_agent = new StringBuilder();  
-			user_agent.append("deviceName:"+android.os.Build.BRAND+" "+android.os.Build.PRODUCT);
-			user_agent.append(";deviceType:Android");
-			user_agent.append(";pocketCampus:"+CampusApplication.getVersion());
-			user_agent.append(";systemName:"+android.os.Build.USER);
-			user_agent.append(";systemVersion:"+android.os.Build.VERSION.RELEASE);
-			httpparams.setParameter("http.useragent", user_agent.toString());  
+			StringBuilder user_agent = new StringBuilder();
+			user_agent.append("掌上校园Android版:"+CampusApplication.getVersion());
+			user_agent.append(" 设备名:"+android.os.Build.BRAND+" "+android.os.Build.PRODUCT);
+			user_agent.append(" 序列号:"+android.os.Build.SERIAL);
+			user_agent.append(" 系统名:"+android.os.Build.USER);
+			user_agent.append(" 系统版本:"+android.os.Build.VERSION.RELEASE);
+			httpparams.setParameter("http.useragent", new String(user_agent.toString().getBytes("UTF-8"), "ISO-8859-1"));
 			if (method.equals(HTTPMETHOD_GET)) {
 				url = url + "?" + Utility.encodeUrl(params);
 				HttpGet get = new HttpGet(url);

@@ -102,7 +102,7 @@ public class IntentUtility {
 		intent.addCategory("android.intent.category.DEFAULT");
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		Uri uri;
-		if(param.startsWith("http:"))
+		if(param.startsWith("http"))
 			uri=Uri.parse(param);
 		else
 			uri = Uri.fromFile(new File(param));
@@ -117,7 +117,7 @@ public class IntentUtility {
 		//intent.addCategory("android.intent.category.DEFAULT");
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		Uri uri;
-		if(param.startsWith("http:"))
+		if(param.startsWith("http"))
 			uri=Uri.parse(param);
 		else {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

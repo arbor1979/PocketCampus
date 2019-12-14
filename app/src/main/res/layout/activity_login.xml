@@ -123,6 +123,35 @@
             </TableRow>
         </TableLayout>
 
+        <LinearLayout
+            android:id="@+id/ll_xieyi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="20dp"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/cb_greet_xieyi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="同意隐私政策"
+                android:textColor="@color/white"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_xieyi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_weight="1"
+                android:gravity="right"
+                android:text="《隐私政策》"
+                android:textColor="#3F51B5" />
+
+        </LinearLayout>
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

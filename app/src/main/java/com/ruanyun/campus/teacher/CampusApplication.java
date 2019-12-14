@@ -25,6 +25,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
@@ -50,6 +51,7 @@ import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.FileUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
 import com.ruanyun.campus.teacher.util.ZLibUtils;
+import com.tencent.bugly.crashreport.CrashReport;
 import com.umeng.analytics.MobclickAgent;
 import com.umeng.commonsdk.UMConfigure;
 import com.umeng.message.IUmengRegisterCallback;
@@ -59,7 +61,7 @@ import com.umeng.message.UmengMessageHandler;
 import com.umeng.message.UmengNotificationClickHandler;
 import com.umeng.message.entity.UMessage;
 
-public class CampusApplication extends Application {
+public class CampusApplication extends MultiDexApplication {
 	private HttpClient httpClient;
 	private Map<String,ContactsMember> linkManDic;//所有联系人
 	private List<ContactsFriends>  linkGroupList;//联系人组
@@ -206,6 +208,7 @@ public class CampusApplication extends Application {
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		CrashReport.initCrashReport(getApplicationContext(), "3754909f13", false);
 		AppUtility.setContext(this);
 		String state = Environment.getExternalStorageState();
     	if (Environment.MEDIA_MOUNTED.equals(state)) {
@@ -305,6 +308,7 @@ public class CampusApplication extends Application {
 		updateColumn(getHelper().getWritableDatabase(), "User", "albumAdmin", "varchar", "''");
 		updateColumn(getHelper().getWritableDatabase(), "Student", "liveSchool", "varchar", "''");
 		updateColumn(getHelper().getWritableDatabase(), "Student", "zuohao", "varchar", "''");
+		updateColumn(getHelper().getWritableDatabase(), "ChatMsg", "linkUrl", "varchar", "''");
 		/*
 		try {
 			TableUtils.createTable(getHelper().getConnectionSource(), ChatMsgDetail.class);

@@ -12,8 +12,9 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 
-
-
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
 import com.ruanyun.campus.teacher.R;
 
 import android.content.Context;
@@ -25,6 +26,9 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.text.Html.ImageGetter;
+import android.text.Spanned;
+import android.util.Log;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -79,12 +83,59 @@ public class MyImageGetter implements ImageGetter {
 		}
 
 		// 不存在文件时返回默认图片，并异步加载网络图片
+
 		Resources res = context.getResources();
 		URLDrawable drawable = new URLDrawable(
 				res.getDrawable(R.drawable.default_photo));
 		new ImageAsync(drawable).execute(savePath, source);
+		//getNetworkImg(savePath, source,drawable);
 		return drawable;
 
+	}
+	private void getNetworkImg(final String savePath, String url, Drawable defaultdrawable) {
+		Log.d("MyImageGetter", "url: " + url);
+		ImageLoader.getInstance().loadImage(url,new ImageLoadingListener(){
+
+			@Override
+			public void onLoadingStarted(String s, View view) {
+
+			}
+
+			@Override
+			public void onLoadingFailed(String s, View view, FailReason failReason) {
+				Log.d("MyImageGetter", "failReason: " + failReason.toString());
+			}
+
+			@Override
+			public void onLoadingComplete(String s, View view, Bitmap bitmap) {
+				try {
+					File file = new File(savePath);
+					String basePath = file.getParent();
+					File basePathFile = new File(basePath);
+					if (!basePathFile.exists()) {
+						basePathFile.mkdirs();
+					}
+					if(file.exists())
+						file.delete();
+					FileOutputStream out = new FileOutputStream(file);
+					bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+					out.flush();
+					out.close();
+					Spanned spanned= (Spanned) tv.getText();
+					tv.setText(null);
+					tv.setText(spanned);
+
+				} catch (Exception e) {
+					// TODO: handle exception
+
+				}
+			}
+
+			@Override
+			public void onLoadingCancelled(String s, View view) {
+
+			}
+		});
 	}
 
 	private class ImageAsync extends AsyncTask<String, Integer, Drawable> {
@@ -154,7 +205,10 @@ public class MyImageGetter implements ImageGetter {
 			super.onPostExecute(result);
 			if (result != null) {
 				drawable.setDrawable(result);
-				tv.setText(tv.getText()); // 通过这里的重新设�? TextView 的文字来更新UI
+				Spanned spanned= (Spanned) tv.getText();
+				tv.setText(null);
+				tv.setText(spanned);
+				//tv.setText(tv.getText()); // 通过这里的重新设�? TextView 的文字来更新UI
 			}
 		}
 

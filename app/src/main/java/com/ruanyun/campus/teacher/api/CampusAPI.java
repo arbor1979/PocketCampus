@@ -23,15 +23,16 @@ public class CampusAPI {
 	public static String commonQuestionUrl = "http://www.dandian.net/company/ICampus-faq.php"; // 常见问题
 	public static String contractUrl = "http://www.dandian.net/company/ICampus-contract.php"; // 常见问题
 	public static String aboutusUrl = "http://laoshi.dandian.net/yingxin/aboutus.php"; // 常见问题
-
+	public static String privateUrl = "http://laoshi.dandian.net/yingxin/private.html"; // 隐私协议
 	public static String DOWNLOAD_DONE = "http://laoshi.dandian.net/KeJianCounter.php";// 提交下载完成数据
 	public static String DOWNLOAD_DELETE = "http://laoshi.dandian.net/KeJianDelete.php";// 提交删除已下载文件数据
 
 	public static void request(final String url, final CampusParameters params,
 			final String HTTP_METHOD, RequestListener listener) {
 		String domain=PrefUtility.get(Constants.PREF_SCHOOL_DOMAIN,"");
-		
-		AsyncFoodSafeRunner.request("http://" + domain + "appserver.php" + url,
+		if(!domain.startsWith("http"))
+			domain="http://" + domain;
+		AsyncFoodSafeRunner.request(domain + "appserver.php" + url,
 				params, HTTP_METHOD, listener);
 	}
 
@@ -45,7 +46,7 @@ public class CampusAPI {
 			RequestListener listener) {
 		// request("?action=logincheck", params, HTTP_METHOD, listener);
 		AsyncFoodSafeRunner.request(
-				"http://laoshi.dandian.net/GetUserPwdIsRight.php", params,
+				"https://laoshi.dandian.net/GetUserPwdIsRight.php", params,
 				HTTP_METHOD, listener);
 	}
 	/**
@@ -58,7 +59,7 @@ public class CampusAPI {
 			RequestListener listener) {
 		// request("?action=logincheck", params, HTTP_METHOD, listener);
 		AsyncFoodSafeRunner.request(
-				"http://laoshi.dandian.net/BaiDuSdk_Input.php", params,
+				"https://laoshi.dandian.net/BaiDuSdk_Input.php", params,
 				HTTP_METHOD, listener);
 	}
 	/**
@@ -164,7 +165,7 @@ public class CampusAPI {
 		// requestData("?JSON=1&DATA="+user_code, params, HTTP_METHOD,
 		// listener);
 		AsyncFoodSafeRunner.request(
-				"http://laoshi.dandian.net/GetTeacherInfo.php?IsZip=1", params,
+				"https://laoshi.dandian.net/GetTeacherInfo.php?IsZip=1", params,
 				HTTP_METHOD, listener);
 	}
 	//最近一次聊天记录
@@ -210,7 +211,7 @@ public class CampusAPI {
 	 * @param listener
 	 */
 	public static void postGPS(CampusParameters params, RequestListener listener) {
-		String url = "http://laoshi.dandian.net/IOSLData_Input.php";
+		String url = "https://laoshi.dandian.net/IOSLData_Input.php";
 		AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
 	}
 	/**
@@ -293,7 +294,7 @@ public class CampusAPI {
 	 */
 	public static void getSchool(CampusParameters params,
 			RequestListener listener) {
-		String url = "http://laoshi.dandian.net/InterfaceStudent/XUESHENG.php";
+		String url = "https://laoshi.dandian.net/InterfaceStudent/XUESHENG.php";
 		AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
 	}
 
@@ -309,7 +310,7 @@ public class CampusAPI {
 	public static void getSchoolItem(CampusParameters params, String Interface,
 			RequestListener listener) {
 		if(Interface!=null) {
-			String url = "http://laoshi.dandian.net/InterfaceStudent/" + Interface;
+			String url = "https://laoshi.dandian.net/InterfaceStudent/" + Interface;
 			if (Interface.substring(0, 4).toLowerCase().equals("http"))
 				url = Interface;
 			AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
@@ -357,7 +358,7 @@ public class CampusAPI {
 	 */
 	public static void getDownloadSubject(CampusParameters params,
 			String Interface, RequestListener listener) {
-		String url = "http://laoshi.dandian.net/" + Interface;
+		String url = "https://laoshi.dandian.net/" + Interface;
 		AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
 	}
 
@@ -440,32 +441,32 @@ public class CampusAPI {
 	 */
 	public static void versionDetection(CampusParameters params,
 			RequestListener listener) {
-		String url = "http://laoshi.dandian.net/update.php";
+		String url = "https://laoshi.dandian.net/update.php";
 		AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
 	}
 	
 	public static void getAddressFromBaidu(double latitude, double longitude, RequestListener listener) {
-		String url = String.format("http://api.map.baidu.com/geocoder/v2/?ak=cR269G15Gov4OaRZ1Tko1Hu4&coordtype=wgs84ll&callback=renderReverse&location=%s,%s&output=json&pois=1", latitude, longitude);
+		String url = String.format("https://api.map.baidu.com/geocoder/v2/?ak=cR269G15Gov4OaRZ1Tko1Hu4&coordtype=wgs84ll&callback=renderReverse&location=%s,%s&output=json&pois=1", latitude, longitude);
 		AsyncFoodSafeRunner.request(url, new CampusParameters(), HTTP_METHOD2, listener);
 	}
 	
 	public static void getAlbumList(CampusParameters params,
 			RequestListener listener) {
 		AsyncFoodSafeRunner.request(
-				"http://laoshi.dandian.net/AlbumDownload.php", params,
+				"https://laoshi.dandian.net/AlbumDownload.php", params,
 				HTTP_METHOD, listener);
 	}
 	public static void getAlbumDetailList(CampusParameters params,
 			RequestListener listener) {
 		AsyncFoodSafeRunner.request(
-				"http://laoshi.dandian.net/AlbumDownloadDetail.php", params,
+				"https://laoshi.dandian.net/AlbumDownloadDetail.php", params,
 				HTTP_METHOD, listener);
 	}
 	public static void getMsgList(CampusParameters params,
 								   RequestListener listener) {
 		// request("?action=logincheck", params, HTTP_METHOD, listener);
 		AsyncFoodSafeRunner.request(
-				"http://laoshi.dandian.net/Baidu_Get_MSG_List.php", params,
+				"https://laoshi.dandian.net/Baidu_Get_MSG_List.php", params,
 				HTTP_METHOD, listener);
 	}
 	public static void httpPost(String Interface,JSONObject jsonParam, final Handler mHandler, final int completeCode)
@@ -494,7 +495,7 @@ public class CampusAPI {
 		}
 		String base64Str = Base64.encode(jo.toString().getBytes());
 		params.add(Constants.PARAMS_DATA, base64Str);
-		String url = "http://laoshi.dandian.net/InterfaceStudent/" + Interface;
+		String url = "https://laoshi.dandian.net/InterfaceStudent/" + Interface;
 		if(Interface.substring(0, 4).toLowerCase().equals("http"))
 			url=Interface;
 		RequestListener listener=new RequestListener() {

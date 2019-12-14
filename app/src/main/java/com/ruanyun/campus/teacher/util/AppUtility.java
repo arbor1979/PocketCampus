@@ -46,6 +46,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.SoundPool;
@@ -59,6 +60,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.os.RemoteException;
 import android.provider.Browser;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -965,7 +967,7 @@ public class AppUtility {
 		request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE|DownloadManager.Request.NETWORK_WIFI);
 		//request.setDestinationInExternalFilesDir(WebSiteActivity.this, null, "PacketCampus");
 		downloadManager.enqueue(request);
-		AppUtility.showToastMsg(context, "已开始后台下载..");
+		AppUtility.showToastMsg(context, "已开始后台下载，下载完成后将自动打开..",3000);
 	}
 	public static boolean isServiceRunning(Context context, String className) {
 		boolean isRunning = false;
@@ -1350,4 +1352,22 @@ public class AppUtility {
 			s=s.substring(0,s.length()-1);
 		return s;
 	}
+	public static float getSysConfigFontSize() {
+		Configuration mCurConfig = new Configuration();
+		try {
+			Class<?> activityManagerNative = Class.forName("android.app.ActivityManagerNative");
+			Object oam = activityManagerNative.getMethod("getDefault")
+					.invoke(activityManagerNative);
+			Object config =
+					oam.getClass().getMethod("getConfiguration")
+							.invoke(oam);
+			mCurConfig.updateFrom((Configuration) config);
+		} catch (Exception e) {
+			Log.w(TAG, "Unable to retrieve font size");
+		}
+		Log.w(TAG, "getFontSize(), Font size is " + mCurConfig.fontScale);
+		return mCurConfig.fontScale;
+
+	}
+
 }

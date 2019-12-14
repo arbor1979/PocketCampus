@@ -21,7 +21,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -29,14 +31,19 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AbsListView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.androidquery.AQuery;
+import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.R.drawable;
 import com.ruanyun.campus.teacher.activity.SchoolActivity;
@@ -53,14 +60,15 @@ import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.DialogUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
+import com.ruanyun.campus.teacher.widget.XListView;
 
 
 /**
  * 成绩
  */
-public class SchoolAchievementFragment extends Fragment {
+public class SchoolAchievementFragment extends Fragment implements XListView.IXListViewListener{
 	private String TAG = "SchoolAchievementFragment";
-	private ListView myListview;
+	private XListView myListview;
 	private Button btnLeft;
 	private TextView tvTitle,tvRight;
 	private LinearLayout lyLeft,lyRight;
@@ -75,6 +83,10 @@ public class SchoolAchievementFragment extends Fragment {
 	private List<Achievement> achievements = new ArrayList<Achievement>();
 	private Dialog dialog;
 	private Dialog userTypeDialog;
+	private boolean isLoading=false;
+	private int curpage=0;
+	private FloatingActionButton mFab;
+	private int mPreviousVisibleItem;
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
@@ -84,6 +96,8 @@ public class SchoolAchievementFragment extends Fragment {
 				AppUtility.showErrorToast(getActivity(), msg.obj.toString());
 				break;
 			case 0:
+				isLoading=false;
+				myListview.stopRefresh();
 				showProgress(false);
 				String result = msg.obj.toString();
 				String resultStr = "";
@@ -100,6 +114,12 @@ public class SchoolAchievementFragment extends Fragment {
 							achievementItem = new AchievementItem(jo);
 							Log.d(TAG, "--------noticesItem.getNotices().size():"
 									+ achievementItem.getAchievements().size());
+							if(achievementItem.getPage()>0 && achievementItem.getAchievements().size()<achievementItem.getAllnum()) {
+								myListview.setPullLoadEnable(true);
+								curpage=achievementItem.getPage();
+							}
+							else
+								myListview.setPullLoadEnable(false);
 							achievements = achievementItem.getAchievements();
 							adapter.notifyDataSetChanged();
 							tvTitle.setText(achievementItem.getTitle());
@@ -153,6 +173,11 @@ public class SchoolAchievementFragment extends Fragment {
 								tvRight.setVisibility(View.GONE);
 								lyRight.setOnClickListener(null);
 							}
+							if(achievementItem.getFilterArr()!=null && achievementItem.getFilterArr().length()>0) {
+								mFab.show();
+							}
+							else
+								mFab.hide();
 								
 						}
 					} 
@@ -181,7 +206,7 @@ public class SchoolAchievementFragment extends Fragment {
 						if(res.equals("成功"))
 						{
 							AppUtility.showToastMsg(getActivity(), jo.optString("msg"));
-							getAchievesItem();
+							getAchievesItem(false, curpage);
 						}
 						else {
 							String errmsg=res;
@@ -230,7 +255,7 @@ public class SchoolAchievementFragment extends Fragment {
 								getActivity().finish();
 							}
 							else
-								getAchievesItem();
+								getAchievesItem(false, curpage);
 						}
 						else
 							AppUtility.showToastMsg(getActivity(), "操作失败:"+res,1);
@@ -250,7 +275,7 @@ public class SchoolAchievementFragment extends Fragment {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (resultCode) { //resultCode为回传的标记，我在B中回传的是RESULT_OK
 		case 1:
-			getAchievesItem();
+			getAchievesItem(false,curpage);
 		    break;
 		default:
 		    break;
@@ -277,9 +302,9 @@ public class SchoolAchievementFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		this.inflater = inflater;
-		View view = inflater.inflate(R.layout.school_listview_fragment,
+		View view = inflater.inflate(R.layout.school_listview_fragment_pro,
 				container, false);
-		myListview = (ListView) view.findViewById(R.id.my_listview);
+		myListview = (XListView) view.findViewById(R.id.my_listview);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
 			AppUtility.setRootViewPadding(view);
 		btnLeft = (Button) view.findViewById(R.id.btn_left);
@@ -293,6 +318,10 @@ public class SchoolAchievementFragment extends Fragment {
 		emptyLayout = (LinearLayout) view.findViewById(R.id.empty);
 
 		myListview.setEmptyView(emptyLayout);
+		myListview.setPullRefreshEnable(true);
+		myListview.setPullLoadEnable(false);
+		myListview.setXListViewListener(this);
+		mFab = (FloatingActionButton) view.findViewById(R.id.fab);
 		btnLeft.setVisibility(View.VISIBLE);
 		btnLeft.setCompoundDrawablesWithIntrinsicBounds(
 				R.drawable.bg_btn_left_nor, 0, 0, 0);
@@ -311,10 +340,50 @@ public class SchoolAchievementFragment extends Fragment {
 
 			@Override
 			public void onClick(View v) {
-				getAchievesItem();
+				getAchievesItem(true,0);
 			}
 		});
-		getAchievesItem();
+
+		myListview.setOnScrollListener(new AbsListView.OnScrollListener() {
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+			}
+
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+				if (firstVisibleItem > mPreviousVisibleItem) {
+					mFab.hide();
+				} else if (firstVisibleItem < mPreviousVisibleItem && achievementItem!=null && achievementItem.getFilterArr()!=null && achievementItem.getFilterArr().length()>0)  {
+					mFab.show();
+				}
+				mPreviousVisibleItem = firstVisibleItem;
+			}
+		});
+
+		mFab.hide();
+		mFab.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				popFilterDlg();
+			}
+		});
+		myListview.setOnScrollListener(new AbsListView.OnScrollListener() {
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+			}
+
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+				if (firstVisibleItem > mPreviousVisibleItem) {
+					mFab.hide();
+				} else if (firstVisibleItem < mPreviousVisibleItem && achievementItem!=null && achievementItem.getFilterArr()!=null && achievementItem.getFilterArr().length()>0)  {
+					mFab.show();
+				}
+				mPreviousVisibleItem = firstVisibleItem;
+			}
+		});
+
+		getAchievesItem(true,0);
 		return view;
 	}
 
@@ -339,15 +408,27 @@ public class SchoolAchievementFragment extends Fragment {
 			failedLayout.setVisibility(View.GONE);
 		}
 	}
+	@Override
+	public void onRefresh() {
+		getAchievesItem(false,0);
+	}
 
+	@Override
+	public void onLoadMore() {
+		if(!isLoading)
+		{
+			if(achievementItem!=null && achievementItem.getPage()>0)
+				getAchievesItem(false,achievementItem.getPage()+1);
+		}
+	}
 	/**
 	 * 功能描述:获取通知内容
 	 * 
 	 * @author shengguo 2014-4-16 上午11:12:43
 	 * 
 	 */
-	public void getAchievesItem() {
-		showProgress(true);
+	public void getAchievesItem(boolean flag,int page) {
+		showProgress(flag);
 		Log.d(TAG, "--------" + String.valueOf(new Date().getTime()));
 		long datatime = System.currentTimeMillis();
 		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
@@ -357,6 +438,10 @@ public class SchoolAchievementFragment extends Fragment {
 		try {
 			jo.put("用户较验码", checkCode);
 			jo.put("DATETIME", datatime);
+			jo.put("version", CampusApplication.getVersion());
+			jo.put("page", page);
+			if(achievementItem!=null && achievementItem.getFilterArr()!=null)
+				jo.put("过滤条件",achievementItem.getFilterArr());
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 		}
@@ -727,5 +812,88 @@ public class SchoolAchievementFragment extends Fragment {
 		class ViewHolder {
 			TextView title;
 		}
+	}
+	private void popFilterDlg()
+	{
+		final LinearLayout layout=new LinearLayout(getActivity());
+		layout.setOrientation(LinearLayout.VERTICAL);
+		layout.setPadding(10,10,10,10);
+		for(int i=0;i<achievementItem.getFilterArr().length();i++)
+		{
+			JSONObject filterObj=achievementItem.getFilterArr().optJSONObject(i);
+			if(filterObj!=null)
+			{
+				if(filterObj.optString("类型").equals("文本框"))
+				{
+					final EditText et_billid=new EditText(getActivity());
+					et_billid.setContentDescription(filterObj.optString("标题"));
+					et_billid.setHint(filterObj.optString("标题"));
+					if(filterObj.optString("输入法").equals("数字"))
+						et_billid.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_SIGNED);
+					et_billid.setSingleLine();
+					et_billid.setText(filterObj.optString("值"));
+					layout.addView(et_billid);
+				}
+				else if(filterObj.optString("类型").equals("下拉框"))
+				{
+					Spinner sp_filter1 = new Spinner(getActivity());
+					sp_filter1.setContentDescription(filterObj.optString("标题"));
+					String[] mItems1 = new String[filterObj.optJSONArray("选项").length()];
+					int selection=0;
+					for (int j = 0; j < filterObj.optJSONArray("选项").length();j++) {
+						mItems1[j] = filterObj.optJSONArray("选项").optString(j);
+						if(filterObj.optString("值").equals(filterObj.optJSONArray("选项").optString(j)))
+							selection=j;
+					}
+					ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, mItems1);
+					adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+					sp_filter1.setAdapter(adapter);
+					sp_filter1.setSelection(selection);
+					layout.addView(sp_filter1);
+					sp_filter1.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,100));
+				}
+			}
+		}
+
+		new AlertDialog.Builder(getActivity()).setTitle("过滤条件").setView(layout)
+				.setPositiveButton("确定", new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+
+						for(int i=0;i<layout.getChildCount();i++)
+						{
+							View view=layout.getChildAt(i);
+							String key="";
+							String value="";
+							if(view instanceof EditText)
+							{
+								EditText editText=(EditText)view;
+								key= (String) editText.getContentDescription();
+								value=editText.getText().toString();
+							}
+							else if(view instanceof Spinner)
+							{
+								Spinner spinner=(Spinner)view;
+								key= (String) spinner.getContentDescription();
+								value=spinner.getSelectedItem().toString();
+							}
+							for(int j=0;j<achievementItem.getFilterArr().length();j++)
+							{
+								JSONObject item=achievementItem.getFilterArr().optJSONObject(j);
+								if(item.optString("标题").equals(key))
+								{
+									try {
+										item.put("值",value);
+									} catch (JSONException e) {
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+						getAchievesItem(true,0);
+					}
+				}).setNegativeButton("取消", null).show();
+
 	}
 }

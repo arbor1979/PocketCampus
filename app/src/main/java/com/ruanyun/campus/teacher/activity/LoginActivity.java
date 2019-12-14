@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -47,8 +48,10 @@ import android.view.Window;
 import android.view.WindowManager.LayoutParams;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
@@ -103,7 +106,7 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 	private AccountInfo lastLogin;
 	private String[] userTypes = new String[] { "老师","学生","家长","取消" };
 	private boolean flag1=false,flag2=false;
-	
+	private CheckBox cb_greet_xieyi;
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -258,6 +261,24 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 		String thisVersion = CampusApplication.getVersion();
 		TextView tv_copyright = (TextView) findViewById(R.id.tv_copyright);
 		tv_copyright.setText(tv_copyright.getText()+" v"+thisVersion);
+		cb_greet_xieyi=(CheckBox) findViewById(R.id.cb_greet_xieyi);
+		LinearLayout ll_xieyi=(LinearLayout) findViewById(R.id.ll_xieyi);
+		int ifgreet = PrefUtility.getInt(Constants.PREF_GREET_XIEYI, 0);
+		if(ifgreet==1)
+		{
+			ll_xieyi.setVisibility((View.GONE));
+		}
+		TextView tv_xieyi=(TextView) findViewById(R.id.tv_xieyi);
+		tv_xieyi.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
+		tv_xieyi.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Intent aboutusIntent = new Intent(LoginActivity.this,WebSiteActivity.class);
+				aboutusIntent.putExtra("url", CampusAPI.privateUrl);
+				aboutusIntent.putExtra("title", "隐私政策");
+				startActivity(aboutusIntent);
+			}
+		});
 	}
 
 	@SuppressWarnings("deprecation")
@@ -289,6 +310,10 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 				popupWindow.showAsDropDown(table_item);
 				login_choose.setImageResource(R.drawable.login_btn_bg_sel);
 			} else {
+				if(popupWindow.isShowing()) {
+					popupWindow.dismiss();
+					return;
+				}
 				adapter.notifyDataSetChanged();
 				popupWindow = new PopupWindow(listView, table_item.getWidth(),
 						LayoutParams.WRAP_CONTENT);
@@ -341,6 +366,12 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 	 */
 	@SuppressWarnings("deprecation")
 	private void doLogin() {
+		if(PrefUtility.getInt(Constants.PREF_GREET_XIEYI, 0)==0 && cb_greet_xieyi.isChecked()==false)
+		{
+			AppUtility.showErrorToast(LoginActivity.this,
+					"请先勾选隐私政策");
+			return;
+		}
 		mLoadingDialog.show();
 		String dataResult = "";
 		String baidu_userid = PrefUtility.get(Constants.PREF_BAIDU_USERID, "");
@@ -430,6 +461,7 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 							PrefUtility.put(Constants.PREF_SCHOOL_DOMAIN,user.getDomain());
 							PrefUtility.put(Constants.PREF_CHECK_HOSTID,user.getUserNumber());
 							PrefUtility.put(Constants.PREF_CHECK_USERTYPE,user.getUserType());
+							PrefUtility.put(Constants.PREF_GREET_XIEYI, 1);
 							String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");// 获取用户校验码
 							Log.d(TAG, "-------------checkCode"+ checkCode);
 							Log.d(TAG,"--------------->服务器返回校验码："+ user.getCheckCode());
@@ -535,6 +567,9 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		if (mLoadingDialog != null){
+			mLoadingDialog.dismiss();
+		}
 		if (database != null) {
 			OpenHelperManager.releaseHelper();
 			database = null;

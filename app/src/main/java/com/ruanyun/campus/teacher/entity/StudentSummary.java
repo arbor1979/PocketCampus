@@ -43,6 +43,9 @@ public class StudentSummary {
 	private String courseContent; // 授课内容
 	private String homework; // 作业布置
 	private String classroomSituation; // 课堂情况
+	private String shouduanStr;
+	private String pingtaiStr;
+	private String ziyuankuStr;
 	public String getTeacherkaoqin() {
 		return teacherkaoqin;
 	}
@@ -101,8 +104,23 @@ public class StudentSummary {
 		classroomSituation = jo.optString("课堂情况简要");
 		classroomDiscipline = jo.optString("课堂纪律");
 		classroomHealth = jo.optString("教室卫生");
+		shouduanStr=jo.optString("信息化手段");
+		pingtaiStr=jo.optString("教学平台");
+		ziyuankuStr=jo.optString("资源库课程库名称");
 	}
-	
+
+	public String getShouduanStr() {
+		return shouduanStr;
+	}
+
+	public String getPingtaiStr() {
+		return pingtaiStr;
+	}
+
+	public String getZiyuankuStr() {
+		return ziyuankuStr;
+	}
+
 	public List<ImageItem> getClassSiduationImages() {
 		return classSiduationImages;
 	}

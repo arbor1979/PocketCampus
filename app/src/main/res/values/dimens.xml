@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="head_layout_height">48.0dp</dimen>
@@ -39,4 +39,5 @@
     <dimen name="work_attendance_hight">210dip</dimen>
     <!-- contacts -->
     <dimen name="radio_button_conner_radius">5dp</dimen>
+    <dimen name="design_fab_size_mini" tools:ignore="PrivateResource">45dp</dimen>
 </resources>

@@ -6,7 +6,7 @@
     android:background="#e4f4ea"
     android:gravity="center"
     android:orientation="horizontal"
-    android:visibility="gone" >
+    android:visibility="gone">
 
     <ProgressBar
         style="@style/progress_bar_style"

@@ -35,6 +35,7 @@ import com.ruanyun.campus.teacher.entity.ContactsMember;
 import com.ruanyun.campus.teacher.fragment.ContactsSelectFragment;
 import com.ruanyun.campus.teacher.fragment.ContactsSelectSearchFragment;
 import com.ruanyun.campus.teacher.fragment.ContactsSelectSearchFragment.MyListener;
+import com.ruanyun.campus.teacher.fragment.SchoolQuestionnaireDetailFragment;
 import com.ruanyun.campus.teacher.fragment.StudentSelectFragment;
 import com.ruanyun.campus.teacher.util.DialogUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
@@ -100,7 +101,8 @@ public class StudentSelectActivity extends FragmentActivity implements MyListene
 		JSONObject subOptions=null;
 		JSONArray answers=null;
 		try {
-			subOptions=new JSONObject(getIntent().getStringExtra("子选项"));
+			//subOptions=new JSONObject(getIntent().getStringExtra("子选项"));
+			subOptions= SchoolQuestionnaireDetailFragment.multiListData;
 			answers=new JSONArray(getIntent().getStringExtra("用户答案"));
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -268,6 +270,7 @@ public class StudentSelectActivity extends FragmentActivity implements MyListene
 							try {
 								jo.put("id", item.getStudentID());
 								jo.put("name", item.getName());
+								jo.put("icon", item.getUserImage());
 							} catch (JSONException e) {
 								e.printStackTrace();
 							}

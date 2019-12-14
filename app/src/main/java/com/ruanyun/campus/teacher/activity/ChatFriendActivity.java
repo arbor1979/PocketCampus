@@ -279,16 +279,21 @@ public class ChatFriendActivity extends Activity implements OnItemClickListener 
 
 			final ChatFriend chatFriend = (ChatFriend) getItem(position);
 			holder.name.setText(chatFriend.getToname());
-			String lasttime = DateHelper.getDateString(
-					chatFriend.getLastTime(), "yyyy-MM-dd");
-			String nowdate = DateHelper.getDateString(new Date(), "yyyy-MM-dd");
-			if (nowdate.equals(lasttime)) {
-				holder.time.setText(DateHelper.getDateString(
-						chatFriend.getLastTime(), "HH:mm"));
-			} else {
-				holder.time.setText(DateHelper.getDateString(
-						chatFriend.getLastTime(), "MM-dd"));
+			String lasttime = "";
+			if(chatFriend.getLastTime()!=null) {
+				lasttime = DateHelper.getDateString(
+						chatFriend.getLastTime(), "yyyy-MM-dd");
+				String nowdate = DateHelper.getDateString(new Date(), "yyyy-MM-dd");
+				if (nowdate.equals(lasttime)) {
+					holder.time.setText(DateHelper.getDateString(
+							chatFriend.getLastTime(), "HH:mm"));
+				} else {
+					holder.time.setText(DateHelper.getDateString(
+							chatFriend.getLastTime(), "MM-dd"));
+				}
 			}
+			else
+				holder.time.setText(lasttime);
 			//显示带表情的字符串
 			SpannableString spannableString = ExpressionUtil
 					.getExpressionString(ChatFriendActivity.this, chatFriend

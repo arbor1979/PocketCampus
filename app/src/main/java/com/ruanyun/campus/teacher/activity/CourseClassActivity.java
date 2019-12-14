@@ -968,7 +968,7 @@ public class CourseClassActivity extends Activity {
 			if (!AppUtility.isNotEmpty(urlstr)) { // 地址为空
 				ischeck = false;
 			} else { // 地址不为空
-				if (urlstr.toLowerCase().indexOf("http://") <= -1
+				if (urlstr.toLowerCase().indexOf("http") <= -1
 						|| urlstr.indexOf(".") <= -1) { // 地址不正确
 					AppUtility.showToastMsg(CourseClassActivity.this,
 							"不完整的下载地址！");

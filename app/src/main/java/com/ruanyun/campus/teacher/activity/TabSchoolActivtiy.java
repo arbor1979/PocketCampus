@@ -75,7 +75,7 @@ public class TabSchoolActivtiy extends FragmentActivity {
 	private Dao<Notice, Integer> noticeInfoDao;
 	private DatabaseHelper database;
 	private User user;
-	private boolean isruning,needCount;
+	private boolean isruning;
 	private Timer timer; 
 	static LinearLayout layout_menu;
 	private Dao<User, Integer> userDao;
@@ -119,17 +119,7 @@ public class TabSchoolActivtiy extends FragmentActivity {
 							timer.schedule(new myTask(),0,10000);
 						}
 						*/
-							if(!user.getsStatus().equals("新生状态")) {
-								for (int i = 0; i < schoolWorkItems.size(); i++) {
-									SchoolWorkItem item = schoolWorkItems.get(i);
-									if (item.getTemplateName().equals("浏览器")) {
-										needCount = true;
-										break;
-									}
-								}
-								if (needCount)
-									getUnreadCount();
-							}
+							getUnreadCount();
 							for(SchoolWorkItem item:schoolWorkItems)
 							{
 								if(item.getTemplateName().equals("通知"))
@@ -179,6 +169,10 @@ public class TabSchoolActivtiy extends FragmentActivity {
 									Notice nt=noticeInfoDao.queryBuilder().where().eq("id",item.getId()).and().eq("newsType", item.getNewsType()).and().eq("userNumber",user.getUserNumber()).queryForFirst();
 									if(nt==null)
 										noticeInfoDao.create(item);
+									else {
+										nt.updateself(item);
+										noticeInfoDao.update(nt);
+									}
 								}
 								getUnreadByTitle(noticesItem.getTitle());
 
@@ -216,7 +210,7 @@ public class TabSchoolActivtiy extends FragmentActivity {
 							{
 								for(SchoolWorkItem item:schoolWorkItems)
 								{
-									if(item.getTemplateName().equals("浏览器"))
+									if(!item.getTemplateName().equals("通知"))
 										item.setUnread(jo.optInt(item.getWorkText()));
 
 								}
@@ -256,7 +250,8 @@ public class TabSchoolActivtiy extends FragmentActivity {
 		btnLeft.setVisibility(View.VISIBLE);
 		adapter=new SchoolWorkGroupAdapter(TabSchoolActivtiy.this, schoolWorkItems);
 		int screenWidth=AppUtility.getAndroiodScreenProperty(this);
-		int spancount= (int) Math.floor(screenWidth / 68);
+		float fontscale=AppUtility.getSysConfigFontSize();
+		int spancount= (int) Math.floor(screenWidth / (68*fontscale));
 		GridLayoutManager manager = new GridLayoutManager(this,spancount);
 		//设置header
 		manager.setSpanSizeLookup(new SectionedSpanSizeLookup(adapter,manager));
@@ -482,16 +477,25 @@ public class TabSchoolActivtiy extends FragmentActivity {
 		});
 	}
 
-	public void getUnreadCount() {
+	public void getUnreadCount() throws JSONException{
 
 
 		long datatime = System.currentTimeMillis();
 		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+		JSONObject funcObj=new JSONObject();
+		for(SchoolWorkItem item:schoolWorkItems) {
+			if(item.getIfShowCount().equals("是"))
+			{
+				String key=item.getWorkText();
+				funcObj.put(key,item.getInterfaceName());
+			}
 
+		}
 		JSONObject jo = new JSONObject();
 		try {
 			jo.put("用户较验码", checkCode);
 			jo.put("DATETIME", datatime);
+			jo.put("funcObj",funcObj);
 
 		} catch (JSONException e1) {
 			// TODO Auto-generated catch block

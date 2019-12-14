@@ -358,74 +358,53 @@ public class SummaryClassActivity extends Activity {
 			aq.id(R.id.ly_rb_1).visibility(View.GONE);
 			aq.id(R.id.ly_rb_2).visibility(View.GONE);
 
+			String rizhi_shouduan_str=PrefUtility.get(Constants.PREF_ALLOW_SCHOOL_RECORD_SUMMARYKEYS_STR, "");
+			String rizhi_pingtai_str=PrefUtility.get(Constants.PREF_ALLOW_SCHOOL_RECORDWORK_ATTENDANCEKEYS_STR, "");
+			String wanzixistr=PrefUtility.get(Constants.PREF_WANZIXI_JIECI, "");
+			boolean bwanzixi=false;
+			if(wanzixistr!=null && wanzixistr.length()>0)
+			{
+				String wanzixi[]=wanzixistr.split(",");
+				String jieci[]=teacherInfo.getSection().split("-");
+				for(String s: wanzixi){
+					if(s.equals(jieci[0])){
+						bwanzixi=true;
+						break;
+					}
+				}
+			}
 			try {
-				String rizhi_shouduan_str=PrefUtility.get(Constants.PREF_ALLOW_SCHOOL_RECORD_SUMMARYKEYS_STR, "");
-				String rizhi_pingtai_str=PrefUtility.get(Constants.PREF_ALLOW_SCHOOL_RECORDWORK_ATTENDANCEKEYS_STR, "");
-                String wanzixistr=PrefUtility.get(Constants.PREF_WANZIXI_JIECI, "");
-                boolean bwanzixi=false;
-                if(wanzixistr!=null && wanzixistr.length()>0)
-                {
-                    String wanzixi[]=wanzixistr.split(",");
-                    String jieci[]=teacherInfo.getSection().split("-");
-                    for(String s: wanzixi){
-                        if(s.equals(jieci[0])){
-                            bwanzixi=true;
-                            break;
-                        }
-                    }
-                }
-				if(rizhi_shouduan_str!=null && rizhi_shouduan_str.length()>2 && !bwanzixi)
-				{
+
+				if (rizhi_shouduan_str != null && rizhi_shouduan_str.length() > 2 && !bwanzixi) {
 					findViewById(R.id.tv_6).setVisibility(View.VISIBLE);
 					layout_rizhi_shouduan.setVisibility(View.VISIBLE);
 					layout_rizhi_shouduan.removeAllViews();
-					JSONArray ja=new JSONArray(rizhi_shouduan_str);
-					ArrayList<String> shouduancheckList=new ArrayList<String>();
-					if (teacherInfo != null && teacherInfo.getCompositeScoreText()!=null) {
-						String shouduancheck[]=teacherInfo.getCompositeScoreText().split(",");
-						for(String item : shouduancheck)
-						{
-							if(item.length()>0)
-								shouduancheckList.add(item);
-						}
-					}
+					JSONArray ja = new JSONArray(rizhi_shouduan_str);
 
-					for(int i=0;i<ja.length();i++)
-					{
-						String item=ja.getString(i);
 
-						if(item.equals("其它") || item.equals("其他"))
-						{
-							EditText et=new EditText(this);
+					for (int i = 0; i < ja.length(); i++) {
+						String item = ja.getString(i);
+
+						if (item.equals("其它") || item.equals("其他")) {
+							EditText et = new EditText(this);
 							et.setHint(item);
 							et.setBackground(getResources().getDrawable(R.drawable.summary_bg));
 							et.setTextSize(16);
 							et.setEms(10);
 							et.setSingleLine(true);
 							layout_rizhi_shouduan.addView(et);
-							et.setPadding(5,5,5,5);
-							String leftstr="";
-							for(int m=0;m<shouduancheckList.size();m++) {
-								leftstr+=shouduancheckList.get(m);
-							}
-							et.setText(leftstr);
-                            et.clearFocus();
-						}
-						else
-						{
-							CheckBox cb=new CheckBox(this);
+							et.setPadding(5, 5, 5, 5);
+
+						} else {
+							CheckBox cb = new CheckBox(this);
 							cb.setText(item);
 							layout_rizhi_shouduan.addView(cb);
-							if(shouduancheckList.contains(item)) {
-								cb.setChecked(true);
-								shouduancheckList.remove(item);
-							}
+
 							cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 								@Override
 								public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-									if(buttonView.isChecked() && buttonView.getText().equals("无"))
-									{
-										for(int m=0;m<layout_rizhi_shouduan.getChildCount();m++) {
+									if (buttonView.isChecked() && buttonView.getText().equals("无")) {
+										for (int m = 0; m < layout_rizhi_shouduan.getChildCount(); m++) {
 											View v = layout_rizhi_shouduan.getChildAt(m);
 											if (v instanceof CheckBox) {
 												CheckBox cb = (CheckBox) v;
@@ -434,9 +413,8 @@ public class SummaryClassActivity extends Activity {
 											}
 										}
 									}
-									if(buttonView.isChecked() && !buttonView.getText().equals("无"))
-									{
-										for(int m=0;m<layout_rizhi_shouduan.getChildCount();m++) {
+									if (buttonView.isChecked() && !buttonView.getText().equals("无")) {
+										for (int m = 0; m < layout_rizhi_shouduan.getChildCount(); m++) {
 											View v = layout_rizhi_shouduan.getChildAt(m);
 											if (v instanceof CheckBox) {
 												CheckBox cb = (CheckBox) v;
@@ -449,8 +427,7 @@ public class SummaryClassActivity extends Activity {
 							});
 						}
 					}
-				}
-				else {
+				} else {
 					layout_rizhi_shouduan.setVisibility(View.GONE);
 					findViewById(R.id.tv_6).setVisibility(View.GONE);
 				}
@@ -460,23 +437,14 @@ public class SummaryClassActivity extends Activity {
 					layout_rizhi_pingtai.setVisibility(View.VISIBLE);
 					layout_rizhi_pingtai.removeAllViews();
 					JSONArray ja=new JSONArray(rizhi_pingtai_str);
-					ArrayList<String> pingtaicheckList=new ArrayList<String>();
-					if (teacherInfo != null && teacherInfo.getCompositeScoreValue()!=null) {
-						String[] pingtaicheck=teacherInfo.getCompositeScoreValue().split(",");
-						for(String item : pingtaicheck)
-						{
-							if(item.length()>0)
-								pingtaicheckList.add(item);
-						}
-					}
+
 					for(int i=0;i<ja.length();i++)
 					{
 						String item=ja.getString(i);
 						CheckBox cb=new CheckBox(this);
 						cb.setText(item);
 						layout_rizhi_pingtai.addView(cb);
-						if(pingtaicheckList.contains(item))
-							cb.setChecked(true);
+
 						cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 							@Override
 							public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -514,37 +482,16 @@ public class SummaryClassActivity extends Activity {
 					et.clearFocus();
 					layout_rizhi_pingtai.addView(et);
 					et.setPadding(5,5,5,5);
-					if (teacherInfo != null && teacherInfo.getBeginTime()!=null)
-						et.setText(teacherInfo.getBeginTime());
+
 				}
 				else
 				{
 					layout_rizhi_pingtai.setVisibility(View.GONE);
 					findViewById(R.id.tv_7).setVisibility(View.GONE);
 				}
-				fillData();
-				if(AppUtility.isNotEmpty(teacherInfo.getShouldTime()) && AppUtility.isNotEmpty(teacherInfo.getLatestTime()))
-				{
-					Date dt_begin=DateHelper.getStringDate(teacherInfo.getShouldTime(),"yyyy-MM-dd 00:00:00");
-					Date dt_end=DateHelper.getStringDate(teacherInfo.getLatestTime(),"yyyy-MM-dd 23:59:59");
-					Date dt_now=new Date();
-					if(dt_now.getTime()>=dt_begin.getTime() && dt_now.getTime()<=dt_end.getTime())
-					{
-
-					}
-					else
-					{
-						AppUtility.showToastMsg(this, "请在"+teacherInfo.getShouldTime()+"至"+teacherInfo.getLatestTime()+"内填写",1);
-						aq.id(R.id.layout_btn_right).visibility(View.GONE);
-						et1.setEnabled(false);
-						et2.setEnabled(false);
-						et3.setEnabled(false);
-					}
-
-				}
-
-			} catch (Exception e) {
-				e.printStackTrace();
+			}
+			catch (Exception e) {
+					e.printStackTrace();
 			}
 		} else {
 			myGridView1.setVisibility(View.GONE);
@@ -606,6 +553,89 @@ public class SummaryClassActivity extends Activity {
 				group_health.check(R.id.group2_bn2);
 			}
 
+			ArrayList<String> shouduancheckList = new ArrayList<String>();
+			if (teacherInfo != null && teacherInfo.getCompositeScoreText() != null) {
+				String shouduancheck[] = teacherInfo.getCompositeScoreText().split(",");
+				for (String item : shouduancheck) {
+					if (item.length() > 0)
+						shouduancheckList.add(item);
+				}
+			}
+			if(shouduancheckList.size()>0) {
+				for (int m = 0; m < layout_rizhi_shouduan.getChildCount(); m++) {
+					View v = layout_rizhi_shouduan.getChildAt(m);
+					if (v instanceof CheckBox) {
+						CheckBox cb = (CheckBox) v;
+						if (shouduancheckList.contains(cb.getText())) {
+							cb.setChecked(true);
+							shouduancheckList.remove(cb.getText());
+						}
+						else
+							cb.setChecked(false);
+					}
+				}
+				for (int m = 0; m < layout_rizhi_shouduan.getChildCount(); m++) {
+					View v = layout_rizhi_shouduan.getChildAt(m);
+					if (v instanceof EditText) {
+						EditText cb = (EditText) v;
+						cb.setText("");
+						if(shouduancheckList.size()>0)
+							cb.setText(shouduancheckList.get(0));
+					}
+				}
+			}
+			ArrayList<String> pingtaicheckList=new ArrayList<String>();
+			if (teacherInfo != null && teacherInfo.getCompositeScoreValue()!=null) {
+				String[] pingtaicheck=teacherInfo.getCompositeScoreValue().split(",");
+				for(String item : pingtaicheck)
+				{
+					if(item.length()>0)
+						pingtaicheckList.add(item);
+				}
+			}
+			for(int m=0;m<layout_rizhi_pingtai.getChildCount();m++) {
+				View v = layout_rizhi_pingtai.getChildAt(m);
+				if (v instanceof CheckBox) {
+					CheckBox cb = (CheckBox) v;
+					if (pingtaicheckList.contains(cb.getText())) {
+						cb.setChecked(true);
+					}
+					else
+						cb.setChecked(false);
+				}
+				else if(v instanceof EditText)
+				{
+					EditText cb = (EditText) v;
+					cb.setText(teacherInfo.getBeginTime());
+				}
+			}
+
+			if(AppUtility.isNotEmpty(teacherInfo.getShouldTime()) && AppUtility.isNotEmpty(teacherInfo.getLatestTime()))
+			{
+				String begintimeStr=teacherInfo.getShouldTime();
+				String endtimeStr=teacherInfo.getLatestTime();
+				if (begintimeStr.length()==10)
+					begintimeStr=begintimeStr+" 00:00:00";
+				if (endtimeStr.length()==10)
+					endtimeStr=endtimeStr+" 23:59:59";
+
+				Date dt_begin=DateHelper.getStringDate(begintimeStr,"");
+				Date dt_end=DateHelper.getStringDate(endtimeStr,"");
+				Date dt_now=new Date();
+				if(dt_now.getTime()>=dt_begin.getTime() && dt_now.getTime()<=dt_end.getTime())
+				{
+
+				}
+				else
+				{
+					AppUtility.showToastMsg(this, "请在"+teacherInfo.getShouldTime()+"至"+teacherInfo.getLatestTime()+"内填写",1);
+					aq.id(R.id.layout_btn_right).visibility(View.GONE);
+					et1.setEnabled(false);
+					et2.setEnabled(false);
+					et3.setEnabled(false);
+				}
+
+			}
 
 		}
 	}
@@ -1111,6 +1141,9 @@ public class SummaryClassActivity extends Activity {
 		teacherInfo.setCourseContent(studentSummary.getCourseContent());
 		teacherInfo.setHomework(studentSummary.getHomework());
 		teacherInfo.setClassroomSituation(studentSummary.getClassroomSituation());
+		teacherInfo.setCompositeScoreText(studentSummary.getShouduanStr());
+		teacherInfo.setCompositeScoreValue(studentSummary.getPingtaiStr());
+		teacherInfo.setBeginTime(studentSummary.getZiyuankuStr());
 		try {
 			teacherInfoDao.update(teacherInfo);
 		} catch (SQLException e) {

@@ -31,6 +31,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -69,6 +70,10 @@ import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.androidquery.AQuery;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
 import com.ruanyun.campus.teacher.BuildConfig;
 import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
@@ -79,6 +84,7 @@ import com.ruanyun.campus.teacher.activity.ImagesActivity;
 import com.ruanyun.campus.teacher.activity.SchoolDetailActivity;
 import com.ruanyun.campus.teacher.activity.StudentSelectActivity;
 import com.ruanyun.campus.teacher.adapter.ListOfBillAdapter;
+import com.ruanyun.campus.teacher.adapter.ListViewImageAdapter;
 import com.ruanyun.campus.teacher.adapter.MyPictureAdapter;
 import com.ruanyun.campus.teacher.api.CampusAPI;
 import com.ruanyun.campus.teacher.api.CampusException;
@@ -128,6 +134,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	//private int size = 5;//已提交图片数量;size:图片最大数量
 	private int curIndex;
 	private ProgressDialog progressDlg;
+	public static JSONObject multiListData=new JSONObject();
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
 		@SuppressLint("NewApi")
@@ -430,7 +437,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				R.drawable.bg_btn_left_nor, 0, 0, 0);
 		tvRight.setText("保存");
 		tvTitle.setText(title);
-		
+
 		adapter = new QuestionAdapter();
 		myListview.setAdapter(adapter);
 		getPictureDiaLog = new Dialog(getActivity(), R.style.dialog);
@@ -465,6 +472,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			}
 		});
 		((SchoolDetailActivity)getActivity()).callBack=callBack;
+
 		return view;
 	}
 
@@ -1907,7 +1915,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.sp_select.setVisibility(View.GONE);
 				holder.sp_select1.setVisibility(View.GONE);
 				holder.sp_select2.setVisibility(View.GONE);
-				SimpleAdapter fujianAdapter=setupPopMutiAdpter(question);
+				ListViewImageAdapter fujianAdapter=setupPopMutiAdpter(question);
 				holder.multipleChoice.setAdapter(fujianAdapter);
 				holder.multipleChoice.setTag(position);
 				boolean bflag=false;
@@ -1955,7 +1963,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 							{
 								Intent intent = new Intent(getActivity(), StudentSelectActivity.class);
 								intent.putExtra("选项",question.getOptions());
-								intent.putExtra("子选项",question.getSubOptions().toString());
+								//intent.putExtra("子选项",question.getSubOptions().toString());
+								multiListData=question.getSubOptions();
 								intent.putExtra("用户答案",question.getFujianArray().toString());
 								intent.putExtra("curIndex",curIndex);
 								startActivityForResult(intent,REQUEST_CODE_SelectMuti);
@@ -2102,7 +2111,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
                 new String[]{"name"}, new int[]{R.id.item_textView});
 		return fujianAdapter;
 	}
-	private SimpleAdapter setupPopMutiAdpter(Question question)
+	private ListViewImageAdapter setupPopMutiAdpter(Question question)
 	{
 		final ArrayList<HashMap<String, Object>> arrayList = new ArrayList<HashMap<String,Object>>();
 		for(int i=0;i<question.getFujianArray().length();i++){
@@ -2117,18 +2126,19 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			{
 				HashMap<String, Object> tempHashMap = new HashMap<String, Object>();
 				tempHashMap.put("name", item.optString("name"));
+				tempHashMap.put("icon",item.optString("icon") );
 				tempHashMap.put("id", item.optString("id"));
 				arrayList.add(tempHashMap);
 			}
 
 		}
 		HashMap<String, Object> tempHashMap = new HashMap<String, Object>();
+		tempHashMap.put("icon", "add");
 		tempHashMap.put("name", "弹出多选");
 		tempHashMap.put("id", "");
 		arrayList.add(tempHashMap);
 
-		SimpleAdapter fujianAdapter = new SimpleAdapter(getActivity(), arrayList, R.layout.list_item_simple,
-				new String[]{"name"}, new int[]{R.id.item_textView});
+		ListViewImageAdapter fujianAdapter = new ListViewImageAdapter(getActivity(), arrayList);
 		return fujianAdapter;
 	}
 	private ListOfBillAdapter setupPeiJianAdpter(Question question,int position)

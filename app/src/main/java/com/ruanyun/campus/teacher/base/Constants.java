@@ -32,6 +32,8 @@ public class Constants {
 	 * 用户校验码
 	 */
 	public static final String PREF_CHECK_CODE = "pref.check_code";
+	//是否同意协议
+	public static final String PREF_GREET_XIEYI = "pref.greet_xieyi";
 	/**
 	 * 用户唯一码
 	 */

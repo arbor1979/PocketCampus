@@ -283,7 +283,6 @@ public class TabHostActivity extends TabActivity   {
 		PushAgent.getInstance(context).onAppStart();
 		
 		iniImageLoader();
-		isIntoBack=true;
 		//判断用户是否第一次运行
 		boolean checkrun = PrefUtility.getBoolean(Constants.PREF_CHECK_RUN,
 		 false);
@@ -345,7 +344,10 @@ public class TabHostActivity extends TabActivity   {
 			View nearBtn = mainTab.findViewById(R.id.bottom_tab_work);
 			nearBtn.setSelected(true);
 		}
-
+		Intent intent = new Intent(AppUtility.getContext(), Alarmreceiver.class);
+		intent.setAction("getMsgList");
+		sendBroadcast(intent);
+		getAlbumUnreadCount();
 		Log.d(TAG,"生命周期:onCreate");
 	}
 

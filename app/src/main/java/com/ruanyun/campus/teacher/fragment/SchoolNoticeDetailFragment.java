@@ -260,6 +260,7 @@ public class SchoolNoticeDetailFragment extends Fragment {
 		if(getActivity()!=null) {
 			Spanned spanned = Html.fromHtml(content, new MyImageGetter(getActivity(), contentview), new MyTagHandler(getActivity()));
 			contentview.setText(spanned);
+
 		}
 		contentview.setAutoLinkMask(0);
 		contentview.setMovementMethod(LinkMovementMethod.getInstance());

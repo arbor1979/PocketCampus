@@ -31,10 +31,12 @@ import com.androidquery.AQuery;
 import com.androidquery.callback.ImageOptions;
 import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
+import com.ruanyun.campus.teacher.activity.ShowPersonInfo;
 import com.ruanyun.campus.teacher.entity.ContactsFriends;
 import com.ruanyun.campus.teacher.entity.ContactsMember;
 import com.ruanyun.campus.teacher.entity.User;
 import com.ruanyun.campus.teacher.util.AppUtility;
+import com.ruanyun.campus.teacher.util.DialogUtility;
 import com.ruanyun.campus.teacher.util.ExpressionUtil;
 
 import org.json.JSONArray;
@@ -230,6 +232,14 @@ public class StudentSelectFragment extends Fragment {
 					options.round = 20;
 					options.fallback = R.drawable.ic_launcher;
 					aq.id(holder.photo).image(url, options);
+					aq.id(holder.photo).clicked(new OnClickListener(){
+
+						@Override
+						public void onClick(View v) {
+							DialogUtility.showImageDialog(getActivity(),contactsMember.getUserImage());
+						}
+
+					});
 					holder.name.setText(contactsMember.getName().trim());
 					holder.group.setOnClickListener(new OnClickListener() {
 	
