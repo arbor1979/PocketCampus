@@ -177,6 +177,7 @@ public class AchievementDetail {
 
 		private String kechengId;
 		private String teacherUsername;
+		private String rightbgcolor;
 		public double getLat() {
 			return lat;
 		}
@@ -208,9 +209,19 @@ public class AchievementDetail {
 		{
 			
 		}
+
+		public String getRightbgcolor() {
+			return rightbgcolor;
+		}
+
+		public void setRightbgcolor(String rightbgcolor) {
+			this.rightbgcolor = rightbgcolor;
+		}
+
 		public Achievement(JSONObject jo) {
 			subject = jo.optString("左边");
 			fraction = jo.optString("右边");
+			rightbgcolor= jo.optString("右边颜色");
 			lat=jo.optDouble("lat");
 			lon=jo.optDouble("lon");
 			hiddenBtn=jo.optString("隐藏按钮");

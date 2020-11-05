@@ -35,6 +35,7 @@ public class QuestionnaireList implements Serializable {
 	private String status;
 	private String autoClose;
 	private String needLocation;
+	private String savebtn;
 	public String getAutoClose() {
 		return autoClose;
 	}
@@ -55,11 +56,20 @@ public class QuestionnaireList implements Serializable {
 		this.needLocation = needLocation;
 	}
 
+	public String getSavebtn() {
+		return savebtn;
+	}
+
+	public void setSavebtn(String savebtn) {
+		this.savebtn = savebtn;
+	}
+
 	public QuestionnaireList(JSONObject jo) {
 		title = jo.optString("标题显示");
 		submitTo = jo.optString("提交地址");
 		status = jo.optString("调查问卷状态");
 		autoClose=jo.optString("自动关闭");
+		savebtn=jo.optString("右上按钮");
 		needLocation=jo.optString("GPS定位");
 		questions = new ArrayList<Question>();
 		JSONArray joq = jo.optJSONArray("调查问卷数值");

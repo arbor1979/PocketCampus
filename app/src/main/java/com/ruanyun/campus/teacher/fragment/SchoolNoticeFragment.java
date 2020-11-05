@@ -238,7 +238,8 @@ public class SchoolNoticeFragment extends Fragment implements IXListViewListener
     private class clearNoticeListener implements DialogInterface.OnClickListener{  
         
 		@Override  
-        public void onClick(DialogInterface dialog, int which) {  
+        public void onClick(DialogInterface dialog, int which) {
+			String idstr="";
         	try {
         		
         		
@@ -247,15 +248,21 @@ public class SchoolNoticeFragment extends Fragment implements IXListViewListener
 				{
 					item.setIfread("1");
 					noticeInfoDao.update(item);
+					if(idstr.length()==0)
+						idstr=String.valueOf(item.getId());
+					else
+						idstr+=","+String.valueOf(item.getId());
 				}
 				getNoticesList();
+
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
         	Intent intent = new Intent("refreshUnread");
 			intent.putExtra("title", title);
 			getActivity().sendBroadcast(intent);
-        	
+			if(idstr.length()>0)
+				updateOANewsIfRead(idstr);
         	
         }  
     } 
@@ -414,7 +421,7 @@ public class SchoolNoticeFragment extends Fragment implements IXListViewListener
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						updateOANewsIfRead(notice.getId());
+						updateOANewsIfRead(String.valueOf(notice.getId()));
 					}
 					Intent intent = new Intent("refreshUnread");
 					intent.putExtra("title", notice.getNewsType());
@@ -445,7 +452,7 @@ public class SchoolNoticeFragment extends Fragment implements IXListViewListener
 		// TODO Auto-generated method stub
 		
 	}
-	public void updateOANewsIfRead(int news_id)
+	public void updateOANewsIfRead(String news_id)
 	{
 		long datatime = System.currentTimeMillis();
 		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");

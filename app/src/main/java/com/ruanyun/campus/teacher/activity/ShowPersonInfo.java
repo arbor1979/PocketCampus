@@ -310,7 +310,12 @@ public class ShowPersonInfo extends Activity {
 			map.put("title", "学号");
 			map.put("info", memberInfo.getStudentID());
 			list.add(map);
-			
+
+			map = new HashMap<String, Object>();
+			map.put("title", "学生状态");
+			map.put("info", memberInfo.getStuStatus());
+			list.add(map);
+
 			map = new HashMap<String, Object>();
 			map.put("title", "班级");
 			map.put("info", memberInfo.getClassName());

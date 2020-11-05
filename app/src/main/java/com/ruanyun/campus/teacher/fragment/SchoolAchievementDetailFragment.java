@@ -557,6 +557,10 @@ public class SchoolAchievementDetailFragment extends Fragment {
 			final Achievement achievement = (Achievement) getItem(position);
 			holder.left.setText(achievement.getSubject());
 			holder.right.setText(achievement.getFraction());
+			if(achievement.getRightbgcolor().length()>0)
+				holder.celllayout.setBackgroundColor(Color.parseColor(achievement.getRightbgcolor()));
+			else
+				holder.celllayout.setBackgroundColor(Color.TRANSPARENT);
 			holder.right.setVisibility(View.VISIBLE);
 			
 			Pattern pattern = Pattern.compile("^((13[0-9])|(15[^4])|(18[0,2,3,5-9])|(17[0-8])|(147))\\d{8}$");

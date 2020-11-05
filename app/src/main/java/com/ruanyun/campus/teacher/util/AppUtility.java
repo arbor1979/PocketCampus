@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -66,6 +67,7 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.util.DisplayMetrics;
@@ -1014,7 +1016,8 @@ public class AppUtility {
 			}
 			else
 			{
-				downloadUrl(mUrl, file, widget.getContext());
+				if(AppUtility.checkPermission((Activity)widget.getContext(),7,Manifest.permission.READ_EXTERNAL_STORAGE))
+					downloadUrl(mUrl, file, widget.getContext());
 			}
 		}
 	}
@@ -1370,4 +1373,22 @@ public class AppUtility {
 
 	}
 
+	public static void  setHuaweiXiaomiBadge(Context context,int number)
+	{
+		if (Build.MANUFACTURER.equalsIgnoreCase("HUAWEI")) {
+			try {
+				String launcherClassName = "com.ruanyun.campus.teacher.activity.TabHostActivity";//启动的Activity完整名称
+				Bundle localBundle = new Bundle();//需要存储的数据
+				localBundle.putString("package", context.getPackageName());//包名
+				localBundle.putString("class", launcherClassName);
+				localBundle.putInt("badgenumber", number);//未读信息条数
+				context.getContentResolver().call(
+						Uri.parse("content://com.huawei.android.launcher.settings/badge/"),
+						"change badge", null, localBundle);
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
 }

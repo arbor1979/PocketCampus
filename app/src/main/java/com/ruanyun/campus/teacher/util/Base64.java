@@ -144,6 +144,10 @@ public class Base64 {
 	public static String safeUrlbase64dec(String base64str) {
 		base64str=base64str.replace("-","+");
 		base64str=base64str.replace("_","/");
+		int mod4 = base64str.length() % 4;
+		if (mod4>0) {
+			base64str+= "====".substring(mod4);
+		}
 		return base64str;
 	}
 }

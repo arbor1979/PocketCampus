@@ -251,7 +251,7 @@ public class TabSchoolActivtiy extends FragmentActivity {
 		adapter=new SchoolWorkGroupAdapter(TabSchoolActivtiy.this, schoolWorkItems);
 		int screenWidth=AppUtility.getAndroiodScreenProperty(this);
 		float fontscale=AppUtility.getSysConfigFontSize();
-		int spancount= (int) Math.floor(screenWidth / (68*fontscale));
+		int spancount= (int) Math.floor(screenWidth / (70*fontscale));
 		GridLayoutManager manager = new GridLayoutManager(this,spancount);
 		//设置header
 		manager.setSpanSizeLookup(new SectionedSpanSizeLookup(adapter,manager));

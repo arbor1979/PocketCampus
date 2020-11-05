@@ -584,6 +584,10 @@ public class CallClassActivity extends Activity {
 					drawable=getResources().getDrawable(R.drawable.class_call_chat);
 				else if(workAttendArray[m].equals("看课外书"))
 					drawable=getResources().getDrawable(R.drawable.class_call_read);
+				else if(workAttendArray[m].equals("体温正常"))
+					drawable=getResources().getDrawable(R.drawable.class_call_health);
+				else if(workAttendArray[m].equals("体温异常"))
+					drawable=getResources().getDrawable(R.drawable.class_call_fever);
 				else
 				{
 					if(usedIcon.size()>0 && usedIcon.get(0)!=null)
@@ -730,6 +734,44 @@ public class CallClassActivity extends Activity {
 										rdbtn.setChecked(false);
 								}
 								obj.put(jieci, chuqin);
+							}
+							else if(chuqin.endsWith("体温正常"))
+							{
+								for(int m=0;m<parentView.getChildCount();m++)
+								{
+									CheckBox rdbtn=(CheckBox)parentView.getChildAt(m);
+									String itemText=rdbtn.getText().toString();
+									if(itemText.equals("体温异常") || itemText.endsWith("缺勤") || itemText.endsWith("缺课") || itemText.endsWith("旷课")) {
+										rdbtn.setChecked(false);
+										String newChuqin=obj.get(jieci).toString().replace(itemText+",","");
+										newChuqin=newChuqin.replace(","+itemText,"");
+										newChuqin=newChuqin.replace(itemText,"");
+										obj.put(jieci, newChuqin);
+									}
+								}
+								if(obj.get(jieci).equals(""))
+									obj.put(jieci, chuqin);
+								else
+									obj.put(jieci, obj.get(jieci)+","+chuqin);
+							}
+							else if(chuqin.endsWith("体温异常"))
+							{
+								for(int m=0;m<parentView.getChildCount();m++)
+								{
+									CheckBox rdbtn=(CheckBox)parentView.getChildAt(m);
+									String itemText=rdbtn.getText().toString();
+									if(itemText.equals("体温正常") || itemText.endsWith("缺勤") || itemText.endsWith("缺课") || itemText.endsWith("旷课")) {
+										rdbtn.setChecked(false);
+										String newChuqin=obj.get(jieci).toString().replace(itemText+",","");
+										newChuqin=newChuqin.replace(","+itemText,"");
+										newChuqin=newChuqin.replace(itemText,"");
+										obj.put(jieci, newChuqin);
+									}
+								}
+								if(obj.get(jieci).equals(""))
+									obj.put(jieci, chuqin);
+								else
+									obj.put(jieci, obj.get(jieci)+","+chuqin);
 							}
 							else
 							{
@@ -910,7 +952,8 @@ public class CallClassActivity extends Activity {
 			Bundle bundle = new Bundle();
 			switch (msg.what) {
 			case -1:
-				mLoadingDialog.dismiss();
+				if(mLoadingDialog!=null)
+					mLoadingDialog.dismiss();
 				AppUtility.showErrorToast(CallClassActivity.this, msg.obj.toString());
 				break;
 			case 0:

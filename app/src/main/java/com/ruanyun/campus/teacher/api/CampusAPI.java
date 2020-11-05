@@ -51,7 +51,7 @@ public class CampusAPI {
 	}
 	/**
 	 * 用户提交设备信息及百度ID
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -64,7 +64,7 @@ public class CampusAPI {
 	}
 	/**
 	 * 返回用户所有信息,根据周次获取用户上课记录
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -81,9 +81,9 @@ public class CampusAPI {
 
 	/***
 	 * 功能描述:修改意见反馈信息
-	 * 
+	 *
 	 * @author linrr 2013-12-16 下午2:11:20
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -96,9 +96,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:班级通知信息
-	 * 
+	 *
 	 * @author linrr 2013-12-17 上午10:22:03
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -111,9 +111,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:上传文件
-	 * 
+	 *
 	 * @author linrr 2013-12-17 上午10:23:00
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -123,7 +123,7 @@ public class CampusAPI {
 				"http://laoshi.dandian.net/upload.php?action=base64", params,
 				HTTP_METHOD, listener);
 	}
-	
+
 	public static void uploadFilesNoBase64(CampusParameters params,
 			RequestListener listener) {
 		AsyncFoodSafeRunner.request(
@@ -132,9 +132,9 @@ public class CampusAPI {
 	}
 	/**
 	 * 功能描述:修改学生考勤信息
-	 * 
+	 *
 	 * @author yanzy 2013-12-4 上午9:47:08
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -146,9 +146,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:加载学生头像
-	 * 
+	 *
 	 * @author yanzy 2013-12-9 上午10:09:57
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -180,9 +180,9 @@ public class CampusAPI {
 	}
 	/**
 	 * 功能描述: 聊天发送消息
-	 * 
+	 *
 	 * @author yanzy 2013-12-16 上午10:02:20
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -192,9 +192,9 @@ public class CampusAPI {
 	}
 	/**
 	 * 功能描述: 聊天更新已读状态
-	 * 
+	 *
 	 * @author QiaoLin 2014-7-9 下午22:36:20
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -204,9 +204,9 @@ public class CampusAPI {
 	}
 	/**
 	 * 功能描述: 聊天更新已读状态
-	 * 
+	 *
 	 * @author QiaoLin 2014-7-14 下午14:21:20
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -216,9 +216,9 @@ public class CampusAPI {
 	}
 	/**
 	 * 功能描述:下载聊天记录
-	 * 
+	 *
 	 * @author yanzy 2013-12-23 下午5:15:56
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -230,9 +230,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:提交已经下载课件的数据
-	 * 
+	 *
 	 * @author zhuliang 2013-12-24 上午11:18:05
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -244,9 +244,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:提交删除下载文件的数据
-	 * 
+	 *
 	 * @author zhuliang 2013-12-24 上午11:18:23
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -258,9 +258,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:获取最后一条聊天记录
-	 * 
+	 *
 	 * @author yanzy 2013-12-23 下午5:16:09
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -285,9 +285,9 @@ public class CampusAPI {
 	// }
 	/**
 	 * 功能描述:获取校内内容项
-	 * 
+	 *
 	 * @author shengguo 2014-4-14 下午5:25:18
-	 * 
+	 *
 	 * @param params
 	 *            datetime //:1397112337 用户校验码
 	 * @param listener
@@ -298,11 +298,17 @@ public class CampusAPI {
 		AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
 	}
 
+	public static void trickAccessLog(CampusParameters params,
+								 RequestListener listener) {
+		String url = "https://laoshi.dandian.net/InterfaceStudent/trickAccessLog.php";
+		AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
+	}
+
 	/**
 	 * 功能描述:获取校内详情列表
-	 * 
+	 *
 	 * @author shengguo 2014-4-26 上午10:07:12
-	 * 
+	 *
 	 * @param params
 	 * @param Interface
 	 * @param listener
@@ -319,9 +325,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:获取校内详情列表的详情
-	 * 
+	 *
 	 * @author shengguo 2014-4-26 上午10:07:55
-	 * 
+	 *
 	 * @param params
 	 * @param Interface
 	 * @param listener
@@ -334,9 +340,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:学生身份：点某一节课后的接口数据来源
-	 * 
+	 *
 	 * @author shengguo 2014-4-26 上午10:07:55
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -348,9 +354,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:获取课件列表
-	 * 
+	 *
 	 * @author shengguo 2014-4-28 上午11:11:42
-	 * 
+	 *
 	 * @param params
 	 * @param Interface
 	 *            接口名
@@ -364,9 +370,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:获取测验状态
-	 * 
+	 *
 	 * @author shengguo 2014-4-28 下午5:39:06
-	 * 
+	 *
 	 * @param params
 	 * @param
 	 * @param listener
@@ -379,9 +385,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:获取测验数据,保存测验结果
-	 * 
+	 *
 	 * @author shengguo 2014-4-28 下午5:39:06
-	 * 
+	 *
 	 * @param params
 	 * @param
 	 * @param listener
@@ -394,9 +400,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:学生获取,保存评价信息
-	 * 
+	 *
 	 * @author shengguo 2014-4-30 上午11:31:05
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -408,9 +414,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:学生获取,保存评价信息
-	 * 
+	 *
 	 * @author shengguo 2014-4-30 上午11:31:05
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -421,9 +427,9 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:保存学生总结
-	 * 
+	 *
 	 * @author shengguo 2014-5-15 下午12:02:46
-	 * 
+	 *
 	 * @param params
 	 * @param listener
 	 */
@@ -435,21 +441,21 @@ public class CampusAPI {
 
 	/**
 	 * 功能描述:检测更新
-	 * 
+	 *
 	 * @author shengguo 2014-6-3 下午3:54:36
-	 * 
+	 *
 	 */
 	public static void versionDetection(CampusParameters params,
 			RequestListener listener) {
 		String url = "https://laoshi.dandian.net/update.php";
 		AsyncFoodSafeRunner.request(url, params, HTTP_METHOD, listener);
 	}
-	
+
 	public static void getAddressFromBaidu(double latitude, double longitude, RequestListener listener) {
 		String url = String.format("https://api.map.baidu.com/geocoder/v2/?ak=cR269G15Gov4OaRZ1Tko1Hu4&coordtype=wgs84ll&callback=renderReverse&location=%s,%s&output=json&pois=1", latitude, longitude);
 		AsyncFoodSafeRunner.request(url, new CampusParameters(), HTTP_METHOD2, listener);
 	}
-	
+
 	public static void getAlbumList(CampusParameters params,
 			RequestListener listener) {
 		AsyncFoodSafeRunner.request(

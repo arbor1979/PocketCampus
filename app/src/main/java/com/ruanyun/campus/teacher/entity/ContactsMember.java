@@ -120,7 +120,7 @@ public class ContactsMember implements Serializable{
 			chargeKeCheng= jo.optString("所带课程");
 		}
 		if (userNumber.indexOf("家长") > -1) {
-			stuPhone = jo.optString("手机");
+			stuPhone = jo.optString("家长电话");
 		}
 		schoolName=jo.optString("单位名称");
 		

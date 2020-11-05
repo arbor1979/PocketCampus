@@ -48,6 +48,8 @@ import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.R.drawable;
 import com.ruanyun.campus.teacher.activity.SchoolActivity;
 import com.ruanyun.campus.teacher.activity.SchoolDetailActivity;
+import com.ruanyun.campus.teacher.activity.ShowPersonInfo;
+import com.ruanyun.campus.teacher.activity.StudentInfoActivity;
 import com.ruanyun.campus.teacher.activity.WebSiteActivity;
 import com.ruanyun.campus.teacher.api.CampusAPI;
 import com.ruanyun.campus.teacher.api.CampusException;
@@ -108,7 +110,7 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 						JSONObject jo = new JSONObject(resultStr);
 						String res = jo.optString("结果");
 						if(AppUtility.isNotEmpty(res)){
-							AppUtility.showToastMsg(getActivity(), res);
+							AppUtility.showToastMsg(getActivity(), res,1);
 						}
 						else{
 							achievementItem = new AchievementItem(jo);
@@ -689,6 +691,32 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 				}
 
 			});
+			final JSONObject linkobj=achievement.getIconLink();
+			if(linkobj!=null) {
+				holder.icon.setOnClickListener(new OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						if(linkobj.optInt("type")==1)
+						{
+							Intent intent = new Intent(getActivity(),
+									StudentInfoActivity.class);
+							intent.putExtra("studentId", linkobj.optString("value"));
+							intent.putExtra("userImage", linkobj.optString("icon"));
+							startActivity(intent);
+						}
+						else {
+							Intent intent = new Intent(getActivity(),
+									ShowPersonInfo.class);
+							intent.putExtra("studentId", linkobj.optString("value"));
+							startActivity(intent);
+						}
+					}
+
+				});
+			}
+			else
+				holder.icon.setOnClickListener(null);
 			return convertView;
 		}
 

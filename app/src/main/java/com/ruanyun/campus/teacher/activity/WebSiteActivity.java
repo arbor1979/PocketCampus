@@ -21,6 +21,7 @@ import android.app.DownloadManager;
 import android.app.DownloadManager.Request;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -30,6 +31,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
@@ -116,6 +118,8 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 	private final static int REQUEST_CODE_TAKE_CAMERA = 1;// //设置拍照操作的标志
 	private final static int SCANNIN_GREQUEST_CODE = 2;
 	private String cameraPicPath,cameraPicType;
+	private AudioManager audioManager;
+	private AudioManager.OnAudioFocusChangeListener listener;
 	@SuppressLint({ "SetJavaScriptEnabled", "CutPasteId" })
 
 	@Override
@@ -173,11 +177,12 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 		mWebView.getSettings().setBuiltInZoomControls(false);
 		mWebView.getSettings().setSupportZoom(false);
 		mWebView.getSettings().setDisplayZoomControls(false);
-		//mWebView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+		mWebView.getSettings().setMediaPlaybackRequiresUserGesture(false);
 		mWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
 		mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
 		//mWebView.getSettings().setPluginState(PluginState.ON);
 		mWebView.getSettings().setDefaultTextEncodingName("GBK");
+
 
 		btn_close=(ImageButton) findViewById(R.id.btn_close);
 
@@ -201,7 +206,7 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 		tv_title.setText(title);
 		mWebView.setWebViewClient(new MyWebClient());
 		//mWebView.setWebChromeClient(new WebChromeClient());
-		mWebView.setVisibility(View.GONE);
+		//mWebView.setVisibility(View.GONE);
 		mWebView.setDownloadListener(new MyWebViewDownLoadListener());
 		chromeClient = new MyChromeClient();
 		mWebView.addJavascriptInterface(chromeClient, "VideoComplete");
@@ -250,6 +255,7 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 	}
 	private void closeSelf()
 	{
+		//mWebView.loadUrl("about:blank");
 		Intent aintent = new Intent();
 		setResult(1,aintent);
 		finish();
@@ -541,7 +547,7 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 			view.loadUrl("javascript:if(typeof $ != 'undefined'){$(document).ready(function(){\n " +
 					"   $('body').on('click','a',function(){\n" +
 					"      var _href = $(this).attr('_href');\n" +
-					"      if(_href!=null && _href!='')\n" +
+					"      if(_href!=null && _href!=undefined && _href!='')\n" +
 					"      { \n" +
 					"         location.href = _href;           \n" +
 					"      }     \n" +
@@ -566,6 +572,7 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 			if (url.startsWith("tel:")) {
 				startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse(url)));
 				return true;
+
 			} else if (url.startsWith("mailto:")) {
 				url = url.replaceFirst("mailto:", "");
 				url = url.trim();
@@ -745,19 +752,44 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 	@Override
 	public void onPause()
 	{
+
+		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		listener = new AudioManager.OnAudioFocusChangeListener() {
+			@Override
+			public void onAudioFocusChange(int focusChange) {
+			}
+		};
+		int result = audioManager.requestAudioFocus(listener, AudioManager.STREAM_MUSIC,
+				AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+
 		super.onPause();
 		mWebView.onPause();
-		mWebView.loadUrl("javascript:var v=document.getElementById('video1');if(v) v.pause();");
+		mWebView.loadUrl("javascript:var v=document.getElementById('video1');if(v) v.pause();var p=document.getElementById('ifpause');if(p) p.value='1';");
 		CookieSyncManager.getInstance().stopSync();
 	}
 	@Override
 	public void onResume()
 	{
+
+		if (audioManager!= null) {
+			audioManager.abandonAudioFocus(listener);
+			audioManager = null;
+		}
+
 		super.onResume();
 		mWebView.onResume();
+		mWebView.loadUrl("javascript:var p=document.getElementById('ifpause');if(p) p.value='0';");
 		CookieSyncManager.getInstance().startSync();
 	}
+	/*
 	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		mWebView.resumeTimers();
+		mWebView.destroy();
+	}
+	 */
+		@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		// TODO Auto-generated method stub
 		super.onConfigurationChanged(newConfig);

@@ -148,7 +148,7 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 		mUsername=PrefUtility.get(Constants.PREF_LOGIN_NAME, "");
 		mPassword=PrefUtility.get(Constants.PREF_LOGIN_PASS, "");
 		
-		if(AppUtility.isNotEmpty(mUsername))
+		if(AppUtility.isNotEmpty(mUsername) && PrefUtility.getBoolean(Constants.PREF_INIT_BASEDATE_FLAG, false) && PrefUtility.getBoolean(Constants.PREF_INIT_CONTACT_FLAG, false))
 		{
 			mUsernameView.setText(mUsername);
 			mPasswordView.setText(mPassword);
@@ -198,8 +198,33 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 			
 			if(flag1 && flag2)
 			{
-				if(PrefUtility.getBoolean(Constants.PREF_INIT_BASEDATE_FLAG, false) && PrefUtility.getBoolean(Constants.PREF_INIT_CONTACT_FLAG, false)) 
+				if(PrefUtility.getBoolean(Constants.PREF_INIT_BASEDATE_FLAG, false) && PrefUtility.getBoolean(Constants.PREF_INIT_CONTACT_FLAG, false)) {
+					Boolean check_test = PrefUtility.getBoolean(
+							Constants.PREF_CHECK_TEST, false);
+					if (!check_test) {
+						AccountInfo info = null;
+						try {
+							info = accountInfoDao.queryBuilder().where().eq("userName", mUsername).queryForFirst();
+							if (info == null) {
+								AccountInfo accountInfo = new AccountInfo();
+								long time = new Date().getTime();
+								accountInfo.setUserName(mUsername);
+								accountInfo.setPassWord(mPassword);
+								accountInfo.setLoginTime(time);
+								accountInfoDao.create(accountInfo);
+							} else {
+								long time = new Date().getTime();
+								info.setUserName(mUsername);
+								info.setPassWord(mPassword);
+								info.setLoginTime(time);
+								accountInfoDao.update(info);
+							}
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
 					jumpMain();
+				}
 				else
 				{
 					if(!PrefUtility.getBoolean(Constants.PREF_INIT_BASEDATE_FLAG, false))
@@ -479,26 +504,7 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 							for (Equipment eqm : user.getLoginEquipments()) {
 								eqmDao.create(eqm);
 							}
-							Boolean check_test = PrefUtility.getBoolean(
-									Constants.PREF_CHECK_TEST, false);
-							if (!check_test) {
-								AccountInfo info = accountInfoDao.queryBuilder().where()
-										.eq("userName", mUsername).queryForFirst();
-								if (info == null) {
-									AccountInfo accountInfo = new AccountInfo();
-									long time = new Date().getTime();
-									accountInfo.setUserName(mUsername);
-									accountInfo.setPassWord(mPassword);
-									accountInfo.setLoginTime(time);
-									accountInfoDao.create(accountInfo);
-								} else {
-									long time = new Date().getTime();
-									info.setUserName(mUsername);
-									info.setPassWord(mPassword);
-									info.setLoginTime(time);
-									accountInfoDao.update(info);
-								}
-							}
+
 							
 							getInitDataAndContracts();
 
@@ -774,8 +780,8 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 	@Override
 	public void onMessage(Intent intent) {
 		super.onMessage(intent);  //此方法必须调用，否则无法统计打开数
-		String body = intent.getStringExtra(AgooConstants.MESSAGE_BODY);
-		Log.i(TAG, body);
+		//String body = intent.getStringExtra(AgooConstants.MESSAGE_BODY);
+		//Log.i(TAG, body);
 	}
 
 

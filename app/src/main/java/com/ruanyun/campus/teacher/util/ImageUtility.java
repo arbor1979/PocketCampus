@@ -35,6 +35,7 @@ import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -609,14 +610,13 @@ public class ImageUtility {
 	}
 	public static String insertImageToSystem(Context context, String imagePath,String fileName) {
 		String url = "";
-		try {
-			if(AppUtility.checkPermission((Activity)context, 7, Manifest.permission.WRITE_EXTERNAL_STORAGE))
-				url = MediaStore.Images.Media.insertImage(context.getContentResolver(), imagePath, fileName, "");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		if(AppUtility.checkPermission((Activity)context, 7, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+			Bitmap bmp = getDiskBitmapByPath(imagePath);
+			url = MediaStore.Images.Media.insertImage(context.getContentResolver(), bmp, fileName, "");
 		}
 		return url;
 	}
+
 	public static Drawable decodeFile(Context context,File f,int width) {
         try {
             // Decode image size

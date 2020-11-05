@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,10 @@ import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.activity.SchoolActivity;
 import com.ruanyun.campus.teacher.activity.TabSchoolActivtiy;
 import com.ruanyun.campus.teacher.activity.WebSiteActivity;
+import com.ruanyun.campus.teacher.api.CampusAPI;
+import com.ruanyun.campus.teacher.api.CampusException;
+import com.ruanyun.campus.teacher.api.CampusParameters;
+import com.ruanyun.campus.teacher.api.RequestListener;
 import com.ruanyun.campus.teacher.base.Constants;
 import com.ruanyun.campus.teacher.entity.SchoolWorkItem;
 import com.ruanyun.campus.teacher.util.AppUtility;
@@ -27,6 +32,7 @@ import com.ruanyun.campus.teacher.util.PrefUtility;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -204,6 +210,37 @@ public class SchoolWorkGroupAdapter extends SectionedRecyclerViewAdapter<HeaderH
                     intent.putExtra("templateName",item.getTemplateName());
                     mContext.startActivity(intent);
                 }
+                long datatime =System.currentTimeMillis();
+                String checkCode=PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+                JSONObject jo = new JSONObject();
+                try {
+                    jo.put("用户较验码", checkCode);
+                    jo.put("模块名称", item.getWorkText());
+                    jo.put("模块地址", item.getInterfaceName());
+                    jo.put("DATETIME", datatime);
+                } catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+                String base64Str = Base64.encode(jo.toString().getBytes());
+                CampusParameters params = new CampusParameters();
+                params.add(Constants.PARAMS_DATA, base64Str);
+                CampusAPI.trickAccessLog(params, new RequestListener() {
+
+                    @Override
+                    public void onComplete(String response) {
+
+                    }
+
+                    @Override
+                    public void onIOException(IOException e) {
+
+                    }
+
+                    @Override
+                    public void onError(CampusException e) {
+
+                    }
+                });
             }
         });
     }

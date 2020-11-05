@@ -180,6 +180,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 							questions = questionnaireList.getQuestions();
 							status=questionnaireList.getStatus();
 							autoClose=questionnaireList.getAutoClose();
+							if(questionnaireList.getSavebtn().length()>0)
+								tvRight.setText(questionnaireList.getSavebtn());
 							if (status.equals("进行中")) {
 								tvRight.setVisibility(View.VISIBLE);
 								isEnable = true;
@@ -272,7 +274,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					}
 					
 				}
-				tvRight.setText("保存");
+
 				break;
 			case 2://删除图片
 				result = msg.obj.toString();
@@ -2249,7 +2251,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 
 		@Override
 		public int getCount() {
-			return anwsers.length;
+			return (anwsers.length==0?jsonanwsers.size():anwsers.length);
 		}
 
 		@Override

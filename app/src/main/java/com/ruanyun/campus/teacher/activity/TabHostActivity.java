@@ -741,13 +741,16 @@ public class TabHostActivity extends TabActivity   {
 			e.printStackTrace();
 		}
 		TextView unreadCnt = (TextView) mainTab.findViewById(R.id.unreadCnt);
+		if(count>100)
+			count=99;
 		if(count!=0){
 			unreadCnt.setText(String.valueOf(count));
 			unreadCnt.setVisibility(View.VISIBLE);
 		}else{
 			unreadCnt.setVisibility(View.INVISIBLE);
 		}
-		
+		AppUtility.setHuaweiXiaomiBadge(TabHostActivity.this,count);
+
 	}
 	@Override
 	protected void onDestroy() {

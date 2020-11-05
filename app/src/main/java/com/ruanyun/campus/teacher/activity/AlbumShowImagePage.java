@@ -301,7 +301,9 @@ public class AlbumShowImagePage extends FragmentActivity {
 	{
 		final String[] moreAction;
 		final AlbumImageInfo image=imageList.get(mViewpager.getCurrentItem());
-		if(hostid.equals(image.getHostId()) || user.getAlbumAdmin().equals("是"))
+		if(user.getAlbumAdmin().equals("是"))
+			moreAction=new String[]{"分享","保存到本地","禁止发布","删除","取消"};
+		else if(hostid.equals(image.getHostId()))
 			moreAction=new String[]{"分享","保存到本地","举报","删除","取消"};
 		else
 			moreAction=new String[]{"分享","保存到本地","举报","取消"};
@@ -339,6 +341,10 @@ public class AlbumShowImagePage extends FragmentActivity {
                 	{
                 		sendDelete();
                 	}
+					else if (moreAction[which].equals("禁止发布"))
+					{
+						denyUpload();
+					}
                 	dialogInterface.dismiss();
                 		
                 }  
@@ -706,6 +712,52 @@ public class AlbumShowImagePage extends FragmentActivity {
 				msg.obj = response;
 				mHandler.sendMessage(msg);
 				
+			}
+		});
+
+	}
+	//禁止发布
+	private void denyUpload()
+	{
+
+		long datatime = System.currentTimeMillis();
+		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+		JSONObject jo = new JSONObject();
+		try {
+			jo.put("action","禁止发布");
+			jo.put("hostId",imageList.get(mViewpager.getCurrentItem()).getHostId());
+			jo.put("用户较验码", checkCode);
+			jo.put("DATETIME", datatime);
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
+		String base64Str = Base64.encode(jo.toString().getBytes());
+		CampusParameters params = new CampusParameters();
+		params.add(Constants.PARAMS_DATA, base64Str);
+		CampusAPI.getDownloadSubject(params, "AlbumPraise.php",new RequestListener() {
+
+			@Override
+			public void onIOException(IOException e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onError(CampusException e) {
+				Message msg = new Message();
+				msg.what = -1;
+				msg.obj = e.getMessage();
+				mHandler.sendMessage(msg);
+
+			}
+
+			@Override
+			public void onComplete(String response) {
+				Message msg = new Message();
+				msg.what = 2;
+				msg.obj = response;
+				mHandler.sendMessage(msg);
+
 			}
 		});
 	}
@@ -1158,6 +1210,10 @@ public class AlbumShowImagePage extends FragmentActivity {
 						else if(jo.optString("action").equals("举报"))
 						{
 							AppUtility.showToastMsg(AlbumShowImagePage.this, "举报成功！");
+						}
+						else if(jo.optString("action").equals("禁止发布"))
+						{
+							AppUtility.showToastMsg(AlbumShowImagePage.this, "禁止发布成功！");
 						}
 						else if(jo.optString("action").equals("删除"))
 						{

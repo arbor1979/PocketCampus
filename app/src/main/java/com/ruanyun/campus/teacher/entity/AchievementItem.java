@@ -93,6 +93,7 @@ public class AchievementItem {
 		private String templateName;
 	    private String templateGrade;
 		private JSONObject extraMenu;
+		private JSONObject iconLink;
 		public String getTemplateName() {
 			return templateName;
 		}
@@ -109,6 +110,10 @@ public class AchievementItem {
 			this.templateGrade = templateGrade;
 		}
 
+		public JSONObject getIconLink() {
+			return iconLink;
+		}
+
 		public Achievement(JSONObject jo) {
 			id = jo.optString("编号");
 			icon = jo.optString("图标");
@@ -120,6 +125,7 @@ public class AchievementItem {
 			templateName = jo.optString("模板");
 			templateGrade = jo.optString("模板级别");
 			extraMenu= jo.optJSONObject("附加菜单");
+			iconLink= jo.optJSONObject("图标链接");
 		}
 		public JSONObject getExtraMenu() {
 			return extraMenu;
