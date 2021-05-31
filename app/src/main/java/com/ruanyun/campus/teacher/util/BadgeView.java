@@ -21,13 +21,15 @@ import android.widget.FrameLayout;
 import android.widget.TabWidget;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.AppCompatTextView;
+
 /**
  * A simple text label view that can be applied as a "badge" to any given {@link android.view.View}. 
  * This class is intended to be instantiated at runtime rather than included in XML layouts.
  * 
  * @author Jeff Gilfelt
  */
-public class BadgeView extends android.support.v7.widget.AppCompatTextView {
+public class BadgeView extends AppCompatTextView {
 
 	public static final int POSITION_TOP_LEFT = 1;
 	public static final int POSITION_TOP_RIGHT = 2;

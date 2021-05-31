@@ -8,7 +8,9 @@ import android.text.SpannableString;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-public class MyTextViewEx extends android.support.v7.widget.AppCompatTextView implements Runnable {
+import androidx.appcompat.widget.AppCompatTextView;
+
+public class MyTextViewEx extends AppCompatTextView implements Runnable {
 	public  boolean mRunning = true;
 	private Vector<GifDrawalbe> drawables;
 	private Hashtable<Integer, GifDrawalbe> cache;

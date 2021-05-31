@@ -19,7 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.text.SpannableString;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -160,13 +160,13 @@ public class ContactsFragment extends Fragment {
 					if (jaFriends != null && jaFriends.length() > 0) {
 						for (int i = 0; i < jaFriends.length(); i++) {
 							String str = jaFriends.optString(i);
-							if (!str.equals(userNumber)) {
+							//if (!str.equals(userNumber)) {
 								
 								ContactsMember contactsMember=((CampusApplication)getActivity().getApplicationContext()).getLinkManDic().get(str);
 								listMember.add(contactsMember);
 								memberList.add(contactsMember);
 								
-							}
+							//}
 						}
 					}
 					groupList.add(friendsName);

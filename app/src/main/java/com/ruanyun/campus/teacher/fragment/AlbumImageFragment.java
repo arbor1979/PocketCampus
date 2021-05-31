@@ -1,13 +1,5 @@
 package com.ruanyun.campus.teacher.fragment;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -16,20 +8,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -42,23 +29,16 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.Fragment;
+
 import com.androidquery.AQuery;
-import com.androidquery.callback.ImageOptions;
 import com.example.androidgifdemo.MyTextViewEx;
-import com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache;
-import com.nostra13.universalimageloader.cache.memory.impl.UsingFreqLimitedMemoryCache;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
-import com.nostra13.universalimageloader.core.assist.ImageScaleType;
-import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
-import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.activity.AlbumShowImageDetail;
-import com.ruanyun.campus.teacher.activity.AlbumShowImagePage;
 import com.ruanyun.campus.teacher.activity.ShowPersonInfo;
 import com.ruanyun.campus.teacher.activity.TabHostActivity;
 import com.ruanyun.campus.teacher.api.CampusAPI;
@@ -73,6 +53,13 @@ import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.PrefUtility;
 import com.ruanyun.campus.teacher.util.TimeUtility;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
 public class AlbumImageFragment extends Fragment{
 

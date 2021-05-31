@@ -9,7 +9,9 @@ import android.text.SpannableString;
 import android.util.AttributeSet;
 import android.widget.EditText;
 
-public class MyEditTextEx extends android.support.v7.widget.AppCompatEditText implements Runnable {
+import androidx.appcompat.widget.AppCompatEditText;
+
+public class MyEditTextEx extends AppCompatEditText implements Runnable {
 	private Vector<GifDrawalbe> drawables = new Vector<GifDrawalbe>();
 	private Hashtable<Integer, GifDrawalbe> cache = new Hashtable<Integer, GifDrawalbe>();
 

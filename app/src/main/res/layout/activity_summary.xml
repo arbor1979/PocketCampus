@@ -51,13 +51,13 @@
             android:layout_marginLeft="1dip" />
     </LinearLayout>
 
-    <android.support.v4.view.ViewPager
+    <androidx.viewpager.widget.ViewPager
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/summary_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".CommunicationActivity" >
-    </android.support.v4.view.ViewPager>
+    </androidx.viewpager.widget.ViewPager>
 
 </LinearLayout>

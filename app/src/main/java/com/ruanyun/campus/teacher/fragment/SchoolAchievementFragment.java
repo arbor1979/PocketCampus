@@ -1,28 +1,14 @@
 package com.ruanyun.campus.teacher.fragment;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
@@ -35,17 +21,24 @@ import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+
 import com.androidquery.AQuery;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
-import com.ruanyun.campus.teacher.R.drawable;
 import com.ruanyun.campus.teacher.activity.SchoolActivity;
 import com.ruanyun.campus.teacher.activity.SchoolDetailActivity;
 import com.ruanyun.campus.teacher.activity.ShowPersonInfo;
@@ -62,7 +55,20 @@ import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.DialogUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
+import com.ruanyun.campus.teacher.widget.SegmentedGroup;
 import com.ruanyun.campus.teacher.widget.XListView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import static android.view.View.VISIBLE;
 
 
 /**
@@ -72,12 +78,12 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 	private String TAG = "SchoolAchievementFragment";
 	private XListView myListview;
 	private Button btnLeft;
-	private TextView tvTitle,tvRight;
+	private TextView tvTitle,tvRight,tv_huizong1;
 	private LinearLayout lyLeft,lyRight;
 	private LinearLayout loadingLayout;
 	private LinearLayout contentLayout;
 	private LinearLayout failedLayout;
-	private LinearLayout emptyLayout;
+	private LinearLayout emptyLayout,ll_multisel;
 	private AchievementItem achievementItem;
 	private String interfaceName,title;
 	private LayoutInflater inflater;
@@ -87,8 +93,11 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 	private Dialog userTypeDialog;
 	private boolean isLoading=false;
 	private int curpage=0;
-	private FloatingActionButton mFab;
+	private FloatingActionButton mFab,mFab1;
 	private int mPreviousVisibleItem;
+	private boolean bShowMutiSel=false;
+	private CheckBox cb_selAll;
+	private SegmentedGroup segmentedGroup2;
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
 		public void handleMessage(Message msg) {
@@ -123,8 +132,46 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 							else
 								myListview.setPullLoadEnable(false);
 							achievements = achievementItem.getAchievements();
+							if(achievementItem.getGroupArr().length()>0)
+							{
+								segmentedGroup2.setVisibility(VISIBLE);
+								segmentedGroup2.removeAllViews();
+								segmentedGroup2.setOnCheckedChangeListener(null);
+								for(int i=0;i<achievementItem.getGroupArr().length();i++)
+								{
+									String groupname=achievementItem.getGroupArr().getString(i);
+
+									RadioButton rdbtn = (RadioButton) LayoutInflater.from(getActivity()).inflate(R.layout.tabmenu_radiobutton, null);
+									rdbtn.setText(groupname);
+									if(achievementItem.getCurGroup()==i)
+									{
+										rdbtn.setChecked(true);
+									}
+									rdbtn.setId(i);
+									segmentedGroup2.addView(rdbtn);
+								}
+								segmentedGroup2.updateBackground();
+								segmentedGroup2.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener(){
+
+									@Override
+									public void onCheckedChanged(RadioGroup group, int checkedId) {
+										// TODO Auto-generated method stub
+										getAchievesItem(true,1);
+									}
+
+								});
+							}
 							adapter.notifyDataSetChanged();
 							tvTitle.setText(achievementItem.getTitle());
+							if(achievementItem.getHuizong()!=null && achievementItem.getHuizong().length()>0)
+							{
+								tv_huizong1.setText(achievementItem.getHuizong());
+								tv_huizong1.setVisibility(VISIBLE);
+							}
+							else
+							{
+								tv_huizong1.setVisibility(View.GONE);
+							}
 							if(achievementItem.getRightButton()!=null && achievementItem.getRightButton().length()>0)
 							{
 								tvRight.setText(achievementItem.getRightButton());
@@ -180,6 +227,10 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 							}
 							else
 								mFab.hide();
+							if(achievementItem.getMutiSelArr().length()>0)
+								mFab1.show();
+							else
+								mFab1.hide();
 								
 						}
 					} 
@@ -314,16 +365,20 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 		tvRight = (TextView) view.findViewById(R.id.tv_right);
 		lyRight = (LinearLayout) view.findViewById(R.id.layout_btn_right);
 		lyLeft = (LinearLayout) view.findViewById(R.id.layout_btn_left);
+		tv_huizong1= (TextView) view.findViewById(R.id.tv_huizong1);
 		loadingLayout = (LinearLayout) view.findViewById(R.id.data_load);
 		contentLayout = (LinearLayout) view.findViewById(R.id.content_layout);
 		failedLayout = (LinearLayout) view.findViewById(R.id.empty_error);
 		emptyLayout = (LinearLayout) view.findViewById(R.id.empty);
-
+		ll_multisel= (LinearLayout) view.findViewById(R.id.ll_multisel);
+		cb_selAll=(CheckBox) view.findViewById(R.id.cb_selAll);
 		myListview.setEmptyView(emptyLayout);
 		myListview.setPullRefreshEnable(true);
 		myListview.setPullLoadEnable(false);
 		myListview.setXListViewListener(this);
 		mFab = (FloatingActionButton) view.findViewById(R.id.fab);
+		mFab1 = (FloatingActionButton) view.findViewById(R.id.fab1);
+		segmentedGroup2=(SegmentedGroup)view.findViewById(R.id.segmentedGroup2);
 		btnLeft.setVisibility(View.VISIBLE);
 		btnLeft.setCompoundDrawablesWithIntrinsicBounds(
 				R.drawable.bg_btn_left_nor, 0, 0, 0);
@@ -346,29 +401,20 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 			}
 		});
 
-		myListview.setOnScrollListener(new AbsListView.OnScrollListener() {
-			@Override
-			public void onScrollStateChanged(AbsListView view, int scrollState) {
-			}
-
-			@Override
-			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-				if (firstVisibleItem > mPreviousVisibleItem) {
-					mFab.hide();
-				} else if (firstVisibleItem < mPreviousVisibleItem && achievementItem!=null && achievementItem.getFilterArr()!=null && achievementItem.getFilterArr().length()>0)  {
-					mFab.show();
-				}
-				mPreviousVisibleItem = firstVisibleItem;
-			}
-		});
-
 		mFab.hide();
+		mFab1.hide();
 		mFab.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				popFilterDlg();
 			}
 		});
+		mFab1.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				showbatchpass();
+			}
+		});
 		myListview.setOnScrollListener(new AbsListView.OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -378,8 +424,10 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
 				if (firstVisibleItem > mPreviousVisibleItem) {
 					mFab.hide();
+					mFab1.hide();
 				} else if (firstVisibleItem < mPreviousVisibleItem && achievementItem!=null && achievementItem.getFilterArr()!=null && achievementItem.getFilterArr().length()>0)  {
 					mFab.show();
+					mFab1.show();
 				}
 				mPreviousVisibleItem = firstVisibleItem;
 			}
@@ -442,6 +490,16 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 			jo.put("DATETIME", datatime);
 			jo.put("version", CampusApplication.getVersion());
 			jo.put("page", page);
+			if(segmentedGroup2.getVisibility()==VISIBLE)
+			{
+				for(int i = 0 ;i < segmentedGroup2.getChildCount();i++) {
+					RadioButton rb = (RadioButton) segmentedGroup2.getChildAt(i);
+					if (rb.isChecked()){
+						jo.put("curGroupId",rb.getId());
+						break;
+					}
+				}
+			}
 			if(achievementItem!=null && achievementItem.getFilterArr()!=null)
 				jo.put("过滤条件",achievementItem.getFilterArr());
 		} catch (JSONException e1) {
@@ -560,7 +618,7 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 
 		
 		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
+		public View getView(final int position, View convertView, ViewGroup parent) {
 			ViewHolder holder = null;
 
 			if (null == convertView) {
@@ -577,10 +635,14 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 						.findViewById(R.id.thieDescription);
 				holder.rank = (TextView) convertView
 						.findViewById(R.id.tv_right);
+				holder.huizong = (TextView) convertView
+						.findViewById(R.id.theTotalMoney);
 				holder.iv_arrow=(ImageView) convertView
 						.findViewById(R.id.iv_right);
 				holder.iv_menu=(ImageView) convertView
 						.findViewById(R.id.iv_right1);
+				holder.cb_checkitem=(CheckBox)convertView.findViewById(R.id.cb_checkitem);
+				holder.pb_bottom=(ProgressBar)convertView.findViewById(R.id.pb_bottom);
 				convertView.setTag(holder);
 			} else {
 				holder = (ViewHolder) convertView.getTag();
@@ -595,7 +657,16 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 	
 			holder.title.setText(achievement.getTitle());
 			holder.total.setText(achievement.getTotal());
+			if(achievement.getTotal().length()>0)
+				holder.total.setVisibility(View.VISIBLE);
+			else
+				holder.total.setVisibility(View.GONE);
 			holder.rank.setText(achievement.getRank());
+			holder.huizong.setText(achievement.getThirdline());
+			if(achievement.getThirdline().length()>0)
+				holder.huizong.setVisibility(View.VISIBLE);
+			else
+				holder.huizong.setVisibility(View.GONE);
 			if(achievement.getThecolor()!=null && achievement.getThecolor().length()>0)
 			{
 				if(achievement.getThecolor().toLowerCase().equals("red"))
@@ -610,6 +681,8 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_goldenrod));
 				else if(achievement.getThecolor().toLowerCase().equals("blueviolet"))
 					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_blueviolet));
+				else if(achievement.getThecolor().toLowerCase().equals("gray"))
+					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_gray));
 				else
 					holder.total.setBackground(getResources().getDrawable(R.drawable.school_achievement_bg));
 			}
@@ -617,15 +690,46 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 			{
 				holder.iv_arrow.setVisibility(View.VISIBLE);
 				holder.iv_menu.setVisibility(View.GONE);
+				if(achievement.getDetailUrl().length()==0)
+					holder.iv_arrow.setVisibility(View.GONE);
 			}
 			else {
 				holder.iv_arrow.setVisibility(View.GONE);
 				holder.iv_menu.setVisibility(View.VISIBLE);
 			}
+			if(bShowMutiSel) {
+				holder.cb_checkitem.setVisibility(VISIBLE);
+				holder.cb_checkitem.setChecked(achievement.isIfChecked());
+				holder.cb_checkitem.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){
+					@Override
+					public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+						if(!compoundButton.isPressed())
+							return ;
+						achievement.setIfChecked(b);
+						//achievements.set(position,achievement);
+					}
+				});
+			}
+			else
+				holder.cb_checkitem.setVisibility(View.GONE);
+			if(achievement.getProgress()>-1)
+			{
+				holder.pb_bottom.setVisibility(VISIBLE);
+				holder.pb_bottom.setProgress(achievement.getProgress());
+			}
+			else
+				holder.pb_bottom.setVisibility(View.GONE);
 			convertView.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
+					if(bShowMutiSel) {
+						CheckBox cb_checkitem=(CheckBox)v.findViewById(R.id.cb_checkitem);
+						cb_checkitem.setChecked(!cb_checkitem.isChecked());
+						achievement.setIfChecked(cb_checkitem.isChecked());
+						//achievements.set(position,achievement);
+						return;
+					}
 					String DetailUrl = achievement.getDetailUrl();
 					if (AppUtility.isNotEmpty(DetailUrl)) {
 						Log.d(TAG,"----notice.getEndUrl():"+ achievement.getDetailUrl());
@@ -725,8 +829,11 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 			TextView title;
 			TextView total;
 			TextView rank;
+			TextView huizong;
 			ImageView iv_arrow;
 			ImageView iv_menu;
+			CheckBox cb_checkitem;
+			ProgressBar pb_bottom;
 		}
 		
 	}
@@ -815,8 +922,10 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 										} catch (JSONException e1) {
 											e1.printStackTrace();
 										}
-										String url=AppUtility.removeURLQuery(interfaceName)+"?"+AppUtility.jsonToUrlQuery(queryObj);
-										CampusAPI.httpPost(url,jo, mHandler, 2);
+
+										String url = AppUtility.removeURLQuery(interfaceName) + "?" + AppUtility.jsonToUrlQuery(queryObj);
+										CampusAPI.httpPost(url, jo, mHandler, 2);
+
 									}
 								})
 								.setNegativeButton("否", null)
@@ -829,8 +938,26 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 					else
 					{
 						JSONObject queryObj=AppUtility.parseQueryStrToJson(achievement.getExtraMenu().optString(text));
-						String url=AppUtility.removeURLQuery(interfaceName)+"?"+AppUtility.jsonToUrlQuery(queryObj);
-						CampusAPI.httpPost(url,new JSONObject(), mHandler, 2);
+						if(queryObj.optString("templateName").length()>0) {
+
+							Intent intent =null;
+							if(queryObj.optString("templateGrade").equals("main"))
+								intent=new Intent(getActivity(),SchoolActivity.class);
+							else
+								intent=new Intent(getActivity(),SchoolDetailActivity.class);
+							intent.putExtra("templateName", queryObj.optString("templateName"));
+							int pos=interfaceName.indexOf("?");
+							String preUrl=interfaceName;
+							if(pos>-1)
+								preUrl=interfaceName.substring(0, pos);
+							intent.putExtra("interfaceName", preUrl+achievement.getExtraMenu().optString(text));
+							//intent.putExtra("title", title);
+							startActivityForResult(intent,101);
+						}
+						else {
+							String url = AppUtility.removeURLQuery(interfaceName) + "?" + AppUtility.jsonToUrlQuery(queryObj);
+							CampusAPI.httpPost(url, new JSONObject(), mHandler, 2);
+						}
 					}
 					userTypeDialog.dismiss();
 				}
@@ -923,5 +1050,108 @@ public class SchoolAchievementFragment extends Fragment implements XListView.IXL
 					}
 				}).setNegativeButton("取消", null).show();
 
+	}
+	private void showbatchpass()
+	{
+		bShowMutiSel=!bShowMutiSel;
+		if(bShowMutiSel) {
+			LinearLayout ll_btns=null;
+			for(int i=0;i<ll_multisel.getChildCount();i++) {
+				View subview = ll_multisel.getChildAt(i);
+				if (subview instanceof LinearLayout) {
+					ll_btns=(LinearLayout)subview;
+					ll_btns.removeAllViews();
+					break;
+				}
+			}
+			cb_selAll.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+
+					for(int i=0;i<achievements.size();i++)
+					{
+						Achievement item=achievements.get(i);
+						item.setIfChecked(b);
+					}
+					adapter.notifyDataSetChanged();
+				}
+
+			});
+			for(int i=0;i<achievementItem.getMutiSelArr().length();i++)
+			{
+				final JSONObject jo=achievementItem.getMutiSelArr().optJSONObject(i);
+				if(jo!=null)
+				{
+					Button btn=new Button(getActivity());
+					LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+					layoutParams.setMargins(10,0,10,0);//4个参数按顺序分别是左上右下
+					layoutParams.height=95;
+					btn.setLayoutParams(layoutParams);
+					btn.setText(jo.optString("name"));
+					ll_btns.addView(btn);
+					btn.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View view) {
+							String selIdStr="";
+							for(int i=0;i<achievements.size();i++)
+							{
+								Achievement item=achievements.get(i);
+								if(item.isIfChecked())
+								{
+									if(selIdStr.length()>0)
+										selIdStr+=","+item.getId();
+									else
+										selIdStr=item.getId();
+								}
+							}
+							if(selIdStr.length()==0) {
+								AppUtility.showToastMsg(getActivity(),"请先勾选记录");
+								return;
+							}
+							String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+							JSONObject queryObj=AppUtility.parseQueryStrToJson(jo.optString("url"));
+							if(queryObj.optString("templateName").length()>0) {
+								Intent intent = new Intent(getActivity(), SchoolDetailActivity.class);
+								intent.putExtra("templateName", queryObj.optString("templateName"));
+								intent.putExtra("interfaceName", jo.optString("url")+"&ID="+selIdStr);
+								intent.putExtra("title", title);
+								startActivityForResult(intent, 101);
+							}
+							else {
+								JSONObject jo1 = new JSONObject();
+								try {
+									jo1.put("用户较验码", checkCode);
+									jo1.put("selIdStr", selIdStr);
+									Iterator it = queryObj.keys();
+									while (it.hasNext()) {
+										String key = (String) it.next();
+										String value = queryObj.getString(key);
+										jo1.put(key, value);
+									}
+
+								} catch (JSONException e1) {
+									e1.printStackTrace();
+								}
+								CampusAPI.httpPost(jo.optString("url"),jo1, mHandler, 2);
+							}
+						}
+					});
+					if(jo.optString("color").length()>0)
+					{
+						if(jo.optString("color").equals("orange"))
+							btn.setBackgroundResource(R.drawable.button_round_corner_orange);
+						else if(jo.optString("color").equals("blue"))
+							btn.setBackgroundResource(R.drawable.button_round_corner_blue);
+						else
+							btn.setBackgroundResource(R.drawable.button_round_corner_green);
+
+					}
+				}
+			}
+			ll_multisel.setVisibility(VISIBLE);
+		}
+		else
+			ll_multisel.setVisibility(View.GONE);
+		adapter.notifyDataSetChanged();
 	}
 }

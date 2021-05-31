@@ -7,6 +7,7 @@
     <!-- 调查问卷选择题模板 -->
 
     <LinearLayout
+        android:id="@+id/lv_parentlayout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_margin="6.0dip"
@@ -19,80 +20,102 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:padding="6.0dip" />
-
-        <RadioGroup
-            android:id="@+id/rg_choose"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
-		
-        
-        <com.ruanyun.campus.teacher.widget.NonScrollableListView
-            android:id="@+id/lv_choose"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:divider="@color/transparent"
-            android:visibility="gone" />
-
-        <EditText
-            android:id="@+id/et_answer"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_margin="6.0dip"
-            android:background="@drawable/edittext_bg"
-            android:gravity="left|top"
-            android:inputType="textMultiLine"
-            android:padding="10px"
-            android:textSize="@dimen/text_size_normal"
-            android:visibility="gone"/>
-
-        <Spinner
-            android:id="@+id/sp_select"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
-        <Spinner
-            android:id="@+id/sp_select1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
-        <Spinner
-            android:id="@+id/sp_select2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
-        <Button
-            android:id="@+id/bt_date"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:calendarViewShown="false"
-            android:visibility="gone" />
-        <Button
-            android:id="@+id/bt_datetime"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:calendarViewShown="false"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/tv_answer"
+        <LinearLayout
+            android:id="@+id/lv_layout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_margin="6.0dip"
-            android:visibility="gone"/>
+            android:orientation="vertical">
+            <RadioGroup
+                android:id="@+id/rg_choose"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
 
-        <com.ruanyun.campus.teacher.widget.NonScrollableGridView
-            android:id="@+id/grid_picture"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:horizontalSpacing="2.0dip"
-            android:listSelector="@android:color/transparent"
-            android:numColumns="auto_fit"
-            android:columnWidth="@dimen/gridView_image_child_width"
-            android:scrollingCache="false"
-            android:stretchMode="columnWidth"
-            android:verticalSpacing="2.0dip"
-            android:layout_margin="6.0dip"
-            android:visibility="gone" />
+
+            <com.ruanyun.campus.teacher.widget.NonScrollableListView
+                android:id="@+id/lv_choose"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:divider="@color/transparent"
+                android:visibility="gone" />
+
+            <EditText
+                android:id="@+id/et_answer"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_margin="3dp"
+                android:background="@drawable/edittext_bg"
+                android:gravity="left|top"
+                android:inputType="textMultiLine"
+                android:padding="5dp"
+                android:scrollbars="vertical"
+                android:text="@string/Commons.SDCardErrorNoSDMsg"
+                android:textSize="@dimen/text_size_big"
+                android:visibility="gone" />
+            <AutoCompleteTextView
+                android:id="@+id/et_autotext"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="6.0dip"
+                android:background="@drawable/edittext_bg"
+                android:gravity="left|top"
+                android:paddingBottom="5dp"
+                android:paddingTop="5dp"
+                android:textSize="@dimen/text_size_big"
+                android:completionThreshold="1"
+                android:visibility="gone"
+                />
+            <Spinner
+                android:id="@+id/sp_select"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+            <Spinner
+                android:id="@+id/sp_select1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+            <Spinner
+                android:id="@+id/sp_select2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+            <Button
+                android:id="@+id/bt_date"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:calendarViewShown="false"
+                android:visibility="gone" />
+            <Button
+                android:id="@+id/bt_datetime"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:calendarViewShown="false"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tv_answer"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="6.0dip"
+                android:visibility="gone"/>
+
+            <com.ruanyun.campus.teacher.widget.NonScrollableGridView
+                android:id="@+id/grid_picture"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:horizontalSpacing="2.0dip"
+                android:listSelector="@android:color/transparent"
+                android:numColumns="auto_fit"
+                android:columnWidth="@dimen/gridView_image_child_width"
+                android:scrollingCache="false"
+                android:stretchMode="columnWidth"
+                android:verticalSpacing="2.0dip"
+                android:layout_margin="6.0dip"
+                android:visibility="gone" />
+        </LinearLayout>
           <TextView
             android:id="@+id/tv_remark"
             android:layout_width="fill_parent"

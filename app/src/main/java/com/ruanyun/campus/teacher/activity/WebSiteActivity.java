@@ -174,12 +174,14 @@ public class WebSiteActivity extends Activity implements Alarmreceiver.BRInterac
 		mWebView.getSettings().setAllowFileAccess(true);
 		mWebView.getSettings().setJavaScriptEnabled(true);
 		mWebView.getSettings().setDomStorageEnabled(true);
-		mWebView.getSettings().setBuiltInZoomControls(false);
-		mWebView.getSettings().setSupportZoom(false);
+		mWebView.getSettings().setBuiltInZoomControls(true);
+		mWebView.getSettings().setSupportZoom(true);
 		mWebView.getSettings().setDisplayZoomControls(false);
 		mWebView.getSettings().setMediaPlaybackRequiresUserGesture(false);
 		mWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
 		mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+		mWebView.getSettings().setUseWideViewPort(true);
+		mWebView.setInitialScale(70);
 		//mWebView.getSettings().setPluginState(PluginState.ON);
 		mWebView.getSettings().setDefaultTextEncodingName("GBK");
 

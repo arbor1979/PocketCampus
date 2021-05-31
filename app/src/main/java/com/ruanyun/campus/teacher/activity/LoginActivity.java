@@ -5,6 +5,8 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import net.minidev.json.JSONValue;
 
@@ -17,6 +19,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -31,8 +34,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -90,13 +93,13 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 		OnDismissListener {
 	private static final String TAG = "LoginActivity";
 	private EditText mUsernameView, mPasswordView;
-	private Button loginButton, experienceButton;
+	private Button loginButton, experienceButton,btn_sendsms;
 	private TableRow table_item;
 	private String mUsername, mPassword;
 	private Dao<Equipment, Integer> eqmDao;
 	private Dao<User, Integer> userDao;
 	private Dao<AccountInfo, Integer> accountInfoDao;
-	private Dialog mLoadingDialog, experienceDialog, userTypeDialog;
+	private Dialog mLoadingDialog, experienceDialog, userTypeDialog,resetPwddialog;
     private User user;
 	private DatabaseHelper database;
 	private ImageButton login_choose;
@@ -107,6 +110,8 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 	private String[] userTypes = new String[] { "老师","学生","家长","取消" };
 	private boolean flag1=false,flag2=false;
 	private CheckBox cb_greet_xieyi;
+	private Timer timer;
+	private TimerTask task;
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -302,6 +307,26 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 				aboutusIntent.putExtra("url", CampusAPI.privateUrl);
 				aboutusIntent.putExtra("title", "隐私政策");
 				startActivity(aboutusIntent);
+			}
+		});
+		Button btn_resetpwd=(Button) findViewById(R.id.btn_resetpwd);
+		btn_resetpwd.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				mUsername = mUsernameView.getText().toString();
+				if (TextUtils.isEmpty(mUsername)) {
+					mUsernameView.setError(getString(R.string.error_username_required));
+					mUsernameView.requestFocus();
+					return;
+				}
+				JSONObject jo = new JSONObject();
+				try {
+					jo.put("username", mUsername);
+					jo.put("action", "getmaskmobile");
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				CampusAPI.httpPost(CampusAPI.resetpwdurl,jo, mHandler, 4);
 			}
 		});
 	}
@@ -547,6 +572,224 @@ public class LoginActivity extends UmengNotifyClickActivity implements OnClickLi
 				break;
 			case 2:
 				experienceDialog.dismiss();
+				break;
+			case 4:
+				result = msg.obj.toString();
+				try {
+					final JSONObject jo = new JSONObject(result);
+					if(jo.optString("result").equals("error"))
+					{
+						AppUtility.showErrorToast(LoginActivity.this,
+								"失败:"+jo.optString("msg"));
+						return;
+					}
+					String mobile=jo.optString("mobile");
+					if(mobile.length()!=11) {
+						AppUtility.showErrorToast(LoginActivity.this,
+								"手机号格式不正确");
+						return;
+					}
+					if(jo.optInt("length")<4)
+					{
+						AppUtility.showErrorToast(LoginActivity.this,
+								"验证码位数必须大于等于4");
+						return;
+					}
+					AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+					View view2 = View.inflate(LoginActivity.this, R.layout.inputsmscapt, null);
+					EditText et_mobile = (EditText) view2.findViewById(R.id.et_mobile);
+					et_mobile.setText(mobile);
+					final EditText et_capt = (EditText) view2.findViewById(R.id.et_capt);
+					btn_sendsms = (Button) view2.findViewById(R.id.btn_sendsms);
+					final Button btn_ok = (Button) view2.findViewById(R.id.btn_ok);
+					final Button btn_cancel = (Button) view2.findViewById(R.id.btn_cancel);
+					resetPwddialog=builder.setTitle("重置密码").setView(view2).setCancelable(false).create();
+					resetPwddialog.show();
+					btn_ok.setOnClickListener(new View.OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							// TODO Auto-generated method stub
+							String et_capt_txt = et_capt.getText().toString().trim();
+							if (et_capt_txt.length() != jo.optInt("length")) {
+								AppUtility.showErrorToast(LoginActivity.this,
+										"验证码位数不正确");
+								return;
+							}
+							JSONObject jo1=new JSONObject();
+							try {
+								jo1.put("action", "validateCapt");
+								jo1.put("capt", et_capt_txt);
+								jo1.put("username", jo.optString("username"));
+								jo1.put("schoolid", jo.optString("schoolid"));
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+							CampusAPI.httpPost(CampusAPI.resetpwdurl,jo1, mHandler, 7);
+						}
+					});
+					btn_cancel.setOnClickListener(new View.OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							if(timer!=null)
+								timer.cancel();
+							resetPwddialog.dismiss();
+						}
+					});
+					btn_sendsms.setOnClickListener(new View.OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							try {
+								jo.put("action", "sendsms");
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+							CampusAPI.httpPost(CampusAPI.resetpwdurl,jo, mHandler, 5);
+						}
+					});
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				break;
+			case 5:
+				result = msg.obj.toString();
+				try {
+					JSONObject jo = new JSONObject(result);
+					if (jo.optString("result").equals("error")) {
+						AppUtility.showErrorToast(LoginActivity.this,
+								"失败:" + jo.optString("msg"));
+						return;
+					}
+					int interval=jo.optInt("interval");
+					if(interval==0)
+						interval=30;
+					if(btn_sendsms!=null)
+					{
+						btn_sendsms.setEnabled(false);
+						btn_sendsms.setText(String.valueOf(interval));
+						if (timer != null)
+							timer.cancel();
+						timer = new Timer();
+						task = new TimerTask() {
+							@Override
+							public void run() {
+								// TODO Auto-generated method stub
+								Message message = new Message();
+								message.what = 6;
+								mHandler.sendMessage(message);
+							}
+						};
+						timer.schedule(task, 0, 1000);
+					}
+				}
+				catch (JSONException e) {
+					e.printStackTrace();
+				}
+				break;
+			case 6:
+				int sec=0;
+				try {
+					sec = Integer.parseInt(btn_sendsms.getText().toString());
+				}
+				catch(NumberFormatException e)
+				{
+				}
+				if(sec>0) {
+					sec--;
+					btn_sendsms.setText(String.valueOf(sec));
+				}
+				else if(sec<=0)
+				{
+					btn_sendsms.setText("获取短信验证码");
+					btn_sendsms.setEnabled(true);
+					timer.cancel();
+					timer=null;
+				}
+				break;
+			case 7:
+				result = msg.obj.toString();
+				try {
+					final JSONObject jo = new JSONObject(result);
+					if(jo.optString("result").equals("error"))
+					{
+						AppUtility.showErrorToast(LoginActivity.this,
+								"失败:"+jo.optString("msg"));
+						return;
+					}
+					if(jo.optString("result").equals("ok"))
+					{
+						if(timer!=null)
+							timer.cancel();
+						if(resetPwddialog!=null)
+							resetPwddialog.dismiss();
+						AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+						View view2 = View.inflate(LoginActivity.this, R.layout.inputnewpwd, null);
+						final EditText et_pwd = (EditText) view2.findViewById(R.id.et_pwd);
+						final EditText et_pwd1 = (EditText) view2.findViewById(R.id.et_pwd1);
+						final Button btn_ok = (Button) view2.findViewById(R.id.btn_ok);
+						final Button btn_cancel = (Button) view2.findViewById(R.id.btn_cancel);
+						resetPwddialog=builder.setTitle("输入新密码").setView(view2).setCancelable(false).create();
+						resetPwddialog.show();
+						btn_ok.setOnClickListener(new View.OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								String pwd=et_pwd.getText().toString().trim();
+								String pwd1=et_pwd1.getText().toString().trim();
+								if(pwd.length()==0)
+								{
+									AppUtility.showErrorToast(LoginActivity.this,
+											"密码不能为空");
+									return;
+								}
+								if(!pwd.equals(pwd1))
+								{
+									AppUtility.showErrorToast(LoginActivity.this,
+											"两次密码不一致");
+									return;
+								}
+
+								JSONObject jo1=new JSONObject();
+								try {
+									jo1.put("action", "setNewPwd");
+									jo1.put("password", pwd);
+									jo1.put("id", jo.optInt("id"));
+								} catch (JSONException e) {
+									e.printStackTrace();
+								}
+								CampusAPI.httpPost(CampusAPI.resetpwdurl,jo1, mHandler, 8);
+							}
+						});
+						btn_cancel.setOnClickListener(new View.OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								resetPwddialog.dismiss();
+							}
+						});
+					}
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				break;
+			case 8:
+				result = msg.obj.toString();
+				try {
+					JSONObject jo = new JSONObject(result);
+					if(jo.optString("result").equals("error"))
+					{
+						AppUtility.showErrorToast(LoginActivity.this,
+								"失败:"+jo.optString("msg"));
+						return;
+					}
+					if(jo.optString("result").equals("ok"))
+					{
+						AppUtility.showErrorToast(LoginActivity.this,
+								"密码已重置成功");
+						if(resetPwddialog!=null)
+							resetPwddialog.dismiss();
+					}
+
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
 				break;
 			}
 		}

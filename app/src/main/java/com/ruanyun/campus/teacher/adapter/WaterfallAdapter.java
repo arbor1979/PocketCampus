@@ -1,14 +1,11 @@
 package com.ruanyun.campus.teacher.adapter;
 
 
-import java.util.ArrayList;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -22,10 +19,12 @@ import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.activity.AlbumShowImagePage;
 import com.ruanyun.campus.teacher.entity.AlbumImageInfo;
+
+import java.util.ArrayList;
 
 
 public class WaterfallAdapter extends BaseAdapter {

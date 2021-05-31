@@ -3,19 +3,17 @@ buildscript {
     repositories {
 
         maven{ url 'http://maven.aliyun.com/nexus/content/groups/public/'}
-        jcenter()
         google()
         maven { url 'https://dl.bintray.com/umsdk/release' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath 'com.android.tools.build:gradle:4.2.1'
     }
 }
 
 allprojects {
     repositories {
         maven{ url 'http://maven.aliyun.com/nexus/content/groups/public/'}
-        jcenter()
         google()
         maven { url 'https://dl.bintray.com/umsdk/release' }
     }

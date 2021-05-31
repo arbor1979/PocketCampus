@@ -32,9 +32,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.NotificationCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -396,27 +395,28 @@ public class SysSettingActivity extends FragmentActivity implements
 		}
 	}
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == PIC_Select_CODE_ImageFromLoacal) {
-			
-			if(data==null) return;
+
+			if (data == null) return;
 			Uri uri = data.getData();
-			String img_path=FileUtility.getFilePathInSD(this,uri);
+			String img_path = FileUtility.getFilePathInSD(this, uri);
 			/*
 			String[] pojo  = { MediaStore.Images.Media.DATA };
 			CursorLoader cursorLoader = new CursorLoader(this, uri, pojo, null,null, null); 
 			Cursor cursor = cursorLoader.loadInBackground();
 			cursor.moveToFirst(); 
 			String img_path = cursor.getString(cursor.getColumnIndex(pojo[0]));
-			*/ 
+			*/
 			//String extName=FileUtility.getFileExtName(img_path);
 			//String tempPath =FileUtility.getRandomSDFileName(FileUtility.SDPATH,extName);
-			String tempPath =FileUtility.getCacheDir()+FileUtility.getFileRealName(img_path);
-			FileUtility.copyFile(img_path,tempPath);
+			String tempPath = FileUtility.getCacheDir() + FileUtility.getFileRealName(img_path);
+			FileUtility.copyFile(img_path, tempPath);
 			ImageUtility.rotatingImageIfNeed(tempPath);
 			PrefUtility.put("scheduleBg", tempPath);
-			Intent intent=new Intent("changeScheduleBg");
+			Intent intent = new Intent("changeScheduleBg");
 			sendBroadcast(intent);
-			
+
 		}
 	}
 	/**

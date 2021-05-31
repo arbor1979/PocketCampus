@@ -1,22 +1,5 @@
 package com.ruanyun.campus.teacher.fragment;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -31,7 +14,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -40,22 +22,22 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.FileProvider;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -70,16 +52,12 @@ import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.androidquery.AQuery;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
+
 import com.ruanyun.campus.teacher.BuildConfig;
 import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
-import com.ruanyun.campus.teacher.activity.ChatFriendActivity;
-import com.ruanyun.campus.teacher.activity.ClassDetailActivity;
-import com.ruanyun.campus.teacher.activity.ContactsSelectActivity;
 import com.ruanyun.campus.teacher.activity.ImagesActivity;
 import com.ruanyun.campus.teacher.activity.SchoolDetailActivity;
 import com.ruanyun.campus.teacher.activity.StudentSelectActivity;
@@ -93,7 +71,6 @@ import com.ruanyun.campus.teacher.api.RequestListener;
 import com.ruanyun.campus.teacher.base.Constants;
 import com.ruanyun.campus.teacher.entity.DownloadSubject;
 import com.ruanyun.campus.teacher.entity.ImageItem;
-import com.ruanyun.campus.teacher.entity.QuestionnaireItem;
 import com.ruanyun.campus.teacher.entity.QuestionnaireList;
 import com.ruanyun.campus.teacher.entity.QuestionnaireList.Question;
 import com.ruanyun.campus.teacher.entity.User;
@@ -106,12 +83,30 @@ import com.ruanyun.campus.teacher.util.DateHelper;
 import com.ruanyun.campus.teacher.util.DialogUtility;
 import com.ruanyun.campus.teacher.util.FileUtility;
 import com.ruanyun.campus.teacher.util.ImageUtility;
+import com.ruanyun.campus.teacher.util.MaxLengthWatcher;
 import com.ruanyun.campus.teacher.util.PrefUtility;
 import com.ruanyun.campus.teacher.widget.NonScrollableGridView;
 import com.ruanyun.campus.teacher.widget.NonScrollableListView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 @SuppressLint({"ValidFragment","LongLogTag"})
-public class SchoolQuestionnaireDetailFragment extends Fragment {
+public class SchoolQuestionnaireDetailFragment extends Fragment implements View.OnTouchListener{
 	private final String TAG = "SchoolQuestionnaireDetailFragment";
 	private ListView myListview;
 	private Button btnLeft;
@@ -134,6 +129,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	//private int size = 5;//已提交图片数量;size:图片最大数量
 	private int curIndex;
 	private ProgressDialog progressDlg;
+	private EditText lastFocusEt;
+
 	public static JSONObject multiListData=new JSONObject();
 	@SuppressLint("HandlerLeak")
 	private Handler mHandler = new Handler() {
@@ -199,7 +196,9 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 									JSONObject obj=guanlianItem.getFilterObj();
 									if(item.getUsersAnswer().length()==0 && item.getOptions().length>0)
 										item.setUsersAnswer(item.getOptions()[0]);
-									JSONArray ja=obj.optJSONArray(item.getUsersAnswer());
+									JSONArray ja = null;
+									if(obj!=null)
+										ja=obj.optJSONArray(item.getUsersAnswer());
 									if(ja!=null)
 									{
 										String [] options = new String[ja.length()];
@@ -386,6 +385,44 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					e.printStackTrace();
 				}
 				break;
+			case 4://回调函数
+				result = msg.obj.toString();
+				resultStr = "";
+				if (AppUtility.isNotEmpty(result)) {
+					try {
+						resultStr = new String(Base64.decode(result
+								.getBytes("GBK")));
+						Log.d(TAG, resultStr);
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+				}
+				if (AppUtility.isNotEmpty(resultStr)) {
+
+					try {
+						JSONObject jo = new JSONObject(resultStr);
+						String res = jo.optString("结果");
+						if (res.equals("失败")) {
+							AppUtility.showToastMsg(getActivity(), jo.optString("errorMsg"));
+						} else {
+							JSONArray ja=jo.optJSONArray("rs");
+							if(ja!=null && ja.length()>0) {
+								for (int i = 0; i < ja.length(); i++) {
+									JSONObject subjo=ja.optJSONObject(i);
+									if(subjo!=null)
+										setQuestionByJson(subjo);
+								}
+								//if(lastFocusEt!=null)
+								//	closeInputMethod(lastFocusEt);
+								adapter.notifyDataSetChanged();
+							}
+
+						}
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				break;
 			}
 		}
 	};
@@ -461,6 +498,9 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					return;
 				} else {
 					Log.d(TAG, "-----保存");
+					View view=myListview.findFocus();
+					if(view!=null && view instanceof EditText)
+						view.clearFocus();
 					saveQuestionAnswer();
 				}
 			}
@@ -1216,17 +1256,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
     class QuestionAdapter extends BaseAdapter {
 	
 		int mFocusPosition = -1;
-		OnFocusChangeListener mListener = new OnFocusChangeListener() {
-
-	        @Override
-	        public void onFocusChange(View v, boolean hasFocus) {
-	            int position = (Integer) v.getTag();
-	            if (hasFocus) {
-	                mFocusPosition = position;
-	            }
-	            Log.e("test", "onFocusChange:" + position + " " + hasFocus);
-	        }
-	    };
+		private HashMap<Integer, QuestionAdapter.OnFocusChangeListenerImpl> listenerhm=new HashMap();
+		private HashMap<Integer, MaxLengthWatcher> listenertchm=new HashMap();
 		@Override
 		public int getCount() {
 			return questions.size();
@@ -1251,6 +1282,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			final Question question = (Question) getItem(position);
 			convertView = inflater.inflate(R.layout.school_questionnaire_item, parent, false);
 			final ViewHolder holder = new ViewHolder();
+			holder.lv_layout=(LinearLayout) convertView.findViewById(R.id.lv_layout);
+			holder.lv_parentlayout=(LinearLayout)convertView.findViewById(R.id.lv_parentlayout);
 			holder.title = (TextView) convertView.findViewById(R.id.tv_questionnaire_name);
 			holder.radioGroup = (RadioGroup) convertView.findViewById(R.id.rg_choose);
 			holder.multipleChoice = (NonScrollableListView) convertView.findViewById(R.id.lv_choose);
@@ -1263,9 +1296,47 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			holder.sp_select=(Spinner)convertView.findViewById(R.id.sp_select);
 			holder.sp_select1=(Spinner)convertView.findViewById(R.id.sp_select1);
 			holder.sp_select2=(Spinner)convertView.findViewById(R.id.sp_select2);
-			holder.etAnswer.setOnFocusChangeListener(mListener);
+			holder.et_autotext = (AutoCompleteTextView ) convertView.findViewById(R.id.et_autotext);
+			OnFocusChangeListenerImpl listener=listenerhm.get(position);
+			if(listener==null) {
+				listener=new OnFocusChangeListenerImpl(position);
+				listenerhm.put(position,listener);
+			}
+			holder.etAnswer.setOnTouchListener(new View.OnTouchListener() {
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					v.setOnFocusChangeListener(listenerhm.get(position));
+					if (canVerticalScroll(holder.etAnswer)) {
+						v.getParent().requestDisallowInterceptTouchEvent(true);
+						if (event.getAction() == MotionEvent.ACTION_UP) {
+							v.getParent().requestDisallowInterceptTouchEvent(false);
+						}
+					}
+					return false;
+				}
+			});
+			holder.et_autotext.setOnTouchListener(new View.OnTouchListener() {
+				@Override
+				public boolean onTouch(View v, MotionEvent event) {
+					v.setOnFocusChangeListener(listenerhm.get(position));
+					return false;
+				}
+			});
 			holder.etAnswer.setTag(position);
-			
+			holder.et_autotext.setTag(position);
+			if (lastFocusEt!=null && lastFocusEt.getTag().equals(position))
+			{
+				EditText et=(EditText) convertView.findViewById(lastFocusEt.getId());
+				if(et!=null) {
+					et.setOnFocusChangeListener(listenerhm.get(position));
+					popInputDelay(et);
+				}
+			}
+			convertView.setOnTouchListener(touchListener);
+			if(question.isIfHide())
+				holder.lv_parentlayout.setVisibility(View.GONE);
+			else
+				holder.lv_parentlayout.setVisibility(View.VISIBLE);
 			String mStatus = question.getStatus();
 			String addstr="";
 			if(question.getIsRequired().equals("是") && !question.getTitle().endsWith("*"))
@@ -1275,6 +1346,10 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			if(AppUtility.isNotEmpty(remark) && remark.trim().length()>0){
 				holder.tvRemark.setText(remark);
 				holder.tvRemark.setVisibility(View.VISIBLE);
+				if(question.getRemardColor().length()>0)
+					holder.tvRemark.setTextColor(Color.parseColor(question.getRemardColor()));
+				else
+					holder.tvRemark.setTextColor(Color.parseColor("black"));
 				if(status.equals("已结束") && !mStatus.equals("单行文本输入框") && !mStatus.equals("图片") && !mStatus.equals("日期")){
 
 					if(remark.length()>=7 && (remark.substring(0, 7).equals("答题状态:错误") || remark.indexOf("error")>0)){
@@ -1289,16 +1364,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			else
 				holder.tvRemark.setVisibility(View.GONE);
 			if (mStatus.equals("单选")) {
-				holder.imageGridView.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.radioGroup.setVisibility(View.VISIBLE);
-				holder.multipleChoice.setVisibility(View.GONE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
-				holder.sp_select.setVisibility(View.GONE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
 				final String[] answers = question.getOptions();
 				final List<JSONObject> jsonanswers = question.getOptionsJson();
 				holder.radioGroup.removeAllViews();
@@ -1359,7 +1426,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 									question.setUsersAnswer(key);
 								}
 								questions.set(position, question);
-								questionnaireList.setQuestions(questions);
+								//questionnaireList.setQuestions(questions);
 								int linkIndex=question.getLinkUpdate();
 								if(linkIndex>0)
 								{
@@ -1384,34 +1451,24 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 										adapter.notifyDataSetChanged();
 									}
 								}
+								if(question.getCallback().length()>0) {
+									//startTimer(question,300,null);
+									String callback=question.getCallback()+"&"+question.getTitle()+"="+question.getUsersAnswer();
+									sendCallBack(callback,4);
+								}
 							}
 						});
 			}
 			else if (mStatus.equals("多选")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.multipleChoice.setVisibility(View.VISIBLE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
-				holder.sp_select.setVisibility(View.GONE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
 				CheckBoxAdapter checkBoxAdapter = new CheckBoxAdapter(
 						getActivity(), position, question);
 				holder.multipleChoice.setAdapter(checkBoxAdapter);
 				
 			}
 			else if (mStatus.equals("单行文本输入框")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
-				holder.multipleChoice.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
-				holder.sp_select.setVisibility(View.GONE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
+				setAllGone(holder);
 				if (status.equals("已结束") || status.equals("未开始")) {
 					holder.etAnswer.setVisibility(View.GONE);
 					holder.tvAnswer.setVisibility(View.VISIBLE);
@@ -1421,53 +1478,42 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					holder.etAnswer.setEnabled(!question.isIfRead());
 					holder.tvAnswer.setVisibility(View.GONE);
 					holder.etAnswer.setText(question.getUsersAnswer());
-					if(question.getLines()>2)
-						holder.etAnswer.setLines(question.getLines());
-					else
+					if (question.getLines() <= 2) {
+						holder.etAnswer.setSingleLine();
 						holder.etAnswer.setLines(1);
-					if (mFocusPosition == position) {
-						holder.etAnswer.requestFocus();
-			        } else {
-			        	holder.etAnswer.clearFocus();
-			        }
-					holder.etAnswer.addTextChangedListener(new TextWatcher() {
-						
-					@Override
-					public void onTextChanged(CharSequence s, int start,
-							int before, int count) {
-						Log.d(TAG, "-------------" + s);
-						
+						if(question.getValidate().equals("浮点型"))
+							holder.etAnswer.setInputType(EditorInfo.TYPE_CLASS_NUMBER| EditorInfo.TYPE_NUMBER_FLAG_DECIMAL|EditorInfo.TYPE_NUMBER_FLAG_SIGNED);
+						else if(question.getValidate().equals("整型"))
+							holder.etAnswer.setInputType(EditorInfo.TYPE_CLASS_NUMBER|EditorInfo.TYPE_NUMBER_FLAG_SIGNED);
+						else if(question.getValidate().equals("邮箱"))
+							holder.etAnswer.setInputType(EditorInfo.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+						else if(question.getValidate().equals("手机号"))
+							holder.etAnswer.setInputType(EditorInfo.TYPE_CLASS_PHONE);
+						else
+							holder.etAnswer.setInputType(EditorInfo.TYPE_CLASS_TEXT);
+					} else {
+						holder.etAnswer.setInputType(EditorInfo.TYPE_CLASS_TEXT);
+						holder.etAnswer.setSingleLine(false);
+						holder.etAnswer.setLines(question.getLines());
 					}
-	
-					@Override
-					public void beforeTextChanged(CharSequence s,
-							int start, int count, int after) {
-						// TODO Auto-generated method stub
-	
+					MaxLengthWatcher txw=listenertchm.get(position);
+					if(txw!=null)
+						holder.etAnswer.removeTextChangedListener(txw);
+					if(question.getMaxLetter()>0) {
+						txw=new MaxLengthWatcher(question.getMaxLetter(), holder.etAnswer,getActivity());
+						holder.etAnswer.addTextChangedListener(txw);
+						listenertchm.put(position,txw);
 					}
-	
-					@Override
-					public void afterTextChanged(Editable s) {
-						// TODO Auto-generated method stub
-						question.setUsersAnswer(s.toString());
-						questions.set(position, question);
-						questionnaireList.setQuestions(questions);
-					}
-				});
+					if(question.getBackgroundcolor().length()>0)
+						holder.lv_layout.setBackgroundColor(Color.parseColor(question.getBackgroundcolor()));
+					else
+						holder.lv_layout.setBackgroundColor(Color.TRANSPARENT);
 					
 				}
 			}
 			else if (mStatus.equals("图片")) {
+				setAllGone(holder);
 				holder.imageGridView.setVisibility(View.VISIBLE);
-				holder.radioGroup.setVisibility(View.GONE);
-				holder.multipleChoice.setVisibility(View.GONE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
-				holder.sp_select.setVisibility(View.GONE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
 				int size=5;
 				if(question.getLines()>0)
 					size=question.getLines();
@@ -1482,16 +1528,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				holder.imageGridView.setAdapter(myPictureAdapter);
 			}
 			else if (mStatus.equals("日期")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
-				holder.multipleChoice.setVisibility(View.GONE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.bt_date.setVisibility(View.VISIBLE);
-				holder.bt_datetime.setVisibility(View.GONE);
-				holder.sp_select.setVisibility(View.GONE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
 				boolean bflag=false;
 				if(!question.isIfRead() && isEnable)
 					bflag=true;
@@ -1543,16 +1581,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	
 			}
 			else if (mStatus.equals("日期时间")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
-				holder.multipleChoice.setVisibility(View.GONE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.bt_datetime.setVisibility(View.VISIBLE);
-				holder.sp_select.setVisibility(View.GONE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
 				boolean bflag=false;
 				if(!question.isIfRead() && isEnable)
 					bflag=true;
@@ -1579,16 +1609,8 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 	
 			}
 			else if (mStatus.equals("下拉")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
-				holder.multipleChoice.setVisibility(View.GONE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.sp_select.setVisibility(View.VISIBLE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
 				boolean bflag=false;
 				if(!question.isIfRead() && isEnable)
 					bflag=true;
@@ -1623,12 +1645,25 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 					public void onItemSelected(AdapterView<?> parent,
 							View view, int position, long id) {
 						// TODO Auto-generated method stub
-						if(question.getOptions().length>0)
-							question.setUsersAnswer(question.getOptions()[position]);
+						boolean ischanged=false;
+						if(question.getOptions().length>0) {
+							if(!question.getUsersAnswer().equals(question.getOptions()[position])) {
+								ischanged = true;
+								question.setUsersAnswer(question.getOptions()[position]);
+							}
+						}
 						else
 						{
 							JSONObject obj=question.getOptionsJson().get(position);
-							question.setUsersAnswer(obj.optString("key"));
+							if(!question.getUsersAnswer().equals(obj.optString("key"))) {
+								ischanged = true;
+								question.setUsersAnswer(obj.optString("key"));
+							}
+						}
+						if(question.getCallback().length()>0 && ischanged) {
+							//startTimer(question,300,null);
+							String callback=question.getCallback()+"&"+question.getTitle()+"="+question.getUsersAnswer();
+							sendCallBack(callback,4);
 						}
 
 					}
@@ -1641,16 +1676,9 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				
 			}
 			else if (mStatus.equals("附件")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.multipleChoice.setVisibility(View.VISIBLE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
-				holder.sp_select.setVisibility(View.GONE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
+
 				SimpleAdapter fujianAdapter=setupFujianAdpter(question);
 				holder.multipleChoice.setAdapter(fujianAdapter);
 				holder.multipleChoice.setTag(position);
@@ -1701,32 +1729,18 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				
 			}
 			else if (mStatus.equals("弹出列表")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.multipleChoice.setVisibility(View.VISIBLE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
-				holder.sp_select.setVisibility(View.GONE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
+
 				ListOfBillAdapter billAdapter=setupPeiJianAdpter(question,position);
 				holder.multipleChoice.setAdapter(billAdapter);
 				holder.multipleChoice.setTag(position);
 				
 			}
 			else if (mStatus.equals("二级下拉")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
-				holder.multipleChoice.setVisibility(View.GONE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.sp_select.setVisibility(View.VISIBLE);
 				holder.sp_select1.setVisibility(View.VISIBLE);
-				holder.sp_select2.setVisibility(View.GONE);
 				boolean bflag=false;
 				if(!question.isIfRead() && isEnable)
 					bflag=true;
@@ -1802,13 +1816,7 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				
 			}
 			else if (mStatus.equals("三级下拉")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
-				holder.multipleChoice.setVisibility(View.GONE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.sp_select.setVisibility(View.VISIBLE);
 				holder.sp_select1.setVisibility(View.VISIBLE);
 				holder.sp_select2.setVisibility(View.VISIBLE);
@@ -1907,16 +1915,9 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				reloadThreeSpinner1(holder.sp_select1,question,holder.sp_select2);
 			}
 			else if (mStatus.equals("弹出多选")) {
-				holder.imageGridView.setVisibility(View.GONE);
-				holder.radioGroup.setVisibility(View.GONE);
+				setAllGone(holder);
 				holder.multipleChoice.setVisibility(View.VISIBLE);
-				holder.etAnswer.setVisibility(View.GONE);
-				holder.tvAnswer.setVisibility(View.GONE);
-				holder.bt_date.setVisibility(View.GONE);
-				holder.bt_datetime.setVisibility(View.GONE);
-				holder.sp_select.setVisibility(View.GONE);
-				holder.sp_select1.setVisibility(View.GONE);
-				holder.sp_select2.setVisibility(View.GONE);
+
 				ListViewImageAdapter fujianAdapter=setupPopMutiAdpter(question);
 				holder.multipleChoice.setAdapter(fujianAdapter);
 				holder.multipleChoice.setTag(position);
@@ -1977,6 +1978,40 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 				});
 
 			}
+			else if (mStatus.equals("下拉提示框")) {
+				setAllGone(holder);
+				if (status.equals("已结束") || status.equals("未开始")) {
+					holder.et_autotext.setVisibility(View.GONE);
+					holder.tvAnswer.setVisibility(View.VISIBLE);
+					holder.tvAnswer.setText(question.getUsersAnswer());
+				} else {
+					holder.et_autotext.setVisibility(View.VISIBLE);
+					boolean bflag=false;
+					if(!question.isIfRead() && isEnable)
+						bflag=true;
+					holder.et_autotext.setEnabled(bflag);
+					holder.tvAnswer.setVisibility(View.GONE);
+					holder.et_autotext.setText(question.getUsersAnswer());
+
+					ArrayAdapter<String> aa = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,question.getOptions());
+					holder.et_autotext.setAdapter(aa);
+
+					holder.et_autotext.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+						@Override
+						public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+							question.setUsersAnswer(holder.et_autotext.getText().toString());
+							questions.set(position, question);
+							if(question.getCallback().length()>0)
+							{
+								//startTimer(question, 300, null);
+								String callback=question.getCallback()+"&"+question.getTitle()+"="+question.getUsersAnswer();
+								sendCallBack(callback,4);
+							}
+						}
+					});
+
+				}
+			}
 			return convertView;
 		}
 
@@ -1994,8 +2029,60 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 			Spinner sp_select2;
 			Button bt_date;
 			Button bt_datetime;
+			LinearLayout lv_layout;
+			LinearLayout lv_parentlayout;
+			AutoCompleteTextView et_autotext;
 		}
-		
+		private class OnFocusChangeListenerImpl implements OnFocusChangeListener {
+			private int position;
+			public OnFocusChangeListenerImpl(int position) {
+				this.position = position;
+			}
+			@Override
+			public void onFocusChange(View arg0, boolean arg1) {
+				EditText et = (EditText) arg0;
+				Question question = (Question) getItem(position);
+				if(arg1) {
+					Log.d("", "获得焦点"+position);
+					lastFocusEt=et;
+				} else {
+					Log.d("", "失去焦点"+position);
+					String newtxt = et.getText().toString();
+					if(et.getId()==R.id.et_answer || et.getId()==R.id.et_autotext ) {
+
+						if(!question.getUsersAnswer().equals(newtxt))
+						{
+
+							question.setUsersAnswer(newtxt);
+							if (question.getCallback().length()>0 ) {
+								String callback=question.getCallback()+"&"+question.getTitle()+"="+question.getUsersAnswer();
+								sendCallBack(callback,4);
+								//et.setOnFocusChangeListener(null);
+
+							}
+
+						}
+					}
+
+
+				}
+			}
+
+		}
+		private void setAllGone(ViewHolder holder)
+		{
+			holder.imageGridView.setVisibility(View.GONE);
+			holder.radioGroup.setVisibility(View.GONE);
+			holder.multipleChoice.setVisibility(View.GONE);
+			holder.bt_date.setVisibility(View.GONE);
+			holder.bt_datetime.setVisibility(View.GONE);
+			holder.sp_select.setVisibility(View.GONE);
+			holder.sp_select1.setVisibility(View.GONE);
+			holder.sp_select2.setVisibility(View.GONE);
+			holder.etAnswer.setVisibility(View.GONE);
+			holder.tvAnswer.setVisibility(View.GONE);
+			holder.et_autotext.setVisibility(View.GONE);
+		}
 	}
 
 	private void reloadSpinner2(Spinner sp,Question question)
@@ -2369,4 +2456,157 @@ public class SchoolQuestionnaireDetailFragment extends Fragment {
 		adapter.notifyDataSetChanged();
 	}
 
+	@Override
+	public boolean onTouch(View view, MotionEvent motionEvent) {
+		//触摸的是EditText并且当前EditText可以滚动则将事件交给EditText处理；否则将事件交由其父类处理
+		if ((view.getId() == R.id.et_answer && canVerticalScroll((EditText)view))) {
+			view.getParent().requestDisallowInterceptTouchEvent(true);
+			if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+				view.getParent().requestDisallowInterceptTouchEvent(false);
+			}
+		}
+		return false;
+	}
+	private boolean canVerticalScroll(EditText editText) {
+
+			//滚动的距离
+			int scrollY = editText.getScrollY();
+			//控件内容的总高度
+			int scrollRange = editText.getLayout().getHeight();
+			//控件实际显示的高度
+			int scrollExtent = editText.getHeight() - editText.getCompoundPaddingTop() - editText.getCompoundPaddingBottom();
+			//控件内容总高度与实际显示高度的差值
+			int scrollDifference = scrollRange - scrollExtent;
+
+			if (scrollDifference == 0) {
+				return false;
+			}
+			return (scrollY > 0) || (scrollY < scrollDifference - 1);
+
+	}
+	private void sendCallBack(String url,int what)
+	{
+		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
+		JSONObject queryJson=AppUtility.parseQueryStrToJson(url);
+		JSONObject jsonObj = new JSONObject();
+		try {
+			jsonObj.put("用户较验码", checkCode);
+			Iterator it = queryJson.keys();
+			while (it.hasNext()) {
+				String key = (String) it.next();
+				String value = queryJson.getString(key);
+				jsonObj.put(key, value);
+			}
+			String linkindex=queryJson.optString("linkindex");
+			if(linkindex!=null && linkindex.length()>0)
+			{
+				String[] indexarr=linkindex.split(",");
+				for(String index : indexarr) {
+					int i = Integer.parseInt(index)-1;
+					if(i>=0)
+						jsonObj.put(questions.get(i).getTitle(), questions.get(i).getUsersAnswer());
+				}
+			}
+
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
+		String preurl=AppUtility.removeURLQuery(url);
+		if(preurl.length()==0)
+			preurl=AppUtility.removeURLQuery(interfaceName);
+		Log.d("timer3000",jsonObj.toString());
+		CampusAPI.httpPost(preurl,jsonObj, mHandler, what);
+	}
+	private void setQuestionByJson(JSONObject subjo)
+	{
+		for(int i=0;i<questions.size();i++)
+		{
+			Question question=questions.get(i);
+			if(question.getTitle().equals(subjo.optString("题目")))
+			{
+				Iterator<?> it = subjo.keys();
+				while(it.hasNext()){//遍历JSONObject
+					String key =  it.next().toString();
+					String value=subjo.optString(key);
+					if(key.equals("备注"))
+						question.setRemark(value);
+					else if(key.equals("备注颜色"))
+						question.setRemardColor(value);
+					else if(key.equals("只读"))
+						question.setIfRead(subjo.optBoolean(key));
+					else if(key.equals("用户答案"))
+						question.setUsersAnswer(value);
+					else if(key.equals("隐藏"))
+						question.setIfHide(subjo.optBoolean(key));
+					else if(key.equals("背景色"))
+						question.setBackgroundcolor(subjo.optString(key));
+					else if(key.equals("选项")) {
+						String[] options = new String[0];
+						ArrayList optionsJson = new ArrayList<JSONObject>();
+						try {
+							JSONArray josArr = subjo.optJSONArray(key);
+							if (josArr != null) {
+								for (int j = 0; j < josArr.length(); j++) {
+									if (josArr.get(j) instanceof String) {
+										if(j==0)
+											options = new String[josArr.length()];
+										options[j] = josArr.optString(j);
+									}
+									else if(josArr.get(j) instanceof JSONObject)
+										optionsJson.add((JSONObject)josArr.get(j));
+								}
+							}
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						question.setOptions(options);
+						question.setOptionsJson(optionsJson);
+					}
+					else if(key.equals("类型"))
+						question.setStatus(subjo.optString(key));
+					else if(key.equals("回调"))
+						question.setCallback(subjo.optString(key));
+					else if(key.equals("是否必填"))
+						question.setIsRequired(subjo.optString(key));
+
+				}
+				//questions.set(i,question);
+				break;
+			}
+		}
+	}
+	private View.OnTouchListener touchListener= new View.OnTouchListener(){
+
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+			v.setFocusable(true);
+			v.setFocusableInTouchMode(true);
+			v.requestFocus();
+			lastFocusEt=null;
+			closeInputMethod(v);
+			return false;
+		}
+
+	};
+	private void closeInputMethod(View v) {
+		InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+		boolean isOpen = imm.isActive();
+		if (isOpen) {
+			// imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);//没有显示则显示
+			imm.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+		}
+	}
+	private void popInputDelay(final EditText et)
+	{
+		new Handler().postDelayed(new Runnable(){
+			@Override
+			public void run(){
+				et.requestFocus();
+				et.setSelection(et.getText().length());
+				//InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+				//imm.showSoftInput(et, InputMethodManager.SHOW_IMPLICIT);
+			}
+		},300);
+	}
 }

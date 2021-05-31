@@ -89,4 +89,20 @@
     <color name="possible_result_points">#c0ffff00</color>
     <color name="viewfinder_frame">#ff000000</color>
     <color name="viewfinder_laser">#ffff0000</color>
+
+    <color name="half_transparent">#8f000000</color>
+    <color name="bg">#FFF5F5F5</color>
+    <color name="bg_pressed">#FFF2F2F2</color>
+    <color name="font_black_0">#212121</color>
+    <color name="font_black_1">#424242</color>
+    <color name="font_black_2">#616161</color>
+    <color name="font_black_3">#757575</color>
+    <color name="font_black_4">#9e9e9e</color>
+    <color name="font_black_5">#bdbdbd</color>
+    <color name="font_black_6">#e0e0e0</color>
+    <color name="divider_1">#e2e2e2</color>
+    <color name="divider_2">#e6e6e6</color>
+    <color name="tab_checked">#FFFFFF</color>
+    <color name="tab_unchecked">#757575</color>
+    <color name="button_warn">#E38876</color>
 </resources>

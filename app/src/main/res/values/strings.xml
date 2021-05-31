@@ -57,7 +57,7 @@
     <string name="Commons.SDCardErrorNoSDMsg">找不到SD卡</string>
     <string name="Commons.SDCardErrorSDUnavailable">SD卡不能使用</string>
     <string name="curriculum">课表</string>
-     <string name="course">课程</string>
+    <string name="course">课程</string>
     <string name="study">学习</string>
     <string name="message">消息</string>
     <string name="contacts">联系人</string>
@@ -65,7 +65,7 @@
     <string name="summary">总结</string>
     <string name="school">校内</string>
     <string name="roll_call">点名</string>
-	<string name="album">相册</string>
+    <string name="album">相册</string>
     <!-- Home Page -->
     <string name="date_section1">昨天</string>
     <string name="date_section2">今天</string>
@@ -133,7 +133,7 @@
     <string name="course_date">上课日期</string>
     <string name="class_room">教室</string>
     <string name="homework">课后作业</string>
-    
+
     <string name="ketangjilv">课堂纪律</string>
     <string name="jiaoshiweisheng">教室卫生</string>
     <string name="teacher_profile">教师简介</string>
@@ -148,7 +148,7 @@
     <string name="page_feedback">意见反馈</string>
     <string name="clear_cache">清除缓存</string>
     <string name="app_version">软件版本：</string>
-     <string name="version_detection">版本检测</string>
+    <string name="version_detection">版本检测</string>
     <!-- 学生详情 -->
     <string name="stu_phone">学生电话：</string>
     <string name="stu_email">学生邮箱：</string>
@@ -201,7 +201,7 @@
     <string name="border_top">Border Top</string>
     <string name="border_bottom">Border Bottom</string>
     <string name="image_url">Image Url</string>
-   
+
     <string name="ptr_pull_to_refresh">Pull to refresh</string>
     <string name="ptr_release_to_refresh">Release to refresh</string>
     <string name="ptr_loading">Loading</string>
@@ -210,5 +210,19 @@
     <string name="ifconfirmdelete">是否确认删除此条留言?</string>
     <string name="yes">是</string>
     <string name="no">否</string>
+    <string name="title_activity_main">MainActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
 
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="smoothlistview_header_hint_normal">下拉刷新</string>
+    <string name="smoothlistview_header_hint_ready">松开刷新数据</string>
+    <string name="smoothlistview_header_hint_loading">正在加载...</string>
+    <string name="smoothlistview_header_last_time">上次更新时间：</string>
+    <string name="smoothlistview_footer_hint_normal">查看更多</string>
+    <string name="smoothlistview_footer_hint_ready">松开载入更多</string>
 </resources>

@@ -25,10 +25,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
+
+import androidx.multidex.MultiDexApplication;
 
 import com.androidquery.AQuery;
 import com.androidquery.callback.BitmapAjaxCallback;

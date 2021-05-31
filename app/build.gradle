@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 30
-    buildToolsVersion '29.0.3'
+    buildToolsVersion '30.0.2'
     defaultConfig {
         applicationId "com.ruanyun.campus.teacher"
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_7
             targetCompatibility JavaVersion.VERSION_1_7
@@ -25,19 +25,24 @@ android {
     productFlavors {
     }
     compileOptions {
-        sourceCompatibility = 1.7
-        targetCompatibility = 1.7
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
     }
 }
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
     //api project(':push')
-    implementation 'com.android.support:support-v4:28.0.0'
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support:gridlayout-v7:28.0.0'
-    implementation 'com.android.support:recyclerview-v7:28.0.0'
-    implementation 'com.tencent.bugly:crashreport:latest.release'
-    implementation 'com.android.support:design:28.0.0'
+    //implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    //implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    //implementation 'com.android.support:gridlayout-v7:28.0.0'
+    implementation 'androidx.gridlayout:gridlayout:1.0.0'
+    //implementation 'com.android.support:recyclerview-v7:28.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'com.tencent.bugly:crashreport:3.3.92'
+    //implementation 'com.android.support:design:28.0.0'
+    implementation 'com.google.android.material:material:1.2.1'
     //noinspection DuplicatePlatformClasses
     implementation "commons-logging:commons-logging:1.2"
 
@@ -58,4 +63,10 @@ dependencies {
     implementation 'com.umeng.umsdk:meizu-push:3.8.1'
     implementation 'com.umeng.umsdk:meizu-umengaccs:1.0.6'
     implementation 'com.android.support:multidex:1.0.3'
+    implementation 'com.android.support.constraint:constraint-layout:2.0.4'
+    implementation 'android.arch.navigation:navigation-fragment:1.0.0'
+    implementation 'android.arch.navigation:navigation-ui:1.0.0'
+    implementation 'com.jakewharton:butterknife:10.2.3'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
 }

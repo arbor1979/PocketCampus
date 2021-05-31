@@ -1,10 +1,10 @@
 package com.ruanyun.campus.teacher.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -26,9 +26,45 @@ public class AchievementItem {
 	private String rightButton;
 	private String rightButtonURL;
 	private String submitTarget;
+	private String huizong;
 	private int page;
 	private int allnum;
 	private JSONArray filterArr;
+	private JSONArray MutiSelArr;
+	private JSONArray groupArr;
+	private int curGroupId=0;
+
+	public JSONArray getMutiSelArr() {
+		return MutiSelArr;
+	}
+
+	public void setMutiSelArr(JSONArray mutiSelArr) {
+		MutiSelArr = mutiSelArr;
+	}
+
+	public JSONArray getGroupArr() {
+		return groupArr;
+	}
+
+	public void setGroupArr(JSONArray groupArr) {
+		this.groupArr = groupArr;
+	}
+
+	public int getCurGroup() {
+		return curGroupId;
+	}
+
+	public void setCurGroupId(int curGroupId) {
+		this.curGroupId = curGroupId;
+	}
+
+	public String getHuizong() {
+		return huizong;
+	}
+
+	public void setHuizong(String huizong) {
+		this.huizong = huizong;
+	}
 
 	public AchievementItem(JSONObject jo) {
 		templateName = jo.optString("适用模板");
@@ -48,6 +84,16 @@ public class AchievementItem {
 		page=jo.optInt("page");
 		allnum=jo.optInt("allnum");
 		filterArr=jo.optJSONArray("过滤条件");
+		MutiSelArr=jo.optJSONArray("多选按钮");
+		groupArr=jo.optJSONArray("显示分组");
+		if(filterArr==null)
+			filterArr=new JSONArray();
+		if(MutiSelArr==null)
+			MutiSelArr=new JSONArray();
+		if(groupArr==null)
+			groupArr=new JSONArray();
+		curGroupId=jo.optInt("当前分组");
+		huizong=jo.optString("汇总");
 	}
 	public int getPage() {
 		return page;
@@ -94,6 +140,34 @@ public class AchievementItem {
 	    private String templateGrade;
 		private JSONObject extraMenu;
 		private JSONObject iconLink;
+		private String thirdline;
+		private boolean ifChecked;
+		private int progress;
+
+		public String getThirdline() {
+			return thirdline;
+		}
+
+		public void setThirdline(String thirdline) {
+			this.thirdline = thirdline;
+		}
+
+		public boolean isIfChecked() {
+			return ifChecked;
+		}
+
+		public void setIfChecked(boolean ifChecked) {
+			this.ifChecked = ifChecked;
+		}
+
+		public int getProgress() {
+			return progress;
+		}
+
+		public void setProgress(int progress) {
+			this.progress = progress;
+		}
+
 		public String getTemplateName() {
 			return templateName;
 		}
@@ -126,6 +200,11 @@ public class AchievementItem {
 			templateGrade = jo.optString("模板级别");
 			extraMenu= jo.optJSONObject("附加菜单");
 			iconLink= jo.optJSONObject("图标链接");
+			thirdline = jo.optString("第三行");
+			if(jo.optString("进度条").length()>0)
+				progress=jo.optInt("进度条");
+			else
+				progress=-1;
 		}
 		public JSONObject getExtraMenu() {
 			return extraMenu;

@@ -25,14 +25,14 @@
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/logout_button_height" >
 
-        <android.support.v4.view.ViewPager
+        <androidx.viewpager.widget.ViewPager
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/chat_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".CommunicationActivity" >
-        </android.support.v4.view.ViewPager>
+        </androidx.viewpager.widget.ViewPager>
 
         <LinearLayout
             android:id="@+id/search_choose"

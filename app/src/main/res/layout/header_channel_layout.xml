@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.ruanyun.campus.teacher.stickyheader.FixedGridView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gv_channel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:horizontalSpacing="10dp"
+    android:numColumns="3"
+    android:padding="20dp"
+    android:scrollbars="none"
+    android:stretchMode="columnWidth"
+    android:verticalSpacing="10dp" />

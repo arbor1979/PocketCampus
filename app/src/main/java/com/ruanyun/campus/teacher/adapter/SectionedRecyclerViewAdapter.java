@@ -15,8 +15,9 @@
  */
 package com.ruanyun.campus.teacher.adapter;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * An extension to RecyclerView.Adapter to provide sections with headers and footers to a

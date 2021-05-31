@@ -65,14 +65,11 @@ import android.os.RemoteException;
 import android.provider.Browser;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
+
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -82,7 +79,12 @@ import android.widget.ExpandableListView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.ruanyun.campus.teacher.BuildConfig;
 import com.ruanyun.campus.teacher.R;
@@ -295,19 +297,25 @@ public class AppUtility {
 	 *            message content
 	 */
 	public static void showToastMsg(Context context, String msg) {
-		Toast toast=Toast.makeText(context, msg, Toast.LENGTH_SHORT);
-		toast.setGravity(Gravity.CENTER, 0, 0);
-		toast.show();
+		showDefaultToast(context, msg,0);
 	}
 	public static void showToastMsg(Context context, String msg,int duration) {
-		if(context!=null && msg!=null)
-		{
-			Toast toast=Toast.makeText(context, msg, duration);
+		showDefaultToast(context, msg,1);
+	}
+	public  static void  showDefaultToast(Context context, String msg,int duration)
+	{
+		if(context!=null && msg!=null) {
+			View toastRoot = LayoutInflater.from(context).inflate(R.layout.my_toast, null);
+			Toast toast = new Toast(context);
+			toast.setDuration(duration);
+			toast.setView(toastRoot);
+			TextView tv = (TextView) toastRoot.findViewById(R.id.TextViewInfo);
+			tv.setText(msg);
 			toast.setGravity(Gravity.CENTER, 0, 0);
 			toast.show();
+
 		}
 	}
-
 	/**
 	 * 生成UUID
 	 *
@@ -1390,5 +1398,9 @@ public class AppUtility {
 			}
 		}
 
+	}
+	public static int dip2px(Context context, float dipValue) {
+		final float scale = context.getResources().getDisplayMetrics().density;
+		return (int) (dipValue * scale + 0.5f);
 	}
 }

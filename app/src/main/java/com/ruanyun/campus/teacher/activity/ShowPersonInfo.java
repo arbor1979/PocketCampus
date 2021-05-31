@@ -33,9 +33,9 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import android.text.InputType;
 import android.text.util.Linkify;
 import android.util.Log;
@@ -244,8 +244,12 @@ public class ShowPersonInfo extends Activity {
 		list = new ArrayList<Map<String, Object>>();
 		if(memberInfo.getUserType().equals("老师"))
 		{
-			
 			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("title", "主要角色");
+			map.put("info", memberInfo.getVirtualClass());
+			list.add(map);
+
+			map = new HashMap<String, Object>();
 			map.put("title", "性别");
 			map.put("info", memberInfo.getGender());
 			list.add(map);

@@ -17,7 +17,9 @@ import android.view.ViewConfiguration;
 import android.view.ViewParent;
 import android.widget.CheckBox;
 
-public class SwitchButton extends android.support.v7.widget.AppCompatCheckBox {
+import androidx.appcompat.widget.AppCompatCheckBox;
+
+public class SwitchButton extends AppCompatCheckBox {
     private Paint mPaint;
 
     private ViewParent mParent;

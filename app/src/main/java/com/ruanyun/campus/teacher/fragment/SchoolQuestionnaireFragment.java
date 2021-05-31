@@ -1,21 +1,11 @@
 package com.ruanyun.campus.teacher.fragment;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +17,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
 
 import com.androidquery.AQuery;
 import com.ruanyun.campus.teacher.R;
@@ -41,6 +33,15 @@ import com.ruanyun.campus.teacher.entity.QuestionnaireItem.Question;
 import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.Base64;
 import com.ruanyun.campus.teacher.util.PrefUtility;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 调查问卷

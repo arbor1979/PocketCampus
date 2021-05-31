@@ -32,10 +32,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
+
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,6 +48,11 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.FragmentActivity;
 
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.ruanyun.campus.teacher.BuildConfig;
@@ -80,7 +82,7 @@ import com.ruanyun.campus.teacher.widget.MultiColumnListView;
 import com.ruanyun.campus.teacher.widget.SegmentedGroup;
 import com.ruanyun.campus.teacher.widget.SwipeRefreshView;
 
-public class AlbumFlowActivity extends FragmentActivity  implements RadioGroup.OnCheckedChangeListener,SwipeRefreshView.OnRefreshListener,SwipeRefreshView.OnLoadListener{
+public class AlbumFlowActivity extends FragmentActivity implements RadioGroup.OnCheckedChangeListener,SwipeRefreshView.OnRefreshListener,SwipeRefreshView.OnLoadListener{
 
 	public static LinearLayout layout_menu;
 	public static final int REQUEST_CODE_TAKE_PICTURE = 2;// //设置图片操作的标志

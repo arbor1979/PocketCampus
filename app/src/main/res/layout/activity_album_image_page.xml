@@ -14,12 +14,12 @@
         android:layout_height="match_parent"
         android:layout_weight="1" >
 
-        <android.support.v4.view.ViewPager
+        <androidx.viewpager.widget.ViewPager
             android:id="@+id/stuinfo_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1" >
-        </android.support.v4.view.ViewPager>
+        </androidx.viewpager.widget.ViewPager>
 
         <ProgressBar
             android:id="@+id/progressBar2"
@@ -127,7 +127,7 @@
             android:background="@drawable/express_item"
             android:visibility="gone" >
 
-            <android.support.v4.view.ViewPager
+            <androidx.viewpager.widget.ViewPager
                 android:id="@+id/tabpager"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"

@@ -1,13 +1,14 @@
 package com.ruanyun.campus.teacher.widget;
 
 import android.content.Context;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.AbsListView;
 import android.widget.ListView;
+
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.huewu.pla.lib.PLA_AbsListView;
 import com.ruanyun.campus.teacher.R;

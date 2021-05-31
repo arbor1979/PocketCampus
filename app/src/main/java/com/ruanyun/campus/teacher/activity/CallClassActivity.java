@@ -1,18 +1,5 @@
 package com.ruanyun.campus.teacher.activity;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
@@ -60,6 +47,19 @@ import com.ruanyun.campus.teacher.util.CharacterParser;
 import com.ruanyun.campus.teacher.util.DialogUtility;
 import com.ruanyun.campus.teacher.util.PrefUtility;
 import com.ruanyun.campus.teacher.widget.SegmentedGroup;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * 
@@ -184,6 +184,9 @@ public class CallClassActivity extends Activity {
 	}
 	private void reloadStudentKaoqin()
 	{
+		mLoadingDialog = DialogUtility.createLoadingDialog(CallClassActivity.this,
+				"获取考勤状态...");
+		mLoadingDialog.show();
 		long datatime = System.currentTimeMillis();
 		String checkCode = PrefUtility.get(Constants.PREF_CHECK_CODE, "");
 		JSONObject jo = new JSONObject();
@@ -853,8 +856,7 @@ public class CallClassActivity extends Activity {
 	 * 功能描述:加工需要修改的考勤数据
 	 * 
 	 * @author yanzy 2013-12-3 下午2:51:37
-	 * 
-	 * @param subjectIdList
+	 *
 	 * @throws JSONException
 	 */
 	public String getChangekaoqininfo(TeacherInfo teacherInfo)
@@ -957,6 +959,9 @@ public class CallClassActivity extends Activity {
 				AppUtility.showErrorToast(CallClassActivity.this, msg.obj.toString());
 				break;
 			case 0:
+				if (mLoadingDialog != null) {
+					mLoadingDialog.dismiss();
+				}
 				bundle = (Bundle) msg.obj;
 				String action = bundle.getString("action");
 				String result = bundle.getString("result");
@@ -973,15 +978,15 @@ public class CallClassActivity extends Activity {
 				try {
 					JSONObject jo = new JSONObject(resultStr);
 					if ("1".equals(jo.optString("成功"))) {
-						if (mLoadingDialog != null) {
-							mLoadingDialog.dismiss();
-						}
-						DialogUtility.showMsg(CallClassActivity.this, "保存成功！");
+						AppUtility.showToastMsg(CallClassActivity.this, "保存成功！");
 						Log.d(TAG, "----------------->结束保存数据："
 								+ new Date());
 						TipInputCourseContent();
 					} else {
-						closeDialog();
+						if(jo.optString("结果").length()>0)
+							AppUtility.showToastMsg(CallClassActivity.this, jo.optString("结果"),1);
+						else
+							closeDialog();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -997,6 +1002,8 @@ public class CallClassActivity extends Activity {
 				*/
 				break;
 			case 2:
+				if(mLoadingDialog!=null)
+					mLoadingDialog.dismiss();
 				result = msg.obj.toString();
 				resultStr = "";
 				if (AppUtility.isNotEmpty(result)) {
@@ -1078,6 +1085,6 @@ public class CallClassActivity extends Activity {
 		if (mLoadingDialog != null) {
 			mLoadingDialog.dismiss();
 		}
-		DialogUtility.showMsg(CallClassActivity.this, "保存失败！");
+		AppUtility.showToastMsg(CallClassActivity.this, "保存失败！");
 	}
 }

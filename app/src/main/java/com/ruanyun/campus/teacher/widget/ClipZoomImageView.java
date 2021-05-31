@@ -17,13 +17,15 @@ import android.view.View.OnTouchListener;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 
+import androidx.appcompat.widget.AppCompatImageView;
+
 /**
  * http://blog.csdn.net/lmj623565791/article/details/39761281
  * 
  * @author zhy
  * 
  */
-public class ClipZoomImageView extends android.support.v7.widget.AppCompatImageView implements
+public class ClipZoomImageView extends AppCompatImageView implements
 		OnScaleGestureListener, OnTouchListener,
 		ViewTreeObserver.OnGlobalLayoutListener
 

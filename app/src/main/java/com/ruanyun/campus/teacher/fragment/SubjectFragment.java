@@ -1,23 +1,10 @@
 package com.ruanyun.campus.teacher.fragment;
 
-import java.io.Serializable;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.AbsoluteSizeSpan;
@@ -35,9 +22,10 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.stmt.PreparedQuery;
 import com.ruanyun.campus.teacher.CampusApplication;
 import com.ruanyun.campus.teacher.R;
 import com.ruanyun.campus.teacher.activity.ClassDetailActivity;
@@ -51,6 +39,16 @@ import com.ruanyun.campus.teacher.lib.TableFixHeaders;
 import com.ruanyun.campus.teacher.util.AppUtility;
 import com.ruanyun.campus.teacher.util.DateHelper;
 import com.ruanyun.campus.teacher.util.PrefUtility;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SubjectFragment extends Fragment {
 	public Object[][] table = new Object[13][7];
@@ -131,7 +129,7 @@ public class SubjectFragment extends Fragment {
 	public void initTable() {
 		colorList.clear();
 		tableFixHeaders.removeAllViews();
-		table = new Object[13][7];
+		table = new Object[14][7];
 		Log.d(TAG, "----------------refresh-----------:running");
 		try {
 			getSchedulInfo();
@@ -394,10 +392,10 @@ public class SubjectFragment extends Fragment {
 					bn.setText(teacherInfoStr);
 					TeacherInfo lastInfo = null;
 					TeacherInfo nextInfo = null;
-					if (row - 1 >= 0 && row - 1 <= table.length) {
+					if (row - 1 >= 0 && row - 1 < table.length) {
 						lastInfo = (TeacherInfo) table[row - 1][column];
 					}
-					if (row + 1 > 0 && row + 1 <= table.length) {
+					if (row + 1 > 0 && row + 1 < table.length) {
 						nextInfo = (TeacherInfo) table[row + 1][column];
 					}
 					if (nextInfo == null && lastInfo == null) {
@@ -548,7 +546,7 @@ public class SubjectFragment extends Fragment {
 		@Override
 		public int getHeight(int row) {
 			if (row == -1 /* || row == 3 || row == 6 */) {
-				return Math.round(35 * density);
+				return Math.round(40 * density);
 			} else {
 				return Math.round(display.getHeight() / 11);
 			}

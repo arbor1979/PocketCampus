@@ -1,22 +1,5 @@
 package com.ruanyun.campus.teacher.util;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.BufferedHttpEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-
-
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.assist.ImageLoadingListener;
-import com.ruanyun.campus.teacher.R;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -31,6 +14,19 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+import com.ruanyun.campus.teacher.R;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.entity.BufferedHttpEntity;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 
 public class MyImageGetter implements ImageGetter {
@@ -155,9 +151,11 @@ public class MyImageGetter implements ImageGetter {
 			InputStream in = null;
 			try {
 				// 获取网络图片
-				HttpGet http = new HttpGet(url);
-				HttpClient client = new DefaultHttpClient();
-				HttpResponse response = client.execute(http);
+				//HttpGet http = new HttpGet(url);
+				//HttpClient client = new DefaultHttpClient();
+				//HttpResponse response = client.execute(http);
+				DataLoader dl = new DataLoader();
+				HttpResponse response = dl.secureLoadData(url);
 				BufferedHttpEntity bufferedHttpEntity = new BufferedHttpEntity(
 						response.getEntity());
 				in = bufferedHttpEntity.getContent();

@@ -36,7 +36,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Gravity;

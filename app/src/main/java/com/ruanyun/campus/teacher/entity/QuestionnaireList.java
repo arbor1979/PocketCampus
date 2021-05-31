@@ -1,15 +1,14 @@
 package com.ruanyun.campus.teacher.entity;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -155,6 +154,54 @@ public class QuestionnaireList implements Serializable {
 		private String validate;
 		private boolean ifRead;
 		private String imageSource;
+		private String backgroundcolor;
+		private String callback;
+		private boolean ifHide;
+		private String remardColor;
+
+		public String getRemardColor() {
+			return remardColor;
+		}
+
+		public void setRemardColor(String remardColor) {
+			this.remardColor = remardColor;
+		}
+
+		public void setOptionsJson(List<JSONObject> optionsJson) {
+			this.optionsJson = optionsJson;
+		}
+
+		public void setIfRead(boolean ifRead) {
+			this.ifRead = ifRead;
+		}
+
+		public void setImageSource(String imageSource) {
+			this.imageSource = imageSource;
+		}
+
+		public String getBackgroundcolor() {
+			return backgroundcolor;
+		}
+
+		public void setBackgroundcolor(String backgroundcolor) {
+			this.backgroundcolor = backgroundcolor;
+		}
+
+		public String getCallback() {
+			return callback;
+		}
+
+		public void setCallback(String callback) {
+			this.callback = callback;
+		}
+
+		public boolean isIfHide() {
+			return ifHide;
+		}
+
+		public void setIfHide(boolean ifHide) {
+			this.ifHide = ifHide;
+		}
 
 		public String getImageSource() {
 			return imageSource;
@@ -263,6 +310,10 @@ public class QuestionnaireList implements Serializable {
 			else
 				ifRead=false;
 			imageSource=jo.optString("图片来源");
+			callback=jo.optString("回调");
+			backgroundcolor=jo.optString("背景色");
+			ifHide=jo.optBoolean("隐藏");
+			remardColor=jo.optString("备注颜色");
 		}
 
 		public boolean isIfRead() {

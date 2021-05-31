@@ -112,7 +112,7 @@ public class ContactsMember implements Serializable{
 		
 		if (userNumber.indexOf("老师") > -1) {
 			studentID = jo.optString("用户名");
-			virtualClass = jo.optString("虚拟班级");
+			virtualClass = jo.optString("主要角色名称");
 			seatNumber = jo.optString("排序号");
 			className = jo.optString("部门");
 			stuPhone = jo.optString("手机");
@@ -152,7 +152,7 @@ public class ContactsMember implements Serializable{
 		loginTime=String.valueOf(jo.get("登录时间")==null?"":jo.get("登录时间"));
 		if (userNumber.indexOf("老师") > -1) {
 			studentID = String.valueOf(jo.get("用户名"));
-			virtualClass = String.valueOf(jo.get("虚拟班级"));
+			virtualClass = String.valueOf(jo.get("主要角色名称"));
 			seatNumber = String.valueOf(jo.get("排序号"));
 			className = String.valueOf(jo.get("部门"));
 			stuPhone = String.valueOf(jo.get("手机"));

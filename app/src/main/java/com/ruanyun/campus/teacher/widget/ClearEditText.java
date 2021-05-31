@@ -15,7 +15,7 @@ import android.view.animation.CycleInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.EditText;
 
-public class ClearEditText extends android.support.v7.widget.AppCompatEditText implements
+public class ClearEditText extends androidx.appcompat.widget.AppCompatEditText implements
         OnFocusChangeListener, TextWatcher { 
 	
     private Drawable mClearDrawable; 

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.ruanyun.campus.teacher.fragment.SchoolAchievementFragment;
 import com.ruanyun.campus.teacher.fragment.SchoolBlogFragment;
+import com.ruanyun.campus.teacher.fragment.SchoolGroupListFragment;
 import com.ruanyun.campus.teacher.fragment.SchoolNoticeFragment;
 import com.ruanyun.campus.teacher.fragment.SchoolQuestionnaireFragment;
 import com.ruanyun.campus.teacher.fragment.SchoolWorkAttendanceFragment;
@@ -12,8 +13,8 @@ import com.ruanyun.campus.teacher.fragment.SchoolWorkAttendanceFragment;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -43,7 +44,7 @@ public class SchoolActivity extends FragmentActivity {
 		TemplateNameS.add("成绩");
 		TemplateNameS.add("调查问卷");
 		TemplateNameS.add("博客");
-		
+		TemplateNameS.add("分组列表");
 	}
 
 	@Override
@@ -80,9 +81,13 @@ public class SchoolActivity extends FragmentActivity {
 		case 3:
 			fragment = SchoolQuestionnaireFragment.newInstance(title,interfaceName);
 			break;
-			case 4:
-				fragment = SchoolBlogFragment.newInstance(title,interfaceName);
-				break;
+		case 4:
+			fragment = SchoolBlogFragment.newInstance(title,interfaceName);
+			break;
+		case 5:
+			com.ruanyun.campus.teacher.stickyheader.util.StatusBarUtil.setStatusBarTranslucent(this, true);
+			fragment = SchoolGroupListFragment.newInstance(title,interfaceName);
+			break;
 		}
 		if(getSupportFragmentManager().findFragmentById(
 				android.R.id.content)!=null)

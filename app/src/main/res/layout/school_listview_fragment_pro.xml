@@ -23,19 +23,82 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:visibility="visible">
+            android:layout_marginBottom="20dp">
+            <com.ruanyun.campus.teacher.widget.SegmentedGroup
+                android:id="@+id/segmentedGroup2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="5dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+            </com.ruanyun.campus.teacher.widget.SegmentedGroup>
+
 
             <com.ruanyun.campus.teacher.widget.XListView
                 android:id="@+id/my_listview"
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent" />
+                android:layout_weight="1"
+                android:layout_height="match_parent" />
 
-            <include
-                layout="@layout/list_empty"
-                tools:visibility="invisible" />
+            <include layout="@layout/list_empty" android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tv_huizong1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/head_gray"
+                android:padding="5dp"
+                android:text="汇总:"
+                android:textSize="@dimen/text_size_micro"
+                android:textStyle="bold"
+                android:visibility="gone"/>
+
+            <LinearLayout
+                android:id="@+id/ll_multisel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+
+                android:orientation="horizontal"
+                android:padding="5dp"
+                android:visibility="gone" >
+
+                <CheckBox
+                    android:id="@+id/cb_selAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="5dp"
+                    android:paddingEnd="5dp"
+                    android:text="全选" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:orientation="horizontal" />
+
+            </LinearLayout>
         </LinearLayout>
 
-        <android.support.design.widget.FloatingActionButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="150dp"
+            android:src="@drawable/multiselwhite"
+            app:backgroundTint="#cc0366cb"
+            app:elevation="0dp"
+            android:visibility="gone"
+            app:rippleColor="#ff0366cb"
+            app:fabSize="mini"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

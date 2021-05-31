@@ -26,7 +26,7 @@ public class CampusAPI {
 	public static String privateUrl = "http://laoshi.dandian.net/yingxin/private.html"; // 隐私协议
 	public static String DOWNLOAD_DONE = "http://laoshi.dandian.net/KeJianCounter.php";// 提交下载完成数据
 	public static String DOWNLOAD_DELETE = "http://laoshi.dandian.net/KeJianDelete.php";// 提交删除已下载文件数据
-
+	public static String resetpwdurl = "https://laoshi.dandian.net/smssdk/resetpwd.php";
 	public static void request(final String url, final CampusParameters params,
 			final String HTTP_METHOD, RequestListener listener) {
 		String domain=PrefUtility.get(Constants.PREF_SCHOOL_DOMAIN,"");

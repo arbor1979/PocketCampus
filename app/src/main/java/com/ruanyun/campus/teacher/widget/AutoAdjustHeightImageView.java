@@ -5,10 +5,12 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;  
 import android.graphics.drawable.Drawable;  
 import android.util.AttributeSet;  
-import android.widget.ImageView;  
-  
+import android.widget.ImageView;
 
-public class AutoAdjustHeightImageView extends android.support.v7.widget.AppCompatImageView {
+import androidx.appcompat.widget.AppCompatImageView;
+
+
+public class AutoAdjustHeightImageView extends AppCompatImageView {
 	 private int imageWidth;  
 	    private int imageHeight;  
 	    public AutoAdjustHeightImageView(Context context, AttributeSet attrs) {  
